@@ -1,0 +1,1 @@
+Input an image, this should output mouse drag.
