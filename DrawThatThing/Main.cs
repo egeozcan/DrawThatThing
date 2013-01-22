@@ -5,6 +5,8 @@ using System.Windows.Forms;
 
 namespace DrawThatThing
 {
+	using System.Collections.Generic;
+	using System.Drawing;
 	using System.Globalization;
 	using System.Runtime.InteropServices;
 	using System.Threading;
@@ -61,7 +63,8 @@ namespace DrawThatThing
 						coordinateString = this.txtActions.Text,
 						xStart = int.Parse(this.txtMousePositionX.Text),
 						yStart = int.Parse(this.txtMousePositionY.Text),
-						expand = intExpand.Value
+						expand = intExpand.Value,
+						sleepBetween = (int)intWaitBetween.Value
 					});
 		}
 
@@ -71,6 +74,7 @@ namespace DrawThatThing
 			public int yStart;
 			public decimal expand;
 			public string coordinateString;
+			public int sleepBetween;
 		}
 
 		private void workerClickAround_DoWork(object sender, DoWorkEventArgs e)
@@ -78,32 +82,53 @@ namespace DrawThatThing
 			var args = (ClickerArguments)e.Argument;
 			var xStart = args.xStart;
 			var yStart = args.yStart;
-			foreach (var coordinates in
-				args.coordinateString.Split('\n').Select(line => line.Split(' ')).TakeWhile(
-					coordinates => !this.workerClickAround.CancellationPending))
+			var sleepBetween = args.sleepBetween;
+			var coordinates = GetCoordinates(args.coordinateString);
+			foreach (var coordinate in coordinates.TakeWhile(coordinate => !this.workerClickAround.CancellationPending))
 			{
 				try
 				{
 					MouseOperations.SetCursorPosition(
-						(int)(xStart + args.expand * int.Parse(coordinates[1])),
-						(int)(yStart + args.expand * int.Parse(coordinates[0])));
+						(int)(xStart + args.expand * coordinate[1]),
+						(int)(yStart + args.expand * coordinate[0]));
 					MouseOperations.MouseEvent(MouseOperations.MouseEventFlags.LeftDown);
-					if (coordinates.Length == 4)
+					if (coordinate.Length == 4)
 					{
-						Thread.Sleep(10);
+						Thread.Sleep(sleepBetween);
 						MouseOperations.SetCursorPosition(
-							(int)(xStart + args.expand * int.Parse(coordinates[3])),
-							(int)(yStart + args.expand * int.Parse(coordinates[2])));
-						Thread.Sleep(10);
+							(int)(xStart + args.expand * coordinate[3]),
+							(int)(yStart + args.expand * coordinate[2]));
 					}
-					MouseOperations.MouseEvent(MouseOperations.MouseEventFlags.LeftUp);
 					Thread.Sleep(10);
+					MouseOperations.MouseEvent(MouseOperations.MouseEventFlags.LeftUp);
+					Thread.Sleep(sleepBetween);
 				}
 				catch (Exception)
 				{
 					break;
 				}
 			}
+		}
+		private static IEnumerable<int[]> GetCoordinates(String coordinateString)
+		{
+			if (String.IsNullOrEmpty(coordinateString))
+			{
+				return new int[][] { };
+			}
+			try
+			{
+				return coordinateString
+					.Split('\n')
+					.AsParallel()
+					.Select(line => line.Split(' ').AsParallel().Select(int.Parse).ToArray())
+					.ToArray();
+			}
+			catch (Exception)
+			{
+				MessageBox.Show("An error occured when parsing.");
+				return new int[][] { };
+			}
+			
 		}
 
 		private void btnLoadImage_Click(object sender, EventArgs e)
@@ -115,7 +140,16 @@ namespace DrawThatThing
 			}
 			var reader = new BitmapReader();
 			reader.Read(this.dlgImportImage.FileName);
-			var args = new BitmapReader.PixelAcceptanceArgs
+			var args = this.CreateAcceptanceArgs();
+			var filteredPixels = reader.getFilteredPixels(args);
+			this.txtActions.Text = String.Join(Environment.NewLine, filteredPixels.Select(x => x.ToString()));
+			dlgImportImage.FileName = null;
+			this.updatePreview();
+		}
+
+		private BitmapReader.PixelAcceptanceArgs CreateAcceptanceArgs()
+		{
+			return new BitmapReader.PixelAcceptanceArgs
 				{
 					RedEnabled = this.chkRedActive.Checked,
 					RedMax = (int)this.intRedMax.Value,
@@ -128,8 +162,32 @@ namespace DrawThatThing
 					GreenMin = (int)this.intGreenMin.Value,
 					MaxLight = (int)this.intMaxLightness.Value
 				};
-			this.txtActions.Text = reader.getNonWhite(args);
-			dlgImportImage.FileName = null;
+		}
+
+		private void btnLoadBitmap_Click(object sender, EventArgs e)
+		{
+			this.updatePreview();
+		}
+
+		private void updatePreview()
+		{
+			var bitmap = new Bitmap(pctPreview.Width, pctPreview.Height);
+			Pen blackPen = new Pen(Color.Black, 3);
+			using (var graphics = Graphics.FromImage(bitmap))
+			{
+				foreach (var c in GetCoordinates(txtActions.Text))
+				{
+					if (c.Length == 4)
+					{
+						graphics.DrawLine(blackPen, c[0], c[1], c[2], c[3]);
+					}
+					else
+					{
+						graphics.DrawLine(blackPen, c[0], c[1], c[0], c[1]);
+					}
+				}
+			}
+			pctPreview.Image = bitmap;
 		}
 	}
 }

@@ -1,9 +1,16 @@
 ﻿using System;
 using System.Text;
 using System.Drawing;
+//using Emgu.CV;
 
 namespace LowLevelTools
 {
+	using System.Collections.Generic;
+	using System.Runtime.InteropServices;
+
+	//using Emgu.CV.CvEnum;
+	//using Emgu.CV.Structure;
+
 	public class BitmapReader
 	{
 		private string _bitmapPath;
@@ -12,6 +19,31 @@ namespace LowLevelTools
 		{
 			_bitmapPath = path;
 		}
+
+		//public MouseAction[] getAbstractLines()
+		//{
+		//    if (String.IsNullOrEmpty(_bitmapPath))
+		//    {
+		//        return null;
+		//    }
+		//    var image = new Image<Bgr, byte>(_bitmapPath);
+		//    var memStorage = CvInvoke.cvCreateMemStorage(0);
+		//    var lines = CvInvoke.cvHoughLines2(
+		//        image, memStorage, HOUGH_TYPE.CV_HOUGH_PROBABILISTIC, 1.0, 1.0, 10, 5, 3.0);
+		//    MCvSeq lineSeq = (MCvSeq)Marshal.PtrToStructure(lines, typeof(MCvSeq));
+		//    MouseAction[] mouseActions = new MouseAction[lineSeq.total];
+		//    for (int i = 0; i < lineSeq.total; i++)
+		//    {
+		//        int[] val = new int[4];
+		//        Marshal.Copy(CvInvoke.cvGetSeqElem(lines, i), val, 0, 4);
+		//        mouseActions[i] = new MouseAction();
+		//        mouseActions[i].setDrag(val[0], val[1], val[2], val[3]);
+		//        //mouseActions[i] = new LineSegment2D(
+		//        //    new Point(val[0], val[1]),
+		//        //    new Point(val[2], val[3]));
+		//    }
+		//    return mouseActions;
+		//}
 
 		public struct PixelAcceptanceArgs
 		{
@@ -27,39 +59,39 @@ namespace LowLevelTools
 			public int MaxLight;
 		}
 
-		public string getNonWhite(PixelAcceptanceArgs args)
+		public MouseAction[] getFilteredPixels(PixelAcceptanceArgs args)
 		{
 			if (String.IsNullOrEmpty(_bitmapPath))
 			{
-				return String.Empty;
+				return null;
 			}
-			using (var _bitmap = new Bitmap(_bitmapPath))
+			using (var bitmap = new Bitmap(_bitmapPath))
 			{
-				Rectangle rect = new Rectangle(0, 0, _bitmap.Width, _bitmap.Height);
+				Rectangle rect = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
 
 				System.Drawing.Imaging.BitmapData bmpData =
-					_bitmap.LockBits(rect,
+					bitmap.LockBits(rect,
 						System.Drawing.Imaging.ImageLockMode.ReadOnly,
-						_bitmap.PixelFormat);
+						bitmap.PixelFormat);
 
 				IntPtr ptr = bmpData.Scan0;
 
-				int bytes = bmpData.Stride * _bitmap.Height;
+				int bytes = bmpData.Stride * bitmap.Height;
 				byte[] rgbValues = new byte[bytes];
 
-				System.Runtime.InteropServices.Marshal.Copy(ptr, rgbValues, 0, bytes);
+				Marshal.Copy(ptr, rgbValues, 0, bytes);
 
 				int red;
 				int green;
 				int blue;
-				var output = new StringBuilder();
+				var output = new List<MouseAction>();
 				// y1 x1 y2 x2
 				int[] lc = new[] { 0, 0, 0, 0 };
 
-				for (int x = 0; x < _bitmap.Width; x++)
+				for (int x = 0; x < bitmap.Width; x++)
 				{
 					bool lineInProgress = false;
-					for (int y = 0; y < _bitmap.Height; y++)
+					for (int y = 0; y < bitmap.Height; y++)
 					{
 						//See the link above for an explanation 
 						//of this calculation (assumes 24bppRgb format)
@@ -92,21 +124,23 @@ namespace LowLevelTools
 						noteCoordinates(lc, output);
 					}
 				}
-				_bitmap.UnlockBits(bmpData);
-				return output.ToString();
+				bitmap.UnlockBits(bmpData);
+				return output.ToArray();
 			}
 		}
 
-		private static void noteCoordinates(int[] lc, StringBuilder output)
+		private static void noteCoordinates(int[] lc, List<MouseAction> output)
 		{
+			var action = new MouseAction();
 			if (lc[1] != lc[3] || lc[0] != lc[2])
 			{
-				output.AppendLine(String.Format("{0} {1} {2} {3}", lc[0], lc[1], lc[2], lc[3]));
+				action.setDrag(lc[0], lc[1], lc[2], lc[3]);
 			}
 			else
 			{
-				output.AppendLine(String.Format("{0} {1}", lc[0], lc[1]));
+				action.setClick(lc[0], lc[1]);
 			}
+			output.Add(action);
 		}
 
 		private static bool pixelFits(int red, int green, int blue, PixelAcceptanceArgs args)

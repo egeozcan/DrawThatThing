@@ -56,6 +56,12 @@
 			this.label6 = new System.Windows.Forms.Label();
 			this.label7 = new System.Windows.Forms.Label();
 			this.intMaxLightness = new System.Windows.Forms.NumericUpDown();
+			this.pctPreview = new System.Windows.Forms.PictureBox();
+			this.btnLoadBitmap = new System.Windows.Forms.Button();
+			this.label8 = new System.Windows.Forms.Label();
+			this.intWaitBetween = new System.Windows.Forms.NumericUpDown();
+			this.label9 = new System.Windows.Forms.Label();
+			this.label10 = new System.Windows.Forms.Label();
 			((System.ComponentModel.ISupportInitialize)(this.intExpand)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.intRedMin)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.intRedMax)).BeginInit();
@@ -64,11 +70,13 @@
 			((System.ComponentModel.ISupportInitialize)(this.intBlueMax)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.intBlueMin)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.intMaxLightness)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.pctPreview)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.intWaitBetween)).BeginInit();
 			this.SuspendLayout();
 			// 
 			// txtMousePositionY
 			// 
-			this.txtMousePositionY.Location = new System.Drawing.Point(289, 12);
+			this.txtMousePositionY.Location = new System.Drawing.Point(704, 20);
 			this.txtMousePositionY.Name = "txtMousePositionY";
 			this.txtMousePositionY.Size = new System.Drawing.Size(79, 20);
 			this.txtMousePositionY.TabIndex = 0;
@@ -76,7 +84,7 @@
 			// 
 			// txtMousePositionX
 			// 
-			this.txtMousePositionX.Location = new System.Drawing.Point(289, 38);
+			this.txtMousePositionX.Location = new System.Drawing.Point(704, 46);
 			this.txtMousePositionX.Name = "txtMousePositionX";
 			this.txtMousePositionX.Size = new System.Drawing.Size(79, 20);
 			this.txtMousePositionX.TabIndex = 1;
@@ -85,7 +93,7 @@
 			// lblX
 			// 
 			this.lblX.AutoSize = true;
-			this.lblX.Location = new System.Drawing.Point(269, 41);
+			this.lblX.Location = new System.Drawing.Point(684, 49);
 			this.lblX.Name = "lblX";
 			this.lblX.Size = new System.Drawing.Size(14, 13);
 			this.lblX.TabIndex = 2;
@@ -94,7 +102,7 @@
 			// lblY
 			// 
 			this.lblY.AutoSize = true;
-			this.lblY.Location = new System.Drawing.Point(268, 15);
+			this.lblY.Location = new System.Drawing.Point(683, 23);
 			this.lblY.Name = "lblY";
 			this.lblY.Size = new System.Drawing.Size(14, 13);
 			this.lblY.TabIndex = 2;
@@ -102,7 +110,7 @@
 			// 
 			// btnGetPosition
 			// 
-			this.btnGetPosition.Location = new System.Drawing.Point(272, 64);
+			this.btnGetPosition.Location = new System.Drawing.Point(687, 72);
 			this.btnGetPosition.Name = "btnGetPosition";
 			this.btnGetPosition.Size = new System.Drawing.Size(96, 44);
 			this.btnGetPosition.TabIndex = 3;
@@ -112,22 +120,27 @@
 			// 
 			// txtActions
 			// 
-			this.txtActions.Location = new System.Drawing.Point(198, 12);
+			this.txtActions.AcceptsReturn = true;
+			this.txtActions.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.txtActions.Location = new System.Drawing.Point(7, 145);
+			this.txtActions.MaxLength = 600000;
 			this.txtActions.Multiline = true;
 			this.txtActions.Name = "txtActions";
-			this.txtActions.Size = new System.Drawing.Size(64, 394);
+			this.txtActions.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+			this.txtActions.Size = new System.Drawing.Size(317, 236);
 			this.txtActions.TabIndex = 4;
+			this.txtActions.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
 			// 
 			// btnPlay
 			// 
 			this.btnPlay.BackColor = System.Drawing.Color.Green;
 			this.btnPlay.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
 			this.btnPlay.ForeColor = System.Drawing.Color.White;
-			this.btnPlay.Location = new System.Drawing.Point(272, 362);
+			this.btnPlay.Location = new System.Drawing.Point(687, 371);
 			this.btnPlay.Name = "btnPlay";
-			this.btnPlay.Size = new System.Drawing.Size(96, 44);
+			this.btnPlay.Size = new System.Drawing.Size(96, 43);
 			this.btnPlay.TabIndex = 3;
-			this.btnPlay.Text = "PLAY";
+			this.btnPlay.Text = "PLAY >>";
 			this.btnPlay.UseVisualStyleBackColor = false;
 			this.btnPlay.Click += new System.EventHandler(this.btnPlay_Click);
 			// 
@@ -141,11 +154,11 @@
 			this.btnLoadImage.BackColor = System.Drawing.Color.Yellow;
 			this.btnLoadImage.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
 			this.btnLoadImage.ForeColor = System.Drawing.Color.Black;
-			this.btnLoadImage.Location = new System.Drawing.Point(7, 152);
+			this.btnLoadImage.Location = new System.Drawing.Point(223, 102);
 			this.btnLoadImage.Name = "btnLoadImage";
-			this.btnLoadImage.Size = new System.Drawing.Size(185, 44);
+			this.btnLoadImage.Size = new System.Drawing.Size(101, 37);
 			this.btnLoadImage.TabIndex = 3;
-			this.btnLoadImage.Text = "LOAD";
+			this.btnLoadImage.Text = "Parse Image";
 			this.btnLoadImage.UseVisualStyleBackColor = false;
 			this.btnLoadImage.Click += new System.EventHandler(this.btnLoadImage_Click);
 			// 
@@ -161,7 +174,7 @@
             0,
             0,
             65536});
-			this.intExpand.Location = new System.Drawing.Point(272, 124);
+			this.intExpand.Location = new System.Drawing.Point(686, 145);
 			this.intExpand.Maximum = new decimal(new int[] {
             10,
             0,
@@ -220,7 +233,7 @@
 			// label5
 			// 
 			this.label5.AutoSize = true;
-			this.label5.Location = new System.Drawing.Point(102, 15);
+			this.label5.Location = new System.Drawing.Point(113, 15);
 			this.label5.Name = "label5";
 			this.label5.Size = new System.Drawing.Size(30, 13);
 			this.label5.TabIndex = 16;
@@ -228,6 +241,8 @@
 			// 
 			// intRedMin
 			// 
+			this.intRedMin.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.intRedMin.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.intRedMin.Increment = new decimal(new int[] {
             5,
             0,
@@ -240,7 +255,7 @@
             0,
             0});
 			this.intRedMin.Name = "intRedMin";
-			this.intRedMin.Size = new System.Drawing.Size(47, 20);
+			this.intRedMin.Size = new System.Drawing.Size(53, 23);
 			this.intRedMin.TabIndex = 5;
 			this.intRedMin.Value = new decimal(new int[] {
             200,
@@ -250,19 +265,21 @@
 			// 
 			// intRedMax
 			// 
+			this.intRedMax.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.intRedMax.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.intRedMax.Increment = new decimal(new int[] {
             5,
             0,
             0,
             0});
-			this.intRedMax.Location = new System.Drawing.Point(97, 34);
+			this.intRedMax.Location = new System.Drawing.Point(106, 34);
 			this.intRedMax.Maximum = new decimal(new int[] {
             256,
             0,
             0,
             0});
 			this.intRedMax.Name = "intRedMax";
-			this.intRedMax.Size = new System.Drawing.Size(47, 20);
+			this.intRedMax.Size = new System.Drawing.Size(53, 23);
 			this.intRedMax.TabIndex = 5;
 			this.intRedMax.Value = new decimal(new int[] {
             256,
@@ -272,19 +289,21 @@
 			// 
 			// intGreenMax
 			// 
+			this.intGreenMax.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.intGreenMax.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.intGreenMax.Increment = new decimal(new int[] {
             5,
             0,
             0,
             0});
-			this.intGreenMax.Location = new System.Drawing.Point(97, 60);
+			this.intGreenMax.Location = new System.Drawing.Point(106, 60);
 			this.intGreenMax.Maximum = new decimal(new int[] {
             256,
             0,
             0,
             0});
 			this.intGreenMax.Name = "intGreenMax";
-			this.intGreenMax.Size = new System.Drawing.Size(47, 20);
+			this.intGreenMax.Size = new System.Drawing.Size(53, 23);
 			this.intGreenMax.TabIndex = 18;
 			this.intGreenMax.Value = new decimal(new int[] {
             256,
@@ -294,6 +313,8 @@
 			// 
 			// intGreenMin
 			// 
+			this.intGreenMin.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.intGreenMin.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.intGreenMin.Increment = new decimal(new int[] {
             5,
             0,
@@ -306,7 +327,7 @@
             0,
             0});
 			this.intGreenMin.Name = "intGreenMin";
-			this.intGreenMin.Size = new System.Drawing.Size(47, 20);
+			this.intGreenMin.Size = new System.Drawing.Size(53, 23);
 			this.intGreenMin.TabIndex = 17;
 			this.intGreenMin.Value = new decimal(new int[] {
             200,
@@ -316,19 +337,21 @@
 			// 
 			// intBlueMax
 			// 
+			this.intBlueMax.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.intBlueMax.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.intBlueMax.Increment = new decimal(new int[] {
             5,
             0,
             0,
             0});
-			this.intBlueMax.Location = new System.Drawing.Point(97, 86);
+			this.intBlueMax.Location = new System.Drawing.Point(106, 86);
 			this.intBlueMax.Maximum = new decimal(new int[] {
             256,
             0,
             0,
             0});
 			this.intBlueMax.Name = "intBlueMax";
-			this.intBlueMax.Size = new System.Drawing.Size(47, 20);
+			this.intBlueMax.Size = new System.Drawing.Size(53, 23);
 			this.intBlueMax.TabIndex = 20;
 			this.intBlueMax.Value = new decimal(new int[] {
             256,
@@ -338,6 +361,8 @@
 			// 
 			// intBlueMin
 			// 
+			this.intBlueMin.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.intBlueMin.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.intBlueMin.Increment = new decimal(new int[] {
             5,
             0,
@@ -350,7 +375,7 @@
             0,
             0});
 			this.intBlueMin.Name = "intBlueMin";
-			this.intBlueMin.Size = new System.Drawing.Size(47, 20);
+			this.intBlueMin.Size = new System.Drawing.Size(53, 23);
 			this.intBlueMin.TabIndex = 19;
 			this.intBlueMin.Value = new decimal(new int[] {
             200,
@@ -361,34 +386,43 @@
 			// chkRedActive
 			// 
 			this.chkRedActive.AutoSize = true;
-			this.chkRedActive.Location = new System.Drawing.Point(161, 37);
+			this.chkRedActive.BackColor = System.Drawing.Color.Silver;
+			this.chkRedActive.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+			this.chkRedActive.ForeColor = System.Drawing.Color.White;
+			this.chkRedActive.Location = new System.Drawing.Point(182, 37);
 			this.chkRedActive.Name = "chkRedActive";
-			this.chkRedActive.Size = new System.Drawing.Size(15, 14);
+			this.chkRedActive.Size = new System.Drawing.Size(12, 11);
 			this.chkRedActive.TabIndex = 21;
-			this.chkRedActive.UseVisualStyleBackColor = true;
+			this.chkRedActive.UseVisualStyleBackColor = false;
 			// 
 			// chkGreenActive
 			// 
 			this.chkGreenActive.AutoSize = true;
-			this.chkGreenActive.Location = new System.Drawing.Point(161, 63);
+			this.chkGreenActive.BackColor = System.Drawing.Color.Silver;
+			this.chkGreenActive.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+			this.chkGreenActive.ForeColor = System.Drawing.Color.White;
+			this.chkGreenActive.Location = new System.Drawing.Point(182, 63);
 			this.chkGreenActive.Name = "chkGreenActive";
-			this.chkGreenActive.Size = new System.Drawing.Size(15, 14);
+			this.chkGreenActive.Size = new System.Drawing.Size(12, 11);
 			this.chkGreenActive.TabIndex = 21;
-			this.chkGreenActive.UseVisualStyleBackColor = true;
+			this.chkGreenActive.UseVisualStyleBackColor = false;
 			// 
 			// chkBlueActive
 			// 
 			this.chkBlueActive.AutoSize = true;
-			this.chkBlueActive.Location = new System.Drawing.Point(161, 89);
+			this.chkBlueActive.BackColor = System.Drawing.Color.Silver;
+			this.chkBlueActive.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+			this.chkBlueActive.ForeColor = System.Drawing.Color.White;
+			this.chkBlueActive.Location = new System.Drawing.Point(182, 89);
 			this.chkBlueActive.Name = "chkBlueActive";
-			this.chkBlueActive.Size = new System.Drawing.Size(15, 14);
+			this.chkBlueActive.Size = new System.Drawing.Size(12, 11);
 			this.chkBlueActive.TabIndex = 21;
-			this.chkBlueActive.UseVisualStyleBackColor = true;
+			this.chkBlueActive.UseVisualStyleBackColor = false;
 			// 
 			// label6
 			// 
 			this.label6.AutoSize = true;
-			this.label6.Location = new System.Drawing.Point(147, 15);
+			this.label6.Location = new System.Drawing.Point(168, 15);
 			this.label6.Name = "label6";
 			this.label6.Size = new System.Drawing.Size(45, 13);
 			this.label6.TabIndex = 16;
@@ -397,7 +431,7 @@
 			// label7
 			// 
 			this.label7.AutoSize = true;
-			this.label7.Location = new System.Drawing.Point(4, 124);
+			this.label7.Location = new System.Drawing.Point(4, 122);
 			this.label7.Name = "label7";
 			this.label7.Size = new System.Drawing.Size(78, 13);
 			this.label7.TabIndex = 14;
@@ -422,7 +456,7 @@
             0,
             0});
 			this.intMaxLightness.Name = "intMaxLightness";
-			this.intMaxLightness.Size = new System.Drawing.Size(104, 20);
+			this.intMaxLightness.Size = new System.Drawing.Size(125, 20);
 			this.intMaxLightness.TabIndex = 20;
 			this.intMaxLightness.Value = new decimal(new int[] {
             600,
@@ -430,15 +464,102 @@
             0,
             0});
 			// 
+			// pctPreview
+			// 
+			this.pctPreview.BackColor = System.Drawing.Color.White;
+			this.pctPreview.Location = new System.Drawing.Point(330, 43);
+			this.pctPreview.Name = "pctPreview";
+			this.pctPreview.Size = new System.Drawing.Size(347, 371);
+			this.pctPreview.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+			this.pctPreview.TabIndex = 22;
+			this.pctPreview.TabStop = false;
+			// 
+			// btnLoadBitmap
+			// 
+			this.btnLoadBitmap.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(192)))));
+			this.btnLoadBitmap.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+			this.btnLoadBitmap.ForeColor = System.Drawing.Color.White;
+			this.btnLoadBitmap.Location = new System.Drawing.Point(7, 387);
+			this.btnLoadBitmap.Name = "btnLoadBitmap";
+			this.btnLoadBitmap.Size = new System.Drawing.Size(316, 27);
+			this.btnLoadBitmap.TabIndex = 23;
+			this.btnLoadBitmap.Text = "Show Preview >>";
+			this.btnLoadBitmap.UseVisualStyleBackColor = false;
+			this.btnLoadBitmap.Click += new System.EventHandler(this.btnLoadBitmap_Click);
+			// 
+			// label8
+			// 
+			this.label8.BackColor = System.Drawing.Color.White;
+			this.label8.Font = new System.Drawing.Font("Microsoft Sans Serif", 13.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label8.Location = new System.Drawing.Point(330, 6);
+			this.label8.Name = "label8";
+			this.label8.Size = new System.Drawing.Size(347, 35);
+			this.label8.TabIndex = 24;
+			this.label8.Text = "Result Preview";
+			this.label8.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+			// 
+			// intWaitBetween
+			// 
+			this.intWaitBetween.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.intWaitBetween.Increment = new decimal(new int[] {
+            5,
+            0,
+            0,
+            0});
+			this.intWaitBetween.Location = new System.Drawing.Point(687, 346);
+			this.intWaitBetween.Maximum = new decimal(new int[] {
+            200,
+            0,
+            0,
+            0});
+			this.intWaitBetween.Minimum = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
+			this.intWaitBetween.Name = "intWaitBetween";
+			this.intWaitBetween.Size = new System.Drawing.Size(96, 23);
+			this.intWaitBetween.TabIndex = 20;
+			this.intWaitBetween.Value = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
+			// 
+			// label9
+			// 
+			this.label9.AutoSize = true;
+			this.label9.Location = new System.Drawing.Point(683, 330);
+			this.label9.Name = "label9";
+			this.label9.Size = new System.Drawing.Size(96, 13);
+			this.label9.TabIndex = 25;
+			this.label9.Text = "Wait Between (ms)";
+			// 
+			// label10
+			// 
+			this.label10.AutoSize = true;
+			this.label10.Location = new System.Drawing.Point(683, 129);
+			this.label10.Name = "label10";
+			this.label10.Size = new System.Drawing.Size(34, 13);
+			this.label10.TabIndex = 25;
+			this.label10.Text = "Scale";
+			// 
 			// Main
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(378, 422);
+			this.BackColor = System.Drawing.Color.White;
+			this.ClientSize = new System.Drawing.Size(795, 422);
+			this.Controls.Add(this.label10);
+			this.Controls.Add(this.label9);
+			this.Controls.Add(this.label8);
+			this.Controls.Add(this.btnLoadBitmap);
+			this.Controls.Add(this.pctPreview);
 			this.Controls.Add(this.chkBlueActive);
 			this.Controls.Add(this.chkGreenActive);
 			this.Controls.Add(this.chkRedActive);
 			this.Controls.Add(this.intMaxLightness);
+			this.Controls.Add(this.intWaitBetween);
 			this.Controls.Add(this.intBlueMax);
 			this.Controls.Add(this.intBlueMin);
 			this.Controls.Add(this.intGreenMax);
@@ -475,6 +596,8 @@
 			((System.ComponentModel.ISupportInitialize)(this.intBlueMax)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.intBlueMin)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.intMaxLightness)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.pctPreview)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.intWaitBetween)).EndInit();
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -510,6 +633,12 @@
 		private System.Windows.Forms.Label label6;
 		private System.Windows.Forms.Label label7;
 		private System.Windows.Forms.NumericUpDown intMaxLightness;
+		private System.Windows.Forms.PictureBox pctPreview;
+		private System.Windows.Forms.Button btnLoadBitmap;
+		private System.Windows.Forms.Label label8;
+		private System.Windows.Forms.NumericUpDown intWaitBetween;
+		private System.Windows.Forms.Label label9;
+		private System.Windows.Forms.Label label10;
 	}
 }
 

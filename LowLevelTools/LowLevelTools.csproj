@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BitmapReader.cs" />
+    <Compile Include="MouseAction.cs" />
     <Compile Include="MouseOperations.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
