@@ -89,15 +89,15 @@ namespace DrawThatThing
 				try
 				{
 					MouseOperations.SetCursorPosition(
-						(int)(xStart + args.expand * coordinate[1]),
-						(int)(yStart + args.expand * coordinate[0]));
+						(int)(xStart + args.expand * coordinate[0]),
+						(int)(yStart + args.expand * coordinate[1]));
 					MouseOperations.MouseEvent(MouseOperations.MouseEventFlags.LeftDown);
 					if (coordinate.Length == 4)
 					{
 						Thread.Sleep(sleepBetween);
 						MouseOperations.SetCursorPosition(
-							(int)(xStart + args.expand * coordinate[3]),
-							(int)(yStart + args.expand * coordinate[2]));
+							(int)(xStart + args.expand * coordinate[2]),
+							(int)(yStart + args.expand * coordinate[3]));
 					}
 					Thread.Sleep(10);
 					MouseOperations.MouseEvent(MouseOperations.MouseEventFlags.LeftUp);
