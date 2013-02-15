@@ -38,7 +38,6 @@
 			this.workerClickAround = new System.ComponentModel.BackgroundWorker();
 			this.btnLoadImage = new System.Windows.Forms.Button();
 			this.dlgImportImage = new System.Windows.Forms.OpenFileDialog();
-			this.intExpand = new System.Windows.Forms.NumericUpDown();
 			this.label1 = new System.Windows.Forms.Label();
 			this.label2 = new System.Windows.Forms.Label();
 			this.label3 = new System.Windows.Forms.Label();
@@ -61,8 +60,12 @@
 			this.label8 = new System.Windows.Forms.Label();
 			this.intWaitBetween = new System.Windows.Forms.NumericUpDown();
 			this.label9 = new System.Windows.Forms.Label();
+			this.panel1 = new System.Windows.Forms.Panel();
+			this.intPreviewWidth = new System.Windows.Forms.NumericUpDown();
+			this.intPreviewHeight = new System.Windows.Forms.NumericUpDown();
 			this.label10 = new System.Windows.Forms.Label();
-			((System.ComponentModel.ISupportInitialize)(this.intExpand)).BeginInit();
+			this.label11 = new System.Windows.Forms.Label();
+			this.pictureBox1 = new System.Windows.Forms.PictureBox();
 			((System.ComponentModel.ISupportInitialize)(this.intRedMin)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.intRedMax)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.intGreenMax)).BeginInit();
@@ -72,6 +75,10 @@
 			((System.ComponentModel.ISupportInitialize)(this.intMaxLightness)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.pctPreview)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.intWaitBetween)).BeginInit();
+			this.panel1.SuspendLayout();
+			((System.ComponentModel.ISupportInitialize)(this.intPreviewWidth)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.intPreviewHeight)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
 			this.SuspendLayout();
 			// 
 			// txtMousePositionY
@@ -165,34 +172,6 @@
 			// dlgImportImage
 			// 
 			this.dlgImportImage.Filter = "JPG File|*.jpg|PNG Files|*.png";
-			// 
-			// intExpand
-			// 
-			this.intExpand.DecimalPlaces = 1;
-			this.intExpand.Increment = new decimal(new int[] {
-            1,
-            0,
-            0,
-            65536});
-			this.intExpand.Location = new System.Drawing.Point(686, 145);
-			this.intExpand.Maximum = new decimal(new int[] {
-            10,
-            0,
-            0,
-            0});
-			this.intExpand.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            65536});
-			this.intExpand.Name = "intExpand";
-			this.intExpand.Size = new System.Drawing.Size(96, 20);
-			this.intExpand.TabIndex = 5;
-			this.intExpand.Value = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
 			// 
 			// label1
 			// 
@@ -467,10 +446,9 @@
 			// pctPreview
 			// 
 			this.pctPreview.BackColor = System.Drawing.Color.White;
-			this.pctPreview.Location = new System.Drawing.Point(330, 43);
+			this.pctPreview.Location = new System.Drawing.Point(0, 0);
 			this.pctPreview.Name = "pctPreview";
-			this.pctPreview.Size = new System.Drawing.Size(347, 371);
-			this.pctPreview.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+			this.pctPreview.Size = new System.Drawing.Size(222, 231);
 			this.pctPreview.TabIndex = 22;
 			this.pctPreview.TabStop = false;
 			// 
@@ -535,26 +513,81 @@
 			this.label9.TabIndex = 25;
 			this.label9.Text = "Wait Between (ms)";
 			// 
+			// panel1
+			// 
+			this.panel1.AutoScroll = true;
+			this.panel1.Controls.Add(this.pctPreview);
+			this.panel1.Location = new System.Drawing.Point(334, 38);
+			this.panel1.Name = "panel1";
+			this.panel1.Size = new System.Drawing.Size(343, 376);
+			this.panel1.TabIndex = 26;
+			// 
+			// intPreviewWidth
+			// 
+			this.intPreviewWidth.Location = new System.Drawing.Point(270, 38);
+			this.intPreviewWidth.Maximum = new decimal(new int[] {
+            999999,
+            0,
+            0,
+            0});
+			this.intPreviewWidth.Name = "intPreviewWidth";
+			this.intPreviewWidth.Size = new System.Drawing.Size(52, 20);
+			this.intPreviewWidth.TabIndex = 27;
+			// 
+			// intPreviewHeight
+			// 
+			this.intPreviewHeight.Location = new System.Drawing.Point(270, 64);
+			this.intPreviewHeight.Maximum = new decimal(new int[] {
+            999999,
+            0,
+            0,
+            0});
+			this.intPreviewHeight.Name = "intPreviewHeight";
+			this.intPreviewHeight.Size = new System.Drawing.Size(52, 20);
+			this.intPreviewHeight.TabIndex = 27;
+			// 
 			// label10
 			// 
 			this.label10.AutoSize = true;
-			this.label10.Location = new System.Drawing.Point(683, 129);
+			this.label10.Location = new System.Drawing.Point(220, 41);
 			this.label10.Name = "label10";
-			this.label10.Size = new System.Drawing.Size(34, 13);
-			this.label10.TabIndex = 25;
-			this.label10.Text = "Scale";
+			this.label10.Size = new System.Drawing.Size(35, 13);
+			this.label10.TabIndex = 28;
+			this.label10.Text = "Width";
+			// 
+			// label11
+			// 
+			this.label11.AutoSize = true;
+			this.label11.Location = new System.Drawing.Point(220, 67);
+			this.label11.Name = "label11";
+			this.label11.Size = new System.Drawing.Size(38, 13);
+			this.label11.TabIndex = 28;
+			this.label11.Text = "Height";
+			// 
+			// pictureBox1
+			// 
+			this.pictureBox1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.pictureBox1.Location = new System.Drawing.Point(7, 420);
+			this.pictureBox1.Name = "pictureBox1";
+			this.pictureBox1.Size = new System.Drawing.Size(772, 368);
+			this.pictureBox1.TabIndex = 29;
+			this.pictureBox1.TabStop = false;
 			// 
 			// Main
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.BackColor = System.Drawing.Color.White;
-			this.ClientSize = new System.Drawing.Size(795, 422);
+			this.ClientSize = new System.Drawing.Size(795, 800);
+			this.Controls.Add(this.pictureBox1);
+			this.Controls.Add(this.label11);
 			this.Controls.Add(this.label10);
+			this.Controls.Add(this.intPreviewHeight);
+			this.Controls.Add(this.intPreviewWidth);
+			this.Controls.Add(this.panel1);
 			this.Controls.Add(this.label9);
 			this.Controls.Add(this.label8);
 			this.Controls.Add(this.btnLoadBitmap);
-			this.Controls.Add(this.pctPreview);
 			this.Controls.Add(this.chkBlueActive);
 			this.Controls.Add(this.chkGreenActive);
 			this.Controls.Add(this.chkRedActive);
@@ -573,7 +606,6 @@
 			this.Controls.Add(this.label1);
 			this.Controls.Add(this.intRedMax);
 			this.Controls.Add(this.intRedMin);
-			this.Controls.Add(this.intExpand);
 			this.Controls.Add(this.txtActions);
 			this.Controls.Add(this.btnLoadImage);
 			this.Controls.Add(this.btnPlay);
@@ -588,7 +620,6 @@
 			this.Name = "Main";
 			this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
 			this.Text = "Main";
-			((System.ComponentModel.ISupportInitialize)(this.intExpand)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.intRedMin)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.intRedMax)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.intGreenMax)).EndInit();
@@ -598,6 +629,10 @@
 			((System.ComponentModel.ISupportInitialize)(this.intMaxLightness)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.pctPreview)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.intWaitBetween)).EndInit();
+			this.panel1.ResumeLayout(false);
+			((System.ComponentModel.ISupportInitialize)(this.intPreviewWidth)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.intPreviewHeight)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -615,7 +650,6 @@
 		private System.ComponentModel.BackgroundWorker workerClickAround;
 		private System.Windows.Forms.Button btnLoadImage;
 		private System.Windows.Forms.OpenFileDialog dlgImportImage;
-		private System.Windows.Forms.NumericUpDown intExpand;
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.Label label2;
 		private System.Windows.Forms.Label label3;
@@ -638,7 +672,12 @@
 		private System.Windows.Forms.Label label8;
 		private System.Windows.Forms.NumericUpDown intWaitBetween;
 		private System.Windows.Forms.Label label9;
+		private System.Windows.Forms.Panel panel1;
+		private System.Windows.Forms.NumericUpDown intPreviewWidth;
+		private System.Windows.Forms.NumericUpDown intPreviewHeight;
 		private System.Windows.Forms.Label label10;
+		private System.Windows.Forms.Label label11;
+		private System.Windows.Forms.PictureBox pictureBox1;
 	}
 }
 

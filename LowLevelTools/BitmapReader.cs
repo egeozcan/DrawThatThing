@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Text;
 using System.Drawing;
-//using Emgu.CV;
 
 namespace LowLevelTools
 {
 	using System.Collections.Generic;
 	using System.Runtime.InteropServices;
 
-	//using Emgu.CV.CvEnum;
-	//using Emgu.CV.Structure;
 
 	public class BitmapReader
 	{
@@ -18,45 +15,6 @@ namespace LowLevelTools
 		public void Read(String path)
 		{
 			_bitmapPath = path;
-		}
-
-		//public MouseAction[] getAbstractLines()
-		//{
-		//    if (String.IsNullOrEmpty(_bitmapPath))
-		//    {
-		//        return null;
-		//    }
-		//    var image = new Image<Bgr, byte>(_bitmapPath);
-		//    var memStorage = CvInvoke.cvCreateMemStorage(0);
-		//    var lines = CvInvoke.cvHoughLines2(
-		//        image, memStorage, HOUGH_TYPE.CV_HOUGH_PROBABILISTIC, 1.0, 1.0, 10, 5, 3.0);
-		//    MCvSeq lineSeq = (MCvSeq)Marshal.PtrToStructure(lines, typeof(MCvSeq));
-		//    MouseAction[] mouseActions = new MouseAction[lineSeq.total];
-		//    for (int i = 0; i < lineSeq.total; i++)
-		//    {
-		//        int[] val = new int[4];
-		//        Marshal.Copy(CvInvoke.cvGetSeqElem(lines, i), val, 0, 4);
-		//        mouseActions[i] = new MouseAction();
-		//        mouseActions[i].setDrag(val[0], val[1], val[2], val[3]);
-		//        //mouseActions[i] = new LineSegment2D(
-		//        //    new Point(val[0], val[1]),
-		//        //    new Point(val[2], val[3]));
-		//    }
-		//    return mouseActions;
-		//}
-
-		public struct PixelAcceptanceArgs
-		{
-			public int RedMin;
-			public int RedMax;
-			public int BlueMin;
-			public int BlueMax;
-			public int GreenMin;
-			public int GreenMax;
-			public bool RedEnabled;
-			public bool GreenEnabled;
-			public bool BlueEnabled;
-			public int MaxLight;
 		}
 
 		public MouseAction[] getFilteredPixels(PixelAcceptanceArgs args)
@@ -81,9 +39,6 @@ namespace LowLevelTools
 
 				Marshal.Copy(ptr, rgbValues, 0, bytes);
 
-				int red;
-				int green;
-				int blue;
 				var output = new List<MouseAction>();
 				// y1 x1 y2 x2
 				int[] lc = new[] { 0, 0, 0, 0 };
@@ -93,12 +48,10 @@ namespace LowLevelTools
 					bool lineInProgress = false;
 					for (int y = 0; y < bitmap.Height; y++)
 					{
-						//See the link above for an explanation 
-						//of this calculation (assumes 24bppRgb format)
 						int position = (y * bmpData.Stride) + (x * 3);
-						blue = rgbValues[position];
-						green = rgbValues[position + 1];
-						red = rgbValues[position + 2];
+						int blue = rgbValues[position];
+						int green = rgbValues[position + 1];
+						int red = rgbValues[position + 2];
 						if (pixelFits(red, green, blue, args))
 						{
 							if (lineInProgress)

@@ -63,7 +63,6 @@ namespace DrawThatThing
 						coordinateString = this.txtActions.Text,
 						xStart = int.Parse(this.txtMousePositionX.Text),
 						yStart = int.Parse(this.txtMousePositionY.Text),
-						expand = intExpand.Value,
 						sleepBetween = (int)intWaitBetween.Value
 					});
 		}
@@ -72,7 +71,6 @@ namespace DrawThatThing
 		{
 			public int xStart;
 			public int yStart;
-			public decimal expand;
 			public string coordinateString;
 			public int sleepBetween;
 		}
@@ -89,15 +87,15 @@ namespace DrawThatThing
 				try
 				{
 					MouseOperations.SetCursorPosition(
-						(int)(xStart + args.expand * coordinate[0]),
-						(int)(yStart + args.expand * coordinate[1]));
+						xStart + coordinate[0],
+						yStart + coordinate[1]);
 					MouseOperations.MouseEvent(MouseOperations.MouseEventFlags.LeftDown);
 					if (coordinate.Length == 4)
 					{
 						Thread.Sleep(sleepBetween);
 						MouseOperations.SetCursorPosition(
-							(int)(xStart + args.expand * coordinate[2]),
-							(int)(yStart + args.expand * coordinate[3]));
+							xStart + coordinate[2],
+							yStart + coordinate[3]);
 					}
 					Thread.Sleep(10);
 					MouseOperations.MouseEvent(MouseOperations.MouseEventFlags.LeftUp);
@@ -140,16 +138,25 @@ namespace DrawThatThing
 			}
 			var reader = new BitmapReader();
 			reader.Read(this.dlgImportImage.FileName);
+			using (var bitmap = new Bitmap(this.dlgImportImage.FileName))
+			{
+				this.intPreviewHeight.Value = bitmap.Height;
+				this.intPreviewWidth.Value = bitmap.Width;
+			}
 			var args = this.CreateAcceptanceArgs();
 			var filteredPixels = reader.getFilteredPixels(args);
+			(new ColoredBitmapReader(this.dlgImportImage.FileName)).getDrawInstructions(args, new[]
+				{
+					new ColorSpot() 
+				});
 			this.txtActions.Text = String.Join(Environment.NewLine, filteredPixels.Select(x => x.ToString()));
 			dlgImportImage.FileName = null;
 			this.updatePreview();
 		}
 
-		private BitmapReader.PixelAcceptanceArgs CreateAcceptanceArgs()
+		private PixelAcceptanceArgs CreateAcceptanceArgs()
 		{
-			return new BitmapReader.PixelAcceptanceArgs
+			return new PixelAcceptanceArgs
 				{
 					RedEnabled = this.chkRedActive.Checked,
 					RedMax = (int)this.intRedMax.Value,
@@ -171,7 +178,7 @@ namespace DrawThatThing
 
 		private void updatePreview()
 		{
-			var bitmap = new Bitmap(pctPreview.Width, pctPreview.Height);
+			var bitmap = new Bitmap((int)this.intPreviewWidth.Value, (int)this.intPreviewHeight.Value);
 			Pen blackPen = new Pen(Color.Black, 3);
 			using (var graphics = Graphics.FromImage(bitmap))
 			{
@@ -187,6 +194,12 @@ namespace DrawThatThing
 					}
 				}
 			}
+			pctPreview.Width = bitmap.Width;
+			Console.WriteLine(pctPreview.Width);
+			Console.WriteLine(pctPreview.Height);
+			Console.WriteLine(bitmap.Width);
+			Console.WriteLine(bitmap.Height);
+			pctPreview.Height = bitmap.Height;
 			pctPreview.Image = bitmap;
 		}
 	}
