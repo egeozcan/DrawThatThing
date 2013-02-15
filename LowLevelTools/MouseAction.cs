@@ -16,32 +16,36 @@ namespace LowLevelTools
 		public int y2 { get; set; }
 		public MouseState state;
 
-		public void setClick(int x, int y)
+		public MouseAction setClick(int x, int y)
 		{
 			x1 = x2 = x;
 			y1 = y2 = y;
 			state = MouseState.Clicked;
+			return this;
 		}
 
-		public void setDrag(int ax, int ay, int bx, int by)
+		public MouseAction setDrag(int ax, int ay, int bx, int by)
 		{
 			x1 = ax;
 			y1 = ay;
 			x2 = bx;
 			y2 = by;
 			state = MouseState.Clicked;
+			return this;
 		}
 
-		public void setJump(int x, int y)
+		public MouseAction setJump(int x, int y)
 		{
 			setClick(x, y);
 			state = MouseState.Released;
+			return this;
 		}
 
-		public void setMove(int ax, int ay, int bx, int by)
+		public MouseAction setMove(int ax, int ay, int bx, int by)
 		{
 			setDrag(ax, ay, bx, by);
 			state = MouseState.Released;
+			return this;
 		}
 
 		public override string ToString()
