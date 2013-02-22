@@ -6,5 +6,6 @@ namespace LowLevelTools
 	{
 		public Color color;
 		public bool expired;
+		public ColorSpot closestColor;
 	}
 }

@@ -73,6 +73,7 @@ namespace DrawThatThing
 			public int yStart;
 			public string coordinateString;
 			public int sleepBetween;
+			public List<MouseAction> mouseActions;
 		}
 
 		private void workerClickAround_DoWork(object sender, DoWorkEventArgs e)
@@ -81,7 +82,6 @@ namespace DrawThatThing
 			var xStart = args.xStart;
 			var yStart = args.yStart;
 			var sleepBetween = args.sleepBetween;
-			var coordinates = GetCoordinates(args.coordinateString);
 			foreach (var coordinate in coordinates.TakeWhile(coordinate => !this.workerClickAround.CancellationPending))
 			{
 				try
@@ -107,27 +107,6 @@ namespace DrawThatThing
 				}
 			}
 		}
-		private static IEnumerable<int[]> GetCoordinates(String coordinateString)
-		{
-			if (String.IsNullOrEmpty(coordinateString))
-			{
-				return new int[][] { };
-			}
-			try
-			{
-				return coordinateString
-					.Split('\n')
-					.AsParallel()
-					.Select(line => line.Split(' ').AsParallel().Select(int.Parse).ToArray())
-					.ToArray();
-			}
-			catch (Exception)
-			{
-				MessageBox.Show("An error occured when parsing.");
-				return new int[][] { };
-			}
-			
-		}
 
 		private void btnLoadImage_Click(object sender, EventArgs e)
 		{
@@ -145,10 +124,10 @@ namespace DrawThatThing
 			}
 			var args = this.CreateAcceptanceArgs();
 			var filteredPixels = reader.getFilteredPixels(args);
-			(new ColoredBitmapReader(this.dlgImportImage.FileName)).getDrawInstructions(args, new[]
-				{
-					new ColorSpot() 
-				});
+			//(new ColoredBitmapReader(this.dlgImportImage.FileName)).getDrawInstructions(args, new[]
+			//    {
+			//        new ColorSpot() 
+			//    });
 			this.txtActions.Text = String.Join(Environment.NewLine, filteredPixels.Select(x => x.ToString()));
 			dlgImportImage.FileName = null;
 			this.updatePreview();

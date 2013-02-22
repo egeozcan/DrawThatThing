@@ -9,8 +9,9 @@
 
 	public class ColoredBitmapReader
 	{
-		private string _bitmapPath;
-		private Dictionary<Point, PixelMeta> _pixels = new Dictionary<Point, PixelMeta>(); 
+		private readonly string _bitmapPath;
+		private readonly Dictionary<Point, PixelMeta> _pixels = new Dictionary<Point, PixelMeta>();
+		private readonly Random _random = new Random();
 
 		public IEnumerable<MouseAction> getDrawInstructions(PixelAcceptanceArgs args, ColorSpot[] color)
 		{
@@ -32,13 +33,17 @@
 						int blue = rgbValues[position];
 						int green = rgbValues[position + 1];
 						int red = rgbValues[position + 2];
+						var currentColor = Color.FromArgb(red, green, blue);
 						_pixels.Add
 							(
 								new Point(x, y),
 								new PixelMeta
 									{
-										color = Color.FromArgb(red, green, blue),
-										expired = false
+										color = currentColor,
+										expired = false,
+										closestColor = color
+												.OrderBy(c => c.color.DifferenceTo(currentColor))
+												.FirstOrDefault()
 									}
 							);
 					}
@@ -46,45 +51,17 @@
 				bitmap.UnlockBits(bmpData);
 			}
 
-			foreach (var selectedColor in color)
+			foreach (var colorSpot in color)
 			{
-				var changeColor = new MouseAction();
-				changeColor.setClick(selectedColor.point.X, selectedColor.point.Y);
-				output.Add(changeColor);
-				var nextMoves = this.getNextMoves(selectedColor);
-				if (nextMoves != null)
+				output.Add(new MouseAction().addClick(colorSpot.point.X, colorSpot.point.Y));
+				var filteredPixels = color.Where(x => x.color.Equals(colorSpot));
+				foreach (var pixel in filteredPixels)
 				{
-					output.AddRange(nextMoves);
+					output.Add(new MouseAction().addClick(pixel.point.X, pixel.point.Y));
 				}
 			}
+			
 
-
-
-			return output;
-		}
-
-		private IEnumerable<MouseAction> getNextMoves(ColorSpot color)
-		{
-			List<MouseAction> output = new List<MouseAction>();
-			const int maxDifference = 20;
-			var spotsToDraw = _pixels.Where(x => !x.Value.expired && x.Value.color.DifferenceTo(color.color) < maxDifference).ToDictionary(x => x.Key, y => y.Value);
-			foreach (var spot in spotsToDraw)
-			{
-				if (spot.Value.expired)
-				{
-					continue;
-				}
-				spot.Value.expired = true;
-				var x = spot.Key.X;
-				var y = spot.Key.Y;
-				KeyValuePair<Point, PixelMeta> unexpiredNeighbor;
-				//do
-				//{
-				//    unexpiredNeighbor = spotsToDraw.FirstOrDefault(p => Math.Abs(x - p.Key.X) <= 1 && Math.Abs(y - p.Key.Y) <= 1);
-				//    x = 
-				//}
-				//while (unexpiredNeighbor != null);
-			}
 			return output;
 		}
 

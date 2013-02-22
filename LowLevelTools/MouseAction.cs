@@ -2,6 +2,9 @@
 
 namespace LowLevelTools
 {
+	using System.Collections.Generic;
+	using System.Drawing;
+
 	public class MouseAction
 	{
 		public enum MouseState
@@ -10,51 +13,89 @@ namespace LowLevelTools
 			Released
 		}
 
-		public int x1 { get; set; }
-		public int x2 { get; set; }
-		public int y1 { get; set; }
-		public int y2 { get; set; }
-		public MouseState state;
-
-		public MouseAction setClick(int x, int y)
+		public struct PointInfo
 		{
-			x1 = x2 = x;
-			y1 = y2 = y;
-			state = MouseState.Clicked;
+			public readonly Point? _point;
+			public readonly MouseState _mouseState;
+			public PointInfo(Point? point, MouseState mouseState)
+			{
+				this._point = point;
+				this._mouseState = mouseState;
+			}
+			public override string ToString()
+			{
+				return !this._point.HasValue ? 
+					String.Format("keep keep {0}", this._mouseState) : 
+					String.Format("{0} {1} {2}", this._point.Value.X, this._point.Value.Y, this._mouseState);
+			}
+			public void Play()
+			{
+				
+			}
+		}
+
+		private readonly IList<PointInfo> _points = new List<PointInfo>();
+
+		private void releaseMouse()
+		{
+			if (_points.Count > 0 && _points[_points.Count - 1]._mouseState == MouseState.Released)
+			{
+				return;
+			}
+			_points.Add(new PointInfo(null, MouseState.Released));
+		}
+
+		private void clickMouse()
+		{
+			this.releaseMouse();
+			_points.Add(new PointInfo(null, MouseState.Clicked));
+			this.releaseMouse();
+		}
+
+		public MouseAction addClick(int x, int y)
+		{
+			this.releaseMouse();
+			_points.Add(new PointInfo(new Point(x, y), MouseState.Clicked));
+			this.releaseMouse();
 			return this;
 		}
 
-		public MouseAction setDrag(int ax, int ay, int bx, int by)
+		public MouseAction addClick()
 		{
-			x1 = ax;
-			y1 = ay;
-			x2 = bx;
-			y2 = by;
-			state = MouseState.Clicked;
+			this.clickMouse();
 			return this;
 		}
 
-		public MouseAction setJump(int x, int y)
+		public MouseAction addDrag(int ax, int ay, int bx, int by)
 		{
-			setClick(x, y);
-			state = MouseState.Released;
+			this.releaseMouse();
+			_points.Add(new PointInfo(new Point(ax, ay), MouseState.Clicked));
+			_points.Add(new PointInfo(new Point(bx, by), MouseState.Clicked));
+			this.releaseMouse();
 			return this;
 		}
 
-		public MouseAction setMove(int ax, int ay, int bx, int by)
+		public MouseAction addJump(int x, int y)
 		{
-			setDrag(ax, ay, bx, by);
-			state = MouseState.Released;
+			this.releaseMouse();
+			_points.Add(new PointInfo(new Point(x, y), MouseState.Released));
+			return this;
+		}
+
+		public MouseAction addPath(IList<Point> points)
+		{
+			this.releaseMouse();
+			foreach (Point point in points)
+			{
+				this._points.Add(new PointInfo(point, MouseState.Clicked));
+			}
+			this.releaseMouse();
 			return this;
 		}
 
 		public override string ToString()
 		{
-			if (x1 != x2 || y1 != y2)
-			{
-				return String.Format("{0} {1} {2} {3}", y1, x1, y2, x2);				
-			}
-			return String.Format("{0} {1}", y1, x1);
+			return String.Join("\n", _points);
 		}
 	}
 }

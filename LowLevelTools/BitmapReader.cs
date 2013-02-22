@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 using System.Drawing;
 
 namespace LowLevelTools
@@ -87,11 +86,11 @@ namespace LowLevelTools
 			var action = new MouseAction();
 			if (lc[1] != lc[3] || lc[0] != lc[2])
 			{
-				action.setDrag(lc[0], lc[1], lc[2], lc[3]);
+				action.addDrag(lc[0], lc[1], lc[2], lc[3]);
 			}
 			else
 			{
-				action.setClick(lc[0], lc[1]);
+				action.addClick(lc[0], lc[1]);
 			}
 			output.Add(action);
 		}

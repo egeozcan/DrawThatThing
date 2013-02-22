@@ -2,7 +2,7 @@
 {
 	using System.Drawing;
 
-	public struct ColorSpot
+	public class ColorSpot
 	{
 		public Color color;
 		public Point point;
