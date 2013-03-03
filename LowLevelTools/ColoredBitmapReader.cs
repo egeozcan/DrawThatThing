@@ -13,7 +13,7 @@
 		private readonly Dictionary<Point, PixelMeta> _pixels = new Dictionary<Point, PixelMeta>();
 		private readonly Random _random = new Random();
 
-		public IEnumerable<MouseAction> getDrawInstructions(PixelAcceptanceArgs args, ColorSpot[] color)
+		public IEnumerable<MouseAction> getDrawInstructions(ColorSpot[] color)
 		{
 			List<MouseAction> output = new List<MouseAction>();
 
@@ -33,13 +33,16 @@
 						int blue = rgbValues[position];
 						int green = rgbValues[position + 1];
 						int red = rgbValues[position + 2];
+						if (red + green + blue > 750)
+						{
+							continue;
+						}
 						var currentColor = Color.FromArgb(red, green, blue);
 						_pixels.Add
 							(
 								new Point(x, y),
 								new PixelMeta
 									{
-										color = currentColor,
 										expired = false,
 										closestColor = color
 												.OrderBy(c => c.color.DifferenceTo(currentColor))
@@ -51,17 +54,38 @@
 				bitmap.UnlockBits(bmpData);
 			}
 
-			foreach (var colorSpot in color)
+			var groupedPixels = _pixels.GroupBy(x => x.Value.closestColor);
+			var count = 0;
+			foreach (var pixelGroup in groupedPixels)
 			{
-				output.Add(new MouseAction().addClick(colorSpot.point.X, colorSpot.point.Y));
-				var filteredPixels = color.Where(x => x.color.Equals(colorSpot));
-				foreach (var pixel in filteredPixels)
+				//Change color
+				output.Add(new MouseAction().addClick(pixelGroup.Key.point.X, pixelGroup.Key.point.Y));
+				while (pixelGroup.Any(x => !x.Value.expired))
 				{
-					output.Add(new MouseAction().addClick(pixel.point.X, pixel.point.Y));
+					var points = new List<Point>();
+					KeyValuePair<Point, PixelMeta> currentPair = pixelGroup.First(x => !x.Value.expired);
+					Point currentPoint = currentPair.Key;
+					currentPair.Value.expired = true;
+					points.Add(currentPoint);
+					while (true)
+					{
+						Point point = currentPoint;
+						KeyValuePair<Point, PixelMeta> closestPixel = pixelGroup.AsParallel().FirstOrDefault(x => x.Key.IsANeighborOf(point) && !x.Value.expired);
+						if (closestPixel.Key.IsEmpty)
+						{
+							break;
+						}
+						currentPoint = closestPixel.Key;
+						points.Add(closestPixel.Key);
+						count++;
+						closestPixel.Value.expired = true;
+					}
+					var ma = new MouseAction();
+					ma.addPath(points);
+					output.Add(ma);
+					Console.WriteLine(count);
 				}
 			}
-			
-
 			return output;
 		}
 

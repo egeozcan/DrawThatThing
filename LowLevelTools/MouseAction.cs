@@ -4,6 +4,7 @@ namespace LowLevelTools
 {
 	using System.Collections.Generic;
 	using System.Drawing;
+	using System.Linq;
 
 	public class MouseAction
 	{
@@ -17,10 +18,12 @@ namespace LowLevelTools
 		{
 			public readonly Point? Point;
 			public readonly MouseState MouseState;
-			public PointInfo(Point? point, MouseState mouseState)
+			public readonly bool ChangeMouseState;
+			public PointInfo(Point? point, MouseState mouseState, bool changeMouseState = true)
 			{
 				this.Point = point;
 				this.MouseState = mouseState;
+				this.ChangeMouseState = changeMouseState;
 			}
 			public override string ToString()
 			{
@@ -35,11 +38,14 @@ namespace LowLevelTools
 					MouseOperations.SetCursorPosition(
 						new MouseOperations.MousePoint(Point.Value.X + offset.X, Point.Value.Y + offset.Y));
 				}
-				MouseOperations.MouseEvent(MouseState == MouseState.Clicked ? MouseOperations.MouseEventFlags.LeftDown : MouseOperations.MouseEventFlags.LeftUp);
+				if (ChangeMouseState)
+				{
+					MouseOperations.MouseEvent(MouseState == MouseState.Clicked ? MouseOperations.MouseEventFlags.LeftDown : MouseOperations.MouseEventFlags.LeftUp);					
+				}
 			}
 		}
 
-		private readonly IList<PointInfo> _points = new List<PointInfo>();
+		public readonly IList<PointInfo> _points = new List<PointInfo>();
 
 		private void releaseMouse()
 		{
@@ -90,17 +96,27 @@ namespace LowLevelTools
 		public MouseAction addPath(IList<Point> points)
 		{
 			this.releaseMouse();
+			this._points.Add(new PointInfo(points.FirstOrDefault(), MouseState.Clicked));
 			foreach (Point point in points)
 			{
-				this._points.Add(new PointInfo(point, MouseState.Clicked));
+				this._points.Add(new PointInfo(point, MouseState.Clicked, false));
 			}
 			this.releaseMouse();
 			return this;
 		}
 
+		public void Play(Point offset)
+		{
+			foreach (var pointInfo in _points)
+			{
+				pointInfo.Play(offset);
+			}
+			System.Threading.Thread.Sleep(50);
+		}
+
 		public override string ToString()
 		{
-			return String.Join("\n", _points);
+			return String.Join("\n", _points.Select(x => x.ToString()));
 		}
 	}
 }

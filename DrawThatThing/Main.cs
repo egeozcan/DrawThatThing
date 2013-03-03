@@ -7,9 +7,9 @@ namespace DrawThatThing
 {
 	using System.Collections.Generic;
 	using System.Drawing;
+	using System.Drawing.Drawing2D;
 	using System.Globalization;
 	using System.Runtime.InteropServices;
-	using System.Threading;
 
 	using LowLevelTools;
 
@@ -19,6 +19,8 @@ namespace DrawThatThing
 		public static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vlc);
 		[DllImport("user32.dll")]
 		public static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+
+		private IEnumerable<MouseAction> _actions; 
 
 		public Main()
 		{
@@ -57,49 +59,30 @@ namespace DrawThatThing
 
 		private void StartClicking()
 		{
+			if (_actions == null)
+			{
+				return;
+			}
 			workerClickAround.RunWorkerAsync(
 				new ClickerArguments
 					{
-						mouseActions = c,
-						offset = 
+						mouseActions = this._actions,
+						offset = new Point(txtMousePositionX.Text.AsInt(), txtMousePositionY.Text.AsInt())
 					});
 		}
 
 		private struct ClickerArguments
 		{
-			public List<MouseAction> mouseActions;
+			public IEnumerable<MouseAction> mouseActions;
 			public Point offset;
 		}
 
 		private void workerClickAround_DoWork(object sender, DoWorkEventArgs e)
 		{
 			var args = (ClickerArguments)e.Argument;
-			var xStart = args.xStart;
-			var yStart = args.yStart;
-			var sleepBetween = args.sleepBetween;
-			foreach (var coordinate in coordinates.TakeWhile(coordinate => !this.workerClickAround.CancellationPending))
+			foreach (var action in args.mouseActions.TakeWhile(coordinate => !this.workerClickAround.CancellationPending))
 			{
-				try
-				{
-					MouseOperations.SetCursorPosition(
-						xStart + coordinate[0],
-						yStart + coordinate[1]);
-					MouseOperations.MouseEvent(MouseOperations.MouseEventFlags.LeftDown);
-					if (coordinate.Length == 4)
-					{
-						Thread.Sleep(sleepBetween);
-						MouseOperations.SetCursorPosition(
-							xStart + coordinate[2],
-							yStart + coordinate[3]);
-					}
-					Thread.Sleep(10);
-					MouseOperations.MouseEvent(MouseOperations.MouseEventFlags.LeftUp);
-					Thread.Sleep(sleepBetween);
-				}
-				catch (Exception)
-				{
-					break;
-				}
+				action.Play(args.offset);
 			}
 		}
 
@@ -117,36 +100,20 @@ namespace DrawThatThing
 				this.intPreviewHeight.Value = bitmap.Height;
 				this.intPreviewWidth.Value = bitmap.Width;
 			}
-			var args = this.CreateAcceptanceArgs();
-			var filteredPixels = reader.getFilteredPixels(args);
-			//(new ColoredBitmapReader(this.dlgImportImage.FileName)).getDrawInstructions(args, new[]
-			//    {
-			//        new ColorSpot() 
-			//    });
-			this.txtActions.Text = String.Join(Environment.NewLine, filteredPixels.Select(x => x.ToString()));
+			this._actions = (new ColoredBitmapReader(this.dlgImportImage.FileName)).getDrawInstructions(new[]
+			    {
+			        new ColorSpot
+			        	{
+			        		color = Color.Black,
+							point = new Point(1025, -1883)
+			        	},
+					new ColorSpot
+						{
+							color = Color.Red,
+							point = new Point(1039, -1850)
+						}
+			    });
 			dlgImportImage.FileName = null;
-			this.updatePreview();
-		}
-
-		private PixelAcceptanceArgs CreateAcceptanceArgs()
-		{
-			return new PixelAcceptanceArgs
-				{
-					RedEnabled = this.chkRedActive.Checked,
-					RedMax = (int)this.intRedMax.Value,
-					RedMin = (int)this.intRedMin.Value,
-					BlueEnabled = this.chkBlueActive.Checked,
-					BlueMax = (int)this.intBlueMax.Value,
-					BlueMin = (int)this.intBlueMin.Value,
-					GreenEnabled = this.chkGreenActive.Checked,
-					GreenMax = (int)this.intGreenMax.Value,
-					GreenMin = (int)this.intGreenMin.Value,
-					MaxLight = (int)this.intMaxLightness.Value
-				};
-		}
-
-		private void btnLoadBitmap_Click(object sender, EventArgs e)
-		{
 			this.updatePreview();
 		}
 
@@ -156,23 +123,21 @@ namespace DrawThatThing
 			Pen blackPen = new Pen(Color.Black, 3);
 			using (var graphics = Graphics.FromImage(bitmap))
 			{
-				foreach (var c in GetCoordinates(txtActions.Text))
+				foreach (var action in _actions)
 				{
-					if (c.Length == 4)
+					Point lastP = Point.Empty;
+					foreach (var point in action._points.Select(x => x.Point.HasValue ? x.Point.Value : Point.Empty))
 					{
-						graphics.DrawLine(blackPen, c[0], c[1], c[2], c[3]);
-					}
-					else
-					{
-						graphics.DrawLine(blackPen, c[0], c[1], c[0], c[1]);
+						if (lastP == Point.Empty)
+						{
+							lastP = point;
+						}
+						graphics.DrawLine(blackPen, lastP, point);
+						lastP = point;
 					}
 				}
 			}
 			pctPreview.Width = bitmap.Width;
-			Console.WriteLine(pctPreview.Width);
-			Console.WriteLine(pctPreview.Height);
-			Console.WriteLine(bitmap.Width);
-			Console.WriteLine(bitmap.Height);
 			pctPreview.Height = bitmap.Height;
 			pctPreview.Image = bitmap;
 		}
