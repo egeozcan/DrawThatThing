@@ -15,22 +15,27 @@ namespace LowLevelTools
 
 		public struct PointInfo
 		{
-			public readonly Point? _point;
-			public readonly MouseState _mouseState;
+			public readonly Point? Point;
+			public readonly MouseState MouseState;
 			public PointInfo(Point? point, MouseState mouseState)
 			{
-				this._point = point;
-				this._mouseState = mouseState;
+				this.Point = point;
+				this.MouseState = mouseState;
 			}
 			public override string ToString()
 			{
-				return !this._point.HasValue ? 
-					String.Format("keep keep {0}", this._mouseState) : 
-					String.Format("{0} {1} {2}", this._point.Value.X, this._point.Value.Y, this._mouseState);
+				return !this.Point.HasValue ? 
+					String.Format("keep keep {0}", this.MouseState) : 
+					String.Format("{0} {1} {2}", this.Point.Value.X, this.Point.Value.Y, this.MouseState);
 			}
-			public void Play()
+			public void Play(Point offset)
 			{
-				
+				if (Point.HasValue)
+				{
+					MouseOperations.SetCursorPosition(
+						new MouseOperations.MousePoint(Point.Value.X + offset.X, Point.Value.Y + offset.Y));
+				}
+				MouseOperations.MouseEvent(MouseState == MouseState.Clicked ? MouseOperations.MouseEventFlags.LeftDown : MouseOperations.MouseEventFlags.LeftUp);
 			}
 		}
 
@@ -38,7 +43,7 @@ namespace LowLevelTools
 
 		private void releaseMouse()
 		{
-			if (_points.Count > 0 && _points[_points.Count - 1]._mouseState == MouseState.Released)
+			if (_points.Count > 0 && _points[_points.Count - 1].MouseState == MouseState.Released)
 			{
 				return;
 			}

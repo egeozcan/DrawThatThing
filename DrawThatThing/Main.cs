@@ -60,20 +60,15 @@ namespace DrawThatThing
 			workerClickAround.RunWorkerAsync(
 				new ClickerArguments
 					{
-						coordinateString = this.txtActions.Text,
-						xStart = int.Parse(this.txtMousePositionX.Text),
-						yStart = int.Parse(this.txtMousePositionY.Text),
-						sleepBetween = (int)intWaitBetween.Value
+						mouseActions = c,
+						offset = 
 					});
 		}
 
 		private struct ClickerArguments
 		{
-			public int xStart;
-			public int yStart;
-			public string coordinateString;
-			public int sleepBetween;
 			public List<MouseAction> mouseActions;
+			public Point offset;
 		}
 
 		private void workerClickAround_DoWork(object sender, DoWorkEventArgs e)

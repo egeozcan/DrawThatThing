@@ -6,6 +6,7 @@ using System.Text;
 namespace LowLevelTools
 {
 	using System;
+	using System.Drawing;
 	using System.Runtime.InteropServices;
 
 	public static class MouseOperations
@@ -75,6 +76,12 @@ namespace LowLevelTools
 			{
 				X = x;
 				Y = y;
+			}
+
+			public MousePoint(Point point)
+			{
+				X = point.X;
+				Y = point.Y;
 			}
 
 		}
