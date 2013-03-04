@@ -13,51 +13,57 @@ namespace DrawThatThing
 
 	using LowLevelTools;
 
-	public partial class Main : Form
+	public partial class DrawThatThing : Form
 	{
 		[DllImport("user32.dll")]
 		public static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vlc);
 		[DllImport("user32.dll")]
 		public static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
-		private IEnumerable<MouseDragAction> _actions; 
+		private IEnumerable<MouseDragAction> _actions;
+		private readonly ColorSpot[] _builtinColorSpots = new[]
+			{
+				new ColorSpot
+					{
+						color = Color.Black,
+						point = new Point(-1884,1025)
+					},
+				new ColorSpot
+					{
+						color = Color.Red,
+						point = new Point(-1850,1038)
+					},
+				new ColorSpot
+					{
+						color = Color.Blue,
+						point = new Point(-1788,1037)
+					},
+				new ColorSpot
+					{
+						color = Color.Green,
+						point = new Point(-1819,1021)
+					},
+				new ColorSpot
+					{
+						color = Color.White,
+						point = new Point(0,0)
+					},
+				new ColorSpot
+					{
+						color = Color.FromArgb(190, 169, 16),
+						point = new Point(-1673,1039)
+					}
+			};
 
-		//        new ColorSpot
-		//    {
-		//        color = Color.Black,
-		//        point = new Point(-1884,1025)
-		//    },
-		//new ColorSpot
-		//    {
-		//        color = Color.Red,
-		//        point = new Point(-1850,1038)
-		//    },
-		//new ColorSpot
-		//    {
-		//        color = Color.Blue,
-		//        point = new Point(-1788,1037)
-		//    },
-		//new ColorSpot
-		//    {
-		//        color = Color.Green,
-		//        point = new Point(-1819,1021)
-		//    },
-		//new ColorSpot
-		//    {
-		//        color = Color.White,
-		//        point = new Point(0,0)
-		//    },
-		//new ColorSpot
-		//    {
-		//        color = Color.FromArgb(190, 169, 16),
-		//        point = new Point(-1673,1039)
-		//    }
-
-		public Main()
+		public DrawThatThing()
 		{
 			InitializeComponent();
 			RegisterHotKey(this.Handle, this.GetType().GetHashCode(), 5, 'C');
-			
+			this.Text = "DrawThatThing";
+			foreach (var colorSpot in _builtinColorSpots)
+			{
+				dataGridColors.Rows.Add(colorSpot.point.X.ToString(CultureInfo.InvariantCulture), colorSpot.point.Y.ToString(CultureInfo.InvariantCulture), colorSpot.color.ToHEX());				
+			}
 		}
 
 		private void btnGetPosition_Click(object sender, EventArgs e)
@@ -104,7 +110,7 @@ namespace DrawThatThing
 				new ClickerArguments
 					{
 						mouseActions = this._actions,
-						offset = new Point(txtMousePositionX.Text.AsInt(), txtMousePositionY.Text.AsInt())
+						offset = new Point(txtMousePositionX.Text.ToInt(), txtMousePositionY.Text.ToInt())
 					});
 		}
 
@@ -135,39 +141,18 @@ namespace DrawThatThing
 				this.intPreviewHeight.Value = bitmap.Height;
 				this.intPreviewWidth.Value = bitmap.Width;
 			}
-			this._actions = (new ColoredBitmapReader(this.dlgImportImage.FileName)).getDrawInstructions(new[]
-			    {
-			        new ColorSpot
-			        	{
-			        		color = Color.Black,
-							point = new Point(-1884,1025)
-			        	},
-			        new ColorSpot
-			        	{
-			        		color = Color.Red,
-							point = new Point(-1850,1038)
-			        	},
-			        new ColorSpot
-			        	{
-			        		color = Color.Blue,
-							point = new Point(-1788,1037)
-			        	},
-			        new ColorSpot
-			        	{
-			        		color = Color.Green,
-							point = new Point(-1819,1021)
-			        	},
-					new ColorSpot
-						{
-							color = Color.White,
-							point = new Point(0,0)
-						},
-					new ColorSpot
-						{
-							color = Color.FromArgb(190, 169, 16),
-							point = new Point(-1673,1039)
-						}
-			    });
+			ColorSpot[] spots = new ColorSpot[dataGridColors.Rows.Count];
+			for (int i = 0; i < dataGridColors.Rows.Count; i++)
+			{
+				var row = dataGridColors.Rows[i];
+				spots[i] = new ColorSpot
+					{
+						color = (row.Cells[2].Value as String ?? "").ToColor(),
+						point = new Point((row.Cells[0].Value as String ?? "").ToInt(), (row.Cells[1].Value as String ?? "").ToInt())
+					};
+			}
+			var notEmptyColors = spots.Where(x => !x.color.IsEmpty).ToArray();
+			this._actions = new ColoredBitmapReader(this.dlgImportImage.FileName).getDrawInstructions(notEmptyColors);
 			dlgImportImage.FileName = null;
 			this.updatePreview();
 		}

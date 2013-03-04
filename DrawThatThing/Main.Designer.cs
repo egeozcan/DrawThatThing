@@ -1,6 +1,6 @@
 ﻿namespace DrawThatThing
 {
-	partial class Main
+	partial class DrawThatThing
 	{
 		/// <summary>
 		/// Required designer variable.
@@ -44,7 +44,7 @@
 			this.label11 = new System.Windows.Forms.Label();
 			this.groupBox1 = new System.Windows.Forms.GroupBox();
 			this.lblColorOptions = new System.Windows.Forms.Label();
-			this.dataGridView1 = new System.Windows.Forms.DataGridView();
+			this.dataGridColors = new System.Windows.Forms.DataGridView();
 			this.PosX = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.PosY = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.RGB = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -53,12 +53,12 @@
 			((System.ComponentModel.ISupportInitialize)(this.intPreviewWidth)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.intPreviewHeight)).BeginInit();
 			this.groupBox1.SuspendLayout();
-			((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.dataGridColors)).BeginInit();
 			this.SuspendLayout();
 			// 
 			// txtMousePositionY
 			// 
-			this.txtMousePositionY.Location = new System.Drawing.Point(127, 24);
+			this.txtMousePositionY.Location = new System.Drawing.Point(135, 24);
 			this.txtMousePositionY.Name = "txtMousePositionY";
 			this.txtMousePositionY.Size = new System.Drawing.Size(79, 20);
 			this.txtMousePositionY.TabIndex = 0;
@@ -66,7 +66,7 @@
 			// 
 			// txtMousePositionX
 			// 
-			this.txtMousePositionX.Location = new System.Drawing.Point(42, 24);
+			this.txtMousePositionX.Location = new System.Drawing.Point(46, 24);
 			this.txtMousePositionX.Name = "txtMousePositionX";
 			this.txtMousePositionX.Size = new System.Drawing.Size(79, 20);
 			this.txtMousePositionX.TabIndex = 1;
@@ -85,7 +85,7 @@
 			// 
 			this.btnGetPosition.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 			this.btnGetPosition.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.btnGetPosition.Location = new System.Drawing.Point(212, 19);
+			this.btnGetPosition.Location = new System.Drawing.Point(230, 19);
 			this.btnGetPosition.Name = "btnGetPosition";
 			this.btnGetPosition.Size = new System.Drawing.Size(101, 30);
 			this.btnGetPosition.TabIndex = 3;
@@ -116,7 +116,7 @@
 			this.btnLoadImage.BackColor = System.Drawing.Color.Yellow;
 			this.btnLoadImage.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
 			this.btnLoadImage.ForeColor = System.Drawing.Color.Black;
-			this.btnLoadImage.Location = new System.Drawing.Point(462, 12);
+			this.btnLoadImage.Location = new System.Drawing.Point(438, 12);
 			this.btnLoadImage.Name = "btnLoadImage";
 			this.btnLoadImage.Size = new System.Drawing.Size(101, 37);
 			this.btnLoadImage.TabIndex = 3;
@@ -143,12 +143,12 @@
 			this.panel1.Controls.Add(this.pctPreview);
 			this.panel1.Location = new System.Drawing.Point(12, 12);
 			this.panel1.Name = "panel1";
-			this.panel1.Size = new System.Drawing.Size(441, 400);
+			this.panel1.Size = new System.Drawing.Size(420, 400);
 			this.panel1.TabIndex = 26;
 			// 
 			// intPreviewWidth
 			// 
-			this.intPreviewWidth.Location = new System.Drawing.Point(618, 22);
+			this.intPreviewWidth.Location = new System.Drawing.Point(589, 22);
 			this.intPreviewWidth.Maximum = new decimal(new int[] {
             999999,
             0,
@@ -160,7 +160,7 @@
 			// 
 			// intPreviewHeight
 			// 
-			this.intPreviewHeight.Location = new System.Drawing.Point(731, 22);
+			this.intPreviewHeight.Location = new System.Drawing.Point(704, 23);
 			this.intPreviewHeight.Maximum = new decimal(new int[] {
             999999,
             0,
@@ -173,7 +173,7 @@
 			// label10
 			// 
 			this.label10.AutoSize = true;
-			this.label10.Location = new System.Drawing.Point(575, 25);
+			this.label10.Location = new System.Drawing.Point(546, 25);
 			this.label10.Name = "label10";
 			this.label10.Size = new System.Drawing.Size(35, 13);
 			this.label10.TabIndex = 28;
@@ -182,7 +182,7 @@
 			// label11
 			// 
 			this.label11.AutoSize = true;
-			this.label11.Location = new System.Drawing.Point(681, 25);
+			this.label11.Location = new System.Drawing.Point(654, 26);
 			this.label11.Name = "label11";
 			this.label11.Size = new System.Drawing.Size(38, 13);
 			this.label11.TabIndex = 28;
@@ -194,9 +194,9 @@
 			this.groupBox1.Controls.Add(this.txtMousePositionY);
 			this.groupBox1.Controls.Add(this.txtMousePositionX);
 			this.groupBox1.Controls.Add(this.lblX);
-			this.groupBox1.Location = new System.Drawing.Point(462, 291);
+			this.groupBox1.Location = new System.Drawing.Point(438, 291);
 			this.groupBox1.Name = "groupBox1";
-			this.groupBox1.Size = new System.Drawing.Size(321, 64);
+			this.groupBox1.Size = new System.Drawing.Size(345, 64);
 			this.groupBox1.TabIndex = 29;
 			this.groupBox1.TabStop = false;
 			this.groupBox1.Text = "Mouse Start Position";
@@ -210,21 +210,21 @@
 			this.lblColorOptions.TabIndex = 31;
 			this.lblColorOptions.Text = "Color Options";
 			// 
-			// dataGridView1
+			// dataGridColors
 			// 
-			this.dataGridView1.BackgroundColor = System.Drawing.Color.White;
-			this.dataGridView1.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
-			this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-			this.dataGridView1.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+			this.dataGridColors.BackgroundColor = System.Drawing.Color.White;
+			this.dataGridColors.ColumnHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
+			this.dataGridColors.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+			this.dataGridColors.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.PosX,
             this.PosY,
             this.RGB});
-			this.dataGridView1.Location = new System.Drawing.Point(462, 74);
-			this.dataGridView1.MultiSelect = false;
-			this.dataGridView1.Name = "dataGridView1";
-			this.dataGridView1.RowHeadersVisible = false;
-			this.dataGridView1.Size = new System.Drawing.Size(321, 211);
-			this.dataGridView1.TabIndex = 34;
+			this.dataGridColors.Location = new System.Drawing.Point(438, 74);
+			this.dataGridColors.MultiSelect = false;
+			this.dataGridColors.Name = "dataGridColors";
+			this.dataGridColors.RowHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
+			this.dataGridColors.Size = new System.Drawing.Size(345, 211);
+			this.dataGridColors.TabIndex = 34;
 			// 
 			// PosX
 			// 
@@ -241,13 +241,13 @@
 			this.RGB.HeaderText = "RGB";
 			this.RGB.Name = "RGB";
 			// 
-			// Main
+			// DrawThatThing
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.BackColor = System.Drawing.Color.White;
 			this.ClientSize = new System.Drawing.Size(795, 424);
-			this.Controls.Add(this.dataGridView1);
+			this.Controls.Add(this.dataGridColors);
 			this.Controls.Add(this.lblColorOptions);
 			this.Controls.Add(this.groupBox1);
 			this.Controls.Add(this.label11);
@@ -260,7 +260,7 @@
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
 			this.MaximizeBox = false;
 			this.MinimizeBox = false;
-			this.Name = "Main";
+			this.Name = "DrawThatThing";
 			this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
 			this.Text = "Main";
 			((System.ComponentModel.ISupportInitialize)(this.pctPreview)).EndInit();
@@ -269,7 +269,7 @@
 			((System.ComponentModel.ISupportInitialize)(this.intPreviewHeight)).EndInit();
 			this.groupBox1.ResumeLayout(false);
 			this.groupBox1.PerformLayout();
-			((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.dataGridColors)).EndInit();
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -293,7 +293,7 @@
 		private System.Windows.Forms.Label label11;
 		private System.Windows.Forms.GroupBox groupBox1;
 		private System.Windows.Forms.Label lblColorOptions;
-		private System.Windows.Forms.DataGridView dataGridView1;
+		private System.Windows.Forms.DataGridView dataGridColors;
 		private System.Windows.Forms.DataGridViewTextBoxColumn PosX;
 		private System.Windows.Forms.DataGridViewTextBoxColumn PosY;
 		private System.Windows.Forms.DataGridViewTextBoxColumn RGB;
