@@ -10,8 +10,7 @@
 	public class ColoredBitmapReader
 	{
 		private readonly string _bitmapPath;
-		private readonly Dictionary<Point, PixelMeta> _pixels = new Dictionary<Point, PixelMeta>();
-		private readonly Random _random = new Random();
+		private KeyValuePair<Point, PixelMeta>[] _pixels;
 
 		public IEnumerable<MouseAction> getDrawInstructions(ColorSpot[] color)
 		{
@@ -20,11 +19,13 @@
 			using (var bitmap = new Bitmap(_bitmapPath))
 			{
 				Rectangle rect = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
+				_pixels = new KeyValuePair<Point, PixelMeta>[bitmap.Width * bitmap.Height];
 				BitmapData bmpData = bitmap.LockBits(rect, ImageLockMode.ReadOnly, bitmap.PixelFormat);
 				IntPtr ptr = bmpData.Scan0;
 				int bytes = bmpData.Stride * bitmap.Height;
 				byte[] rgbValues = new byte[bytes];
 				Marshal.Copy(ptr, rgbValues, 0, bytes);
+				int count = 0;
 				for (int x = 0; x < bitmap.Width; x++)
 				{
 					for (int y = 0; y < bitmap.Height; y++)
@@ -38,7 +39,7 @@
 							continue;
 						}
 						var currentColor = Color.FromArgb(red, green, blue);
-						_pixels.Add
+						_pixels[(x * bitmap.Height) + y] = new KeyValuePair<Point, PixelMeta>
 							(
 								new Point(x, y),
 								new PixelMeta
@@ -49,13 +50,13 @@
 												.FirstOrDefault()
 									}
 							);
+						count++;
 					}
 				}
 				bitmap.UnlockBits(bmpData);
 			}
 
-			var groupedPixels = _pixels.GroupBy(x => x.Value.closestColor);
-			var count = 0;
+			var groupedPixels = _pixels.Where(x => !x.Key.IsEmpty).GroupBy(x => x.Value.closestColor);
 			foreach (var pixelGroup in groupedPixels)
 			{
 				//Change color
@@ -77,13 +78,11 @@
 						}
 						currentPoint = closestPixel.Key;
 						points.Add(closestPixel.Key);
-						count++;
 						closestPixel.Value.expired = true;
 					}
 					var ma = new MouseAction();
 					ma.addPath(points);
 					output.Add(ma);
-					Console.WriteLine(count);
 				}
 			}
 			return output;
