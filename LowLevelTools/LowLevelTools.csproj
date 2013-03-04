@@ -42,13 +42,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BitmapReader.cs" />
     <Compile Include="ColoredBitmapReader.cs" />
     <Compile Include="ColorExtensions.cs" />
     <Compile Include="ColorSpot.cs" />
     <Compile Include="StringExtensions.cs" />
     <Compile Include="PointExtensions.cs" />
-    <Compile Include="MouseAction.cs" />
+    <Compile Include="MouseDragAction.cs" />
     <Compile Include="MouseOperations.cs" />
     <Compile Include="PixelAcceptanceArgs.cs" />
     <Compile Include="PixelMeta.cs" />
