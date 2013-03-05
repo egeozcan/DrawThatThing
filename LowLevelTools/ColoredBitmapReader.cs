@@ -2,41 +2,36 @@
 {
 	using System;
 	using System.Collections.Generic;
-	using System.Diagnostics;
 	using System.Drawing;
 	using System.Drawing.Imaging;
 	using System.Linq;
 	using System.Runtime.InteropServices;
-	using System.Threading.Tasks;
-
-	using MiniProfiler.Windows;
-
-	using StackExchange.Profiling;
 
 	public class ColoredBitmapReader
 	{
 		private readonly string _bitmapPath;
-		private KeyValuePair<Point, PixelMeta>[] _pixels;
-		private ColorSpot[,] _colors;
-		private bool[,] _drawStatus;
+		private int[,] _colors;
+		private bool[,] _colorsProcessed;
+		private int _bitmapHeight;
+		private int _bitmapWidth;
 
 		public IEnumerable<MouseDragAction> getDrawInstructions(ColorSpot[] color)
 		{
-			int bitmapHeight;
-			int bitmapWidth;
+			var knownColors = color.ToList();
+			var ignoredColor = knownColors.IndexOf(knownColors.First(x => x.color.Name == "ffffffff"));
+			// prevent drawing of single pixels etc
+			const int colorGroupMinSize = 15;
 
 			List<MouseDragAction> output = new List<MouseDragAction>();
 
 			using (var bitmap = new Bitmap(_bitmapPath))
 			{
-				bitmapHeight = bitmap.Height;
-				bitmapWidth = bitmap.Width;
-
-				_colors = new ColorSpot[bitmapWidth,bitmapHeight];
-				_drawStatus = new bool[bitmapWidth,bitmapHeight];
-
+				_bitmapHeight = bitmap.Height;
+				_bitmapWidth = bitmap.Width;
 				Rectangle rect = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
-				_pixels = new KeyValuePair<Point, PixelMeta>[bitmap.Width * bitmap.Height];
+				_colors = new int[bitmap.Width, bitmap.Height];
+				_colorsProcessed = new bool[bitmap.Width, bitmap.Height];
+				//_pixels = new KeyValuePair<Point, PixelMeta>[bitmap.Width * bitmap.Height];
 				BitmapData bmpData = bitmap.LockBits(rect, ImageLockMode.ReadOnly, bitmap.PixelFormat);
 				IntPtr ptr = bmpData.Scan0;
 				int bytes = bmpData.Stride * bitmap.Height;
@@ -51,94 +46,110 @@
 						int green = rgbValues[position + 1];
 						int red = rgbValues[position + 2];
 						var currentColor = Color.FromArgb(red, green, blue);
-						_colors[x, y] = color.OrderBy(c => c.color.DifferenceTo(currentColor)).FirstOrDefault();
-						
-						/*_pixels[(x * bitmap.Height) + y] = new KeyValuePair<Point, PixelMeta>
-							(
-								new Point(x, y),
-								new PixelMeta
-									{
-										expired = false,
-										closestColor = color
-												.OrderBy(c => c.color.DifferenceTo(currentColor))
-												.FirstOrDefault()
-									}
-							);*/
+						var closestColor = knownColors.OrderBy(c => c.color.DifferenceTo(currentColor)).FirstOrDefault();
+						_colors[x, y] = knownColors.IndexOf(closestColor);
 					}
 				}
 				bitmap.UnlockBits(bmpData);
 			}
-			const string ignoreColor = "ffffffff";
-			ConsoleProfiling.Start();
-			
 
-			var groupedPixels = _pixels.AsParallel().Where(x => !x.Key.IsEmpty).GroupBy(x => x.Value.closestColor);
-			using (MiniProfiler.Current.Step("parsing image"))
+
+
+			var colorGroups = new List<List<SimplePoint>>();
+			for (int x = 0; x < _bitmapWidth; x++)
 			{
-				Parallel.ForEach(
-					groupedPixels,
-					delegate(IGrouping<ColorSpot, KeyValuePair<Point, PixelMeta>> pixelGroup)
-						{
-							using (MiniProfiler.Current.Step("delegate"))
-							{
-								if (pixelGroup.Key.color.Name == ignoreColor)
-								{
-									return;
-								}
-								List<MouseDragAction> colorOutput = new List<MouseDragAction>();
-								//Change color
-								using (MiniProfiler.Current.Step("creating new mousedragaction"))
-								{
-									var colorChangeAction = new MouseDragAction(
-										new[] { new Point(pixelGroup.Key.point.X, pixelGroup.Key.point.Y) }, true) { Color = pixelGroup.Key.color };
-									colorOutput.Add(colorChangeAction);
-								}
-								while (pixelGroup.Any(x => !x.Value.expired))
-								{
-									using (MiniProfiler.Current.Step("looping over pixelgroup"))
-									{
-										var points = new List<Point>();
-										KeyValuePair<Point, PixelMeta> currentPair = pixelGroup.First(x => !x.Value.expired);
-										Point currentPoint = currentPair.Key;
-										currentPair.Value.expired = true;
-										points.Add(currentPoint);
-										while (true)
-										{
-											Point point = currentPoint;
-											KeyValuePair<Point, PixelMeta> closestPixel;
-											//using (MiniProfiler.Current.Step("finding closest pixel"))
-											//{
-												//closestPixel = pixelGroup.FirstOrDefault(x => !x.Value.expired && x.Key.IsANeighborOf(point));
-												//closestPixel = point.GetNeighboringPoints(bitmapWidth, bitmapHeight).Where(p => p.X >= 0 && p.Y >= 0 && p.X < bitmapWidth && p.Y < bitmapHeight).Select(p => _pixels[(p.X * bitmapHeight) + p.Y]).FirstOrDefault();
-											//}
-											if (closestPixel.Key.IsEmpty)
-											{
-												break;
-											}
-											currentPoint = closestPixel.Key;
-											points.Add(closestPixel.Key);
-											closestPixel.Value.expired = true;
-										}
-										var ma = new MouseDragAction(points.ToArray());
-										colorOutput.Add(ma);
-									}
-								}
-								lock (output)
-								{
-									output.AddRange(colorOutput);
-								}
-							}
-						});
+				for (int y = 0; y < _bitmapHeight; y++)
+				{
+					if (_colors[x, y] != ignoredColor && !_colorsProcessed[x, y])
+					{
+						_colorsProcessed[x, y] = true;
+						var colorGroup = new List<SimplePoint> { new SimplePoint { X = x, Y = y } };
+						GetNeighboringColors(x, y, colorGroup);
+						colorGroups.Add(colorGroup);
+					}
+
+				}
 			}
-			var friendlyString = ConsoleProfiling.StopAndGetConsoleFriendlyOutputStringWithSqlTimings();
-			Console.WriteLine(friendlyString);
-			Debug.WriteLine(friendlyString);
+
+			int? lastColorIndex = null;
+			var colorGroupsOrderedByColor = colorGroups.Where(x => x.Count >= colorGroupMinSize).OrderBy(x => _colors[x.First().X, x.First().Y]);
+			foreach (var colorGroup in colorGroupsOrderedByColor)
+			{
+				var colorOutput = new List<MouseDragAction>();
+				var currentColorIndex = _colors[colorGroup.First().X, colorGroup.First().Y];
+				if (!lastColorIndex.HasValue || lastColorIndex.Value != currentColorIndex)
+				{
+					lastColorIndex = currentColorIndex;
+					var currentColor = knownColors[_colors[colorGroup.First().X, colorGroup.First().Y]];
+					var colorChangeAction = new MouseDragAction(new[] { currentColor.point }, true) { Color = currentColor.color };
+					colorOutput.Add(colorChangeAction);
+				}
+				var ma = new MouseDragAction(colorGroup.Select(x => new Point(x.X, x.Y)).ToArray());
+				colorOutput.Add(ma);
+				output.AddRange(colorOutput);
+			}
+
 			return output;
+		}
+
+		private void GetNeighboringColors(int x, int y, List<SimplePoint> neighboringColors)
+		{
+			var neighbors = GetMatchingUnprocessedDirectNeighbors(x, y);
+			foreach (var neighbor in neighbors)
+			{
+				_colorsProcessed[neighbor.X, neighbor.Y] = true;
+				neighboringColors.Add(neighbor);
+			}
+			foreach (var neighbor in neighbors)
+			{
+				GetNeighboringColors(neighbor.X, neighbor.Y, neighboringColors);
+			}
+		}
+
+		private List<SimplePoint> GetMatchingUnprocessedDirectNeighbors(int x, int y)
+		{
+			var directNeighbors = new List<SimplePoint>();
+			// top
+			var newX = x;
+			var newY = y - 1;
+			if (newY > 0 && !_colorsProcessed[newX, newY] && _colors[x, y] == _colors[newX, newY])
+			{
+				directNeighbors.Add(new SimplePoint { X = newX, Y = newY });
+			}
+			// right
+			newX = x + 1;
+			newY = y;
+			if (newX < _bitmapWidth && !_colorsProcessed[newX, newY] && _colors[x, y] == _colors[newX, newY])
+			{
+				directNeighbors.Add(new SimplePoint { X = newX, Y = newY });
+			}
+			// bottom
+			newX = x;
+			newY = y + 1;
+			if (newY < _bitmapHeight && !_colorsProcessed[newX, newY] && _colors[x, y] == _colors[newX, newY])
+			{
+				directNeighbors.Add(new SimplePoint { X = newX, Y = newY });
+			}
+			// left
+			newX = x - 1;
+			newY = y;
+			if (newX > 0 && !_colorsProcessed[newX, newY] && _colors[x, y] == _colors[newX, newY])
+			{
+				directNeighbors.Add(new SimplePoint { X = newX, Y = newY });
+			}
+			return directNeighbors;
 		}
 
 		public ColoredBitmapReader(string path)
 		{
 			_bitmapPath = path;
 		}
+
+		public class SimplePoint
+		{
+			public int X { get; set; }
+			public int Y { get; set; }
+		}
+
 	}
 }
