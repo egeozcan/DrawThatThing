@@ -4,7 +4,8 @@
 
 	public class ColorSpot
 	{
-		public Color color;
-		public Point point;
+		public Color Color;
+		public Point Point;
+		public ulong Count;
 	}
 }

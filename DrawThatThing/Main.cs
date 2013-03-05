@@ -25,33 +25,33 @@ namespace DrawThatThing
 			{
 				new ColorSpot
 					{
-						color = Color.Black,
-						point = new Point(-1884,1025)
+						Color = Color.Black,
+						Point = new Point(-1884,1025)
 					},
 				new ColorSpot
 					{
-						color = Color.Red,
-						point = new Point(-1850,1038)
+						Color = Color.Red,
+						Point = new Point(-1850,1038)
 					},
 				new ColorSpot
 					{
-						color = Color.Blue,
-						point = new Point(-1788,1037)
+						Color = Color.Blue,
+						Point = new Point(-1788,1037)
 					},
 				new ColorSpot
 					{
-						color = Color.Green,
-						point = new Point(-1819,1021)
+						Color = Color.Green,
+						Point = new Point(-1819,1021)
 					},
 				new ColorSpot
 					{
-						color = Color.White,
-						point = new Point(0,0)
+						Color = Color.White,
+						Point = new Point(0,0)
 					},
 				new ColorSpot
 					{
-						color = Color.FromArgb(190, 169, 16),
-						point = new Point(-1673,1039)
+						Color = Color.FromArgb(190, 169, 16),
+						Point = new Point(-1673,1039)
 					}
 			};
 
@@ -62,7 +62,7 @@ namespace DrawThatThing
 			this.Text = "DrawThatThing";
 			foreach (var colorSpot in _builtinColorSpots)
 			{
-				dataGridColors.Rows.Add(colorSpot.point.X.ToString(CultureInfo.InvariantCulture), colorSpot.point.Y.ToString(CultureInfo.InvariantCulture), colorSpot.color.ToHEX());				
+				dataGridColors.Rows.Add(colorSpot.Point.X.ToString(CultureInfo.InvariantCulture), colorSpot.Point.Y.ToString(CultureInfo.InvariantCulture), colorSpot.Color.ToHEX());				
 			}
 		}
 
@@ -147,11 +147,11 @@ namespace DrawThatThing
 				var row = dataGridColors.Rows[i];
 				spots[i] = new ColorSpot
 					{
-						color = (row.Cells[2].Value as String ?? "").ToColor(),
-						point = new Point((row.Cells[0].Value as String ?? "").ToInt(), (row.Cells[1].Value as String ?? "").ToInt())
+						Color = (row.Cells[2].Value as String ?? "").ToColor(),
+						Point = new Point((row.Cells[0].Value as String ?? "").ToInt(), (row.Cells[1].Value as String ?? "").ToInt())
 					};
 			}
-			var notEmptyColors = spots.Where(x => !x.color.IsEmpty).ToArray();
+			var notEmptyColors = spots.Where(x => !x.Color.IsEmpty).ToArray();
 			this._actions = new ColoredBitmapReader(this.dlgImportImage.FileName).getDrawInstructions(notEmptyColors);
 			dlgImportImage.FileName = null;
 			this.updatePreview();
