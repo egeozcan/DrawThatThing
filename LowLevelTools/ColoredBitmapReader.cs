@@ -18,6 +18,7 @@
 		private readonly string _bitmapPath;
 		private ColorSpot[,] _colors;
 		private bool[,] _drawStatus;
+		private const string IgnoreColor = "ffffffff";
 
 		public IEnumerable<MouseDragAction> getDrawInstructions(ColorSpot[] PaletteColorSpots)
 		{
@@ -67,14 +68,13 @@
 				
 			});
 
-			const string ignoreColor = "ffffffff";
 			ConsoleProfiling.Start();
 			var groupedPixels = _pixels.AsParallel().Where(x => !x.Key.IsEmpty).GroupBy(x => x.Value.closestColor);
 			Parallel.ForEach(
 				groupedPixels,
 				delegate(IGrouping<ColorSpot, KeyValuePair<Point, PixelMeta>> pixelGroup)
 					{
-						if (pixelGroup.Key.Color.Name == ignoreColor)
+						if (pixelGroup.Key.Color.Name == IgnoreColor)
 						{
 							return;
 						}
