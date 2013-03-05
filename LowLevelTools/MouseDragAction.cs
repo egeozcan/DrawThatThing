@@ -33,7 +33,7 @@
 			{
 				MouseOperations.SetCursorPosition(
 					new MouseOperations.MousePoint(point.X + offset.X, point.Y + offset.Y));
-				System.Threading.Thread.Sleep(2);
+				System.Threading.Thread.Sleep(1);
 			}
 			System.Threading.Thread.Sleep(10);
 			MouseOperations.MouseEvent(MouseOperations.MouseEventFlags.LeftUp);

@@ -6,6 +6,7 @@
 	using System.Drawing.Imaging;
 	using System.Linq;
 	using System.Runtime.InteropServices;
+	using System.Threading.Tasks;
 
 	public class ColoredBitmapReader
 	{
@@ -21,8 +22,8 @@
 
 			using (var bitmap = new Bitmap(_bitmapPath))
 			{
-				bitmapHeight = bitmap.Height;
-				bitmapWidth = bitmap.Width;
+				//bitmapHeight = bitmap.Height;
+				//bitmapWidth = bitmap.Width;
 				Rectangle rect = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
 				_pixels = new KeyValuePair<Point, PixelMeta>[bitmap.Width * bitmap.Height];
 				BitmapData bmpData = bitmap.LockBits(rect, ImageLockMode.ReadOnly, bitmap.PixelFormat);
@@ -54,38 +55,49 @@
 				}
 				bitmap.UnlockBits(bmpData);
 			}
-
-			var groupedPixels = _pixels.Where(x => !x.Key.IsEmpty).GroupBy(x => x.Value.closestColor);
-			foreach (var pixelGroup in groupedPixels.Where(pixelGroup => pixelGroup.Key.color != Color.White))
-			{
-				//Change color
-				var colorChangeAction = new MouseDragAction(
-					new[] { new Point(pixelGroup.Key.point.X, pixelGroup.Key.point.Y) }, true) { Color = pixelGroup.Key.color };
-				output.Add(colorChangeAction);
-				while (pixelGroup.Any(x => !x.Value.expired))
-				{
-					var points = new List<Point>();
-					KeyValuePair<Point, PixelMeta> currentPair = pixelGroup.First(x => !x.Value.expired);
-					Point currentPoint = currentPair.Key;
-					currentPair.Value.expired = true;
-					points.Add(currentPoint);
-					while (true)
+			const string ignoreColor = "ffffffff";
+			var groupedPixels = _pixels.AsParallel().Where(x => !x.Key.IsEmpty).GroupBy(x => x.Value.closestColor);
+			Parallel.ForEach(
+				groupedPixels,
+				delegate(IGrouping<ColorSpot, KeyValuePair<Point, PixelMeta>> pixelGroup)
 					{
-						Point point = currentPoint;
-						KeyValuePair<Point, PixelMeta> closestPixel =
-							pixelGroup.AsParallel().FirstOrDefault(x => !x.Value.expired && x.Key.IsANeighborOf(point));
-						if (closestPixel.Key.IsEmpty)
+						if (pixelGroup.Key.color.Name == ignoreColor)
 						{
-							break;
+							return;
 						}
-						currentPoint = closestPixel.Key;
-						points.Add(closestPixel.Key);
-						closestPixel.Value.expired = true;
-					}
-					var ma = new MouseDragAction(points.ToArray());
-					output.Add(ma);
-				}
-			}
+						List<MouseDragAction> colorOutput = new List<MouseDragAction>();
+						//Change color
+						var colorChangeAction = new MouseDragAction(
+							new[] { new Point(pixelGroup.Key.point.X, pixelGroup.Key.point.Y) }, true) { Color = pixelGroup.Key.color };
+						colorOutput.Add(colorChangeAction);
+						while (pixelGroup.Any(x => !x.Value.expired))
+						{
+							var points = new List<Point>();
+							KeyValuePair<Point, PixelMeta> currentPair = pixelGroup.First(x => !x.Value.expired);
+							Point currentPoint = currentPair.Key;
+							currentPair.Value.expired = true;
+							points.Add(currentPoint);
+							while (true)
+							{
+								Point point = currentPoint;
+								KeyValuePair<Point, PixelMeta> closestPixel =
+									pixelGroup.AsParallel().FirstOrDefault(x => !x.Value.expired && x.Key.IsANeighborOf(point));
+								if (closestPixel.Key.IsEmpty)
+								{
+									break;
+								}
+								currentPoint = closestPixel.Key;
+								points.Add(closestPixel.Key);
+								closestPixel.Value.expired = true;
+							}
+							var ma = new MouseDragAction(points.ToArray());
+							colorOutput.Add(ma);
+						}
+						lock (output)
+						{
+							output.AddRange(colorOutput);
+						}
+					});
 			return output;
 		}
 
