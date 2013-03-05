@@ -9,10 +9,11 @@
 		public readonly bool DiscardOffset;
 		public Color Color;
 
-		public MouseDragAction(Point[] points, bool discardOffset = false)
+		public MouseDragAction(Point[] points, bool discardOffset = false, Color? color = null)
 		{
 			this.Points = points;
 			this.DiscardOffset = discardOffset;
+			this.Color = color.HasValue ? color.Value : Color.Empty;
 		}
 
 		public void Play(Point offset)
