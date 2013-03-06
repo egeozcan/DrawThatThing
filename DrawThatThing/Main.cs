@@ -7,13 +7,17 @@ namespace DrawThatThing
 {
 	using System.Collections.Generic;
 	using System.Drawing;
-	using System.Drawing.Imaging;
 	using System.Globalization;
 	using System.IO;
 	using System.Runtime.InteropServices;
 	using System.Text;
 
-	using LowLevelTools;
+	using Helpers;
+	using Helpers.BitmapReaders;
+	using Helpers.Classes;
+	using Helpers.Extensions;
+
+	using Point = Helpers.Point;
 
 	public partial class DrawThatThing : Form
 	{
@@ -150,7 +154,7 @@ namespace DrawThatThing
 				spots[i] = new ColorSpot
 					{
 						color = (row.Cells[2].Value as String ?? "").ToColor(),
-						point = new Point((row.Cells[0].Value as String ?? "").ToInt(), (row.Cells[1].Value as String ?? "").ToInt())
+						point = new Helpers.Point((row.Cells[0].Value as String ?? "").ToInt(), (row.Cells[1].Value as String ?? "").ToInt())
 					};
 			}
 			var notEmptyColors = spots.Where(x => !x.color.IsEmpty).ToArray();
@@ -169,11 +173,11 @@ namespace DrawThatThing
 				{
 					var cPen = action.Color.IsEmpty ? pen : new Pen(action.Color, 1);
 					pen = cPen;
-					Point[] points = action.Points;
-					Point lastP = points[0];
+					Helpers.Point[] points = action.Points;
+					Helpers.Point lastP = points[0];
 					foreach (var point in points)
 					{
-						graphics.DrawLine(cPen, lastP, point);
+						graphics.DrawLine(cPen, lastP.ToStandardPoint(), point.ToStandardPoint());
 						lastP = point;
 					}
 				}

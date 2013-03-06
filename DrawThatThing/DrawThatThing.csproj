@@ -88,9 +88,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\LowLevelTools\LowLevelTools.csproj">
+    <ProjectReference Include="..\LowLevelTools\Helpers.csproj">
       <Project>{A2A65372-5623-451E-AA94-C1D5DCAF8D57}</Project>
-      <Name>LowLevelTools</Name>
+      <Name>Helpers</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

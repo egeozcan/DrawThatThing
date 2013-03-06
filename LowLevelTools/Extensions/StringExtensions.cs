@@ -1,4 +1,4 @@
-namespace LowLevelTools
+namespace Helpers.Extensions
 {
 	using System;
 	using System.Drawing;

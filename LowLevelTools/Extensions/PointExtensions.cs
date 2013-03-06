@@ -1,7 +1,6 @@
-namespace LowLevelTools
+namespace Helpers.Extensions
 {
 	using System;
-	using System.Drawing;
 	using System.Linq;
 
 	public static class PointExtensions
@@ -33,6 +32,11 @@ namespace LowLevelTools
 				neighboringPoints = neighboringPoints.Where(x => x.Y <= maxY.Value).ToArray();
 			}
 			return neighboringPoints;
+		}
+
+		public static System.Drawing.Point ToStandardPoint(this Point point)
+		{
+			return new System.Drawing.Point(point.X, point.Y);
 		}
 	}
 }

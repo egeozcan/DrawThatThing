@@ -1,6 +1,8 @@
-﻿namespace LowLevelTools
+﻿namespace Helpers.Classes
 {
 	using System.Drawing;
+
+	using Point = Point;
 
 	public class ColorSpot
 	{

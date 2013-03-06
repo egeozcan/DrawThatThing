@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace LowLevelTools
+﻿namespace Helpers
 {
 	using System;
-	using System.Drawing;
 	using System.Runtime.InteropServices;
 
 	public static class MouseOperations
@@ -74,14 +68,14 @@ namespace LowLevelTools
 
 			public MousePoint(int x, int y)
 			{
-				X = x;
-				Y = y;
+				this.X = x;
+				this.Y = y;
 			}
 
-			public MousePoint(Point point)
+			public MousePoint(System.Drawing.Point point)
 			{
-				X = point.X;
-				Y = point.Y;
+				this.X = point.X;
+				this.Y = point.Y;
 			}
 
 		}

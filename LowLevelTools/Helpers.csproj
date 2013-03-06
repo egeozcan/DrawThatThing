@@ -8,8 +8,8 @@
     <ProjectGuid>{A2A65372-5623-451E-AA94-C1D5DCAF8D57}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>LowLevelTools</RootNamespace>
-    <AssemblyName>LowLevelTools</AssemblyName>
+    <RootNamespace>Helpers</RootNamespace>
+    <AssemblyName>Helpers</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -48,18 +48,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ColoredBitmapReader.cs" />
-    <Compile Include="ColorExtensions.cs" />
-    <Compile Include="ColorSpot.cs" />
-    <Compile Include="SimplePoint.cs" />
-    <Compile Include="StringExtensions.cs" />
-    <Compile Include="PointExtensions.cs" />
-    <Compile Include="MouseDragAction.cs" />
+    <Compile Include="BitmapReaders\ColoredBitmapReader.cs" />
+    <Compile Include="BitmapReaders\Interface\IColoredBitmapReader.cs" />
+    <Compile Include="Extensions\ColorExtensions.cs" />
+    <Compile Include="Classes\ColorSpot.cs" />
+    <Compile Include="Point.cs" />
+    <Compile Include="Extensions\StringExtensions.cs" />
+    <Compile Include="Extensions\PointExtensions.cs" />
+    <Compile Include="Classes\MouseDragAction.cs" />
     <Compile Include="MouseOperations.cs" />
-    <Compile Include="PixelAcceptanceArgs.cs" />
     <Compile Include="PixelMeta.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

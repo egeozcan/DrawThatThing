@@ -1,4 +1,4 @@
-﻿namespace LowLevelTools
+﻿namespace Helpers.BitmapReaders
 {
 	using System;
 	using System.Collections.Generic;
@@ -7,7 +7,15 @@
 	using System.Linq;
 	using System.Runtime.InteropServices;
 
-	public class ColoredBitmapReader
+	using Classes;
+
+	using Extensions;
+
+	using Interface;
+
+	using Point = Point;
+
+	public class ColoredBitmapReader : IColoredBitmapReader
 	{
 		const int ColorGroupMinSize = 1;
 		private readonly string _bitmapPath;
@@ -24,21 +32,21 @@
 
 			List<MouseDragAction> output = new List<MouseDragAction>();
 
-			using (var bitmap = new Bitmap(_bitmapPath))
+			using (var bitmap = new Bitmap(this._bitmapPath))
 			{
-				_bitmapHeight = bitmap.Height;
-				_bitmapWidth = bitmap.Width;
-				Rectangle rect = new Rectangle(0, 0, _bitmapWidth, _bitmapHeight);
-				this._pixelColorIndex = new int[_bitmapWidth, _bitmapHeight];
-				this._pixelIsProcessed = new bool[_bitmapWidth, _bitmapHeight];
+				this._bitmapHeight = bitmap.Height;
+				this._bitmapWidth = bitmap.Width;
+				Rectangle rect = new Rectangle(0, 0, this._bitmapWidth, this._bitmapHeight);
+				this._pixelColorIndex = new int[this._bitmapWidth, this._bitmapHeight];
+				this._pixelIsProcessed = new bool[this._bitmapWidth, this._bitmapHeight];
 				BitmapData bmpData = bitmap.LockBits(rect, ImageLockMode.ReadOnly, bitmap.PixelFormat);
 				IntPtr ptr = bmpData.Scan0;
-				int bytes = bmpData.Stride * _bitmapHeight;
+				int bytes = bmpData.Stride * this._bitmapHeight;
 				byte[] rgbValues = new byte[bytes];
 				Marshal.Copy(ptr, rgbValues, 0, bytes);
-				for (int x = 0; x < _bitmapWidth; x++)
+				for (int x = 0; x < this._bitmapWidth; x++)
 				{
-					for (int y = 0; y < _bitmapHeight; y++)
+					for (int y = 0; y < this._bitmapHeight; y++)
 					{
 						int position = (y * bmpData.Stride) + (x * 3);
 						int blue = rgbValues[position];
@@ -52,17 +60,17 @@
 				bitmap.UnlockBits(bmpData);
 			}
 
-			var colorGroups = new List<List<SimplePoint>>();
-			for (int x = 0; x < _bitmapWidth; x++)
+			var colorGroups = new List<List<Point>>();
+			for (int x = 0; x < this._bitmapWidth; x++)
 			{
-				for (int y = 0; y < _bitmapHeight; y++)
+				for (int y = 0; y < this._bitmapHeight; y++)
 				{
 					if (this._pixelColorIndex[x, y] == ignoredColor || this._pixelIsProcessed[x, y])
 					{
 						continue;
 					}
 					this._pixelIsProcessed[x, y] = true;
-					var colorGroup = new List<SimplePoint> { new SimplePoint { X = x, Y = y } };
+					var colorGroup = new List<Point> { new Point (x,y) };
 					this.GetNeighboringColors(x, y, colorGroup);
 					colorGroups.Add(colorGroup);
 				}
@@ -89,9 +97,9 @@
 			return output;
 		}
 
-		private void GetNeighboringColors(int x, int y, List<SimplePoint> neighboringColors)
+		private void GetNeighboringColors(int x, int y, List<Point> neighboringColors)
 		{
-			var neighbors = GetMatchingUnprocessedDirectNeighbors(x, y);
+			var neighbors = this.GetMatchingUnprocessedDirectNeighbors(x, y);
 			foreach (var neighbor in neighbors)
 			{
 				this._pixelIsProcessed[neighbor.X, neighbor.Y] = true;
@@ -99,47 +107,47 @@
 			}
 			foreach (var neighbor in neighbors)
 			{
-				GetNeighboringColors(neighbor.X, neighbor.Y, neighboringColors);
+				this.GetNeighboringColors(neighbor.X, neighbor.Y, neighboringColors);
 			}
 		}
 
-		private List<SimplePoint> GetMatchingUnprocessedDirectNeighbors(int x, int y)
+		private List<Point> GetMatchingUnprocessedDirectNeighbors(int x, int y)
 		{
-			var directNeighbors = new List<SimplePoint>();
+			var directNeighbors = new List<Point>();
 			// top
 			var newX = x;
 			var newY = y - 1;
 			if (newY > 0 && !this._pixelIsProcessed[newX, newY] && this._pixelColorIndex[x, y] == this._pixelColorIndex[newX, newY])
 			{
-				directNeighbors.Add(new SimplePoint { X = newX, Y = newY });
+				directNeighbors.Add(new Point(newX, newY));
 			}
 			// right
 			newX = x + 1;
 			newY = y;
-			if (newX < _bitmapWidth && !this._pixelIsProcessed[newX, newY] && this._pixelColorIndex[x, y] == this._pixelColorIndex[newX, newY])
+			if (newX < this._bitmapWidth && !this._pixelIsProcessed[newX, newY] && this._pixelColorIndex[x, y] == this._pixelColorIndex[newX, newY])
 			{
-				directNeighbors.Add(new SimplePoint { X = newX, Y = newY });
+				directNeighbors.Add(new Point(newX, newY));
 			}
 			// bottom
 			newX = x;
 			newY = y + 1;
-			if (newY < _bitmapHeight && !this._pixelIsProcessed[newX, newY] && this._pixelColorIndex[x, y] == this._pixelColorIndex[newX, newY])
+			if (newY < this._bitmapHeight && !this._pixelIsProcessed[newX, newY] && this._pixelColorIndex[x, y] == this._pixelColorIndex[newX, newY])
 			{
-				directNeighbors.Add(new SimplePoint { X = newX, Y = newY });
+				directNeighbors.Add(new Point(newX, newY));
 			}
 			// left
 			newX = x - 1;
 			newY = y;
 			if (newX > 0 && !this._pixelIsProcessed[newX, newY] && this._pixelColorIndex[x, y] == this._pixelColorIndex[newX, newY])
 			{
-				directNeighbors.Add(new SimplePoint { X = newX, Y = newY });
+				directNeighbors.Add(new Point(newX, newY));
 			}
 			return directNeighbors;
 		}
 
 		public ColoredBitmapReader(string path)
 		{
-			_bitmapPath = path;
+			this._bitmapPath = path;
 		}
 	}
 }

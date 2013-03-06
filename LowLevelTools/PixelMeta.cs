@@ -1,6 +1,8 @@
-namespace LowLevelTools
+namespace Helpers
 {
 	using System.Drawing;
+
+	using Classes;
 
 	public class PixelMeta
 	{

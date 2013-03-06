@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrawThatThing", "DrawThatThing\DrawThatThing.csproj", "{A6E47037-C701-4C24-AD8C-280ACFEB0A43}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LowLevelTools", "LowLevelTools\LowLevelTools.csproj", "{A2A65372-5623-451E-AA94-C1D5DCAF8D57}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Helpers", "LowLevelTools\Helpers.csproj", "{A2A65372-5623-451E-AA94-C1D5DCAF8D57}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
