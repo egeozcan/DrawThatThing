@@ -9,7 +9,9 @@ namespace DrawThatThing
 	using System.Drawing;
 	using System.Drawing.Imaging;
 	using System.Globalization;
+	using System.IO;
 	using System.Runtime.InteropServices;
+	using System.Text;
 
 	using LowLevelTools;
 
@@ -179,6 +181,71 @@ namespace DrawThatThing
 			pctPreview.Width = bitmap.Width;
 			pctPreview.Height = bitmap.Height;
 			pctPreview.Image = bitmap;
+		}
+
+		private void btnBringUp_Click(object sender, EventArgs e)
+		{
+			if (dataGridColors.SelectedRows.Count > 0)
+			{
+				var selectedRow = dataGridColors.SelectedRows[0];
+				selectedRow.SetValues(txtMousePositionX.Text, txtMousePositionY.Text);
+				if (dataGridColors.Rows.Count > selectedRow.Index + 1)
+				{
+					dataGridColors.Rows[selectedRow.Index + 1].Selected = true;
+				}
+			}
+		}
+
+		private void btnExport_Click(object sender, EventArgs e)
+		{
+			dlgExportPixels.ShowDialog();
+			var fileName = dlgExportPixels.FileName;
+			if (String.IsNullOrWhiteSpace(fileName))
+			{
+				return;
+			}
+			var sb = new StringBuilder();
+			sb.AppendLine("X;Y;RGB");
+			foreach (DataGridViewRow row in dataGridColors.Rows)
+			{
+				sb.AppendLine(String.Format("{0};{1};{2}", row.Cells[0].Value, row.Cells[1].Value, row.Cells[2].Value));
+			}
+			File.WriteAllText(fileName, sb.ToString());
+		}
+
+		private void btnImport_Click(object sender, EventArgs e)
+		{
+			dlgImportPixels.ShowDialog();
+			var fileName = dlgImportPixels.FileName;
+			if (String.IsNullOrWhiteSpace(fileName))
+			{
+				return;
+			}
+			IEnumerable<string[]> values;
+			try
+			{
+				values = File.ReadAllLines(fileName).Skip(1).Select(l => l.Split(";".ToCharArray()));
+			}
+			catch (Exception)
+			{
+				return;
+			}
+			if (!values.Any())
+			{
+				return;
+			}
+			for (int i = 0; i < dataGridColors.Rows.Count; i++)
+			{
+				if (dataGridColors.Rows[i].IsNewRow)
+				{
+					continue;
+				}
+				dataGridColors.Rows.RemoveAt(i);
+			}
+			foreach (var value in values)
+			{
+				dataGridColors.Rows.Add(value);
+			}
 		}
 	}
 }

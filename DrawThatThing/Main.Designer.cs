@@ -48,6 +48,11 @@
 			this.PosX = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.PosY = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.RGB = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.btnBringUp = new System.Windows.Forms.Button();
+			this.btnExport = new System.Windows.Forms.Button();
+			this.btnImport = new System.Windows.Forms.Button();
+			this.dlgExportPixels = new System.Windows.Forms.SaveFileDialog();
+			this.dlgImportPixels = new System.Windows.Forms.OpenFileDialog();
 			((System.ComponentModel.ISupportInitialize)(this.pctPreview)).BeginInit();
 			this.panel1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.intPreviewWidth)).BeginInit();
@@ -58,7 +63,7 @@
 			// 
 			// txtMousePositionY
 			// 
-			this.txtMousePositionY.Location = new System.Drawing.Point(135, 24);
+			this.txtMousePositionY.Location = new System.Drawing.Point(135, 20);
 			this.txtMousePositionY.Name = "txtMousePositionY";
 			this.txtMousePositionY.Size = new System.Drawing.Size(79, 20);
 			this.txtMousePositionY.TabIndex = 0;
@@ -66,7 +71,7 @@
 			// 
 			// txtMousePositionX
 			// 
-			this.txtMousePositionX.Location = new System.Drawing.Point(46, 24);
+			this.txtMousePositionX.Location = new System.Drawing.Point(46, 20);
 			this.txtMousePositionX.Name = "txtMousePositionX";
 			this.txtMousePositionX.Size = new System.Drawing.Size(79, 20);
 			this.txtMousePositionX.TabIndex = 1;
@@ -75,7 +80,7 @@
 			// lblX
 			// 
 			this.lblX.AutoSize = true;
-			this.lblX.Location = new System.Drawing.Point(12, 27);
+			this.lblX.Location = new System.Drawing.Point(12, 23);
 			this.lblX.Name = "lblX";
 			this.lblX.Size = new System.Drawing.Size(24, 13);
 			this.lblX.TabIndex = 2;
@@ -85,7 +90,7 @@
 			// 
 			this.btnGetPosition.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 			this.btnGetPosition.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.btnGetPosition.Location = new System.Drawing.Point(230, 19);
+			this.btnGetPosition.Location = new System.Drawing.Point(230, 15);
 			this.btnGetPosition.Name = "btnGetPosition";
 			this.btnGetPosition.Size = new System.Drawing.Size(101, 30);
 			this.btnGetPosition.TabIndex = 3;
@@ -194,9 +199,9 @@
 			this.groupBox1.Controls.Add(this.txtMousePositionY);
 			this.groupBox1.Controls.Add(this.txtMousePositionX);
 			this.groupBox1.Controls.Add(this.lblX);
-			this.groupBox1.Location = new System.Drawing.Point(438, 291);
+			this.groupBox1.Location = new System.Drawing.Point(438, 319);
 			this.groupBox1.Name = "groupBox1";
-			this.groupBox1.Size = new System.Drawing.Size(345, 64);
+			this.groupBox1.Size = new System.Drawing.Size(345, 51);
 			this.groupBox1.TabIndex = 29;
 			this.groupBox1.TabStop = false;
 			this.groupBox1.Text = "Mouse Start Position";
@@ -241,12 +246,61 @@
 			this.RGB.HeaderText = "RGB";
 			this.RGB.Name = "RGB";
 			// 
+			// btnBringUp
+			// 
+			this.btnBringUp.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+			this.btnBringUp.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.btnBringUp.Location = new System.Drawing.Point(551, 291);
+			this.btnBringUp.Name = "btnBringUp";
+			this.btnBringUp.Size = new System.Drawing.Size(30, 22);
+			this.btnBringUp.TabIndex = 3;
+			this.btnBringUp.Text = "^^";
+			this.btnBringUp.UseVisualStyleBackColor = true;
+			this.btnBringUp.Click += new System.EventHandler(this.btnBringUp_Click);
+			// 
+			// btnExport
+			// 
+			this.btnExport.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+			this.btnExport.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.btnExport.Location = new System.Drawing.Point(587, 291);
+			this.btnExport.Name = "btnExport";
+			this.btnExport.Size = new System.Drawing.Size(82, 22);
+			this.btnExport.TabIndex = 3;
+			this.btnExport.Text = "Export";
+			this.btnExport.UseVisualStyleBackColor = true;
+			this.btnExport.Click += new System.EventHandler(this.btnExport_Click);
+			// 
+			// btnImport
+			// 
+			this.btnImport.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+			this.btnImport.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.btnImport.Location = new System.Drawing.Point(675, 291);
+			this.btnImport.Name = "btnImport";
+			this.btnImport.Size = new System.Drawing.Size(82, 22);
+			this.btnImport.TabIndex = 3;
+			this.btnImport.Text = "Import";
+			this.btnImport.UseVisualStyleBackColor = true;
+			this.btnImport.Click += new System.EventHandler(this.btnImport_Click);
+			// 
+			// dlgExportPixels
+			// 
+			this.dlgExportPixels.DefaultExt = "csv";
+			// 
+			// dlgImportPixels
+			// 
+			this.dlgImportPixels.DefaultExt = "csv";
+			this.dlgImportPixels.FileName = "openFileDialog1";
+			this.dlgImportPixels.Filter = "CSV Files|*.csv";
+			// 
 			// DrawThatThing
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.BackColor = System.Drawing.Color.White;
 			this.ClientSize = new System.Drawing.Size(795, 424);
+			this.Controls.Add(this.btnImport);
+			this.Controls.Add(this.btnExport);
+			this.Controls.Add(this.btnBringUp);
 			this.Controls.Add(this.dataGridColors);
 			this.Controls.Add(this.lblColorOptions);
 			this.Controls.Add(this.groupBox1);
@@ -297,6 +351,11 @@
 		private System.Windows.Forms.DataGridViewTextBoxColumn PosX;
 		private System.Windows.Forms.DataGridViewTextBoxColumn PosY;
 		private System.Windows.Forms.DataGridViewTextBoxColumn RGB;
+		private System.Windows.Forms.Button btnBringUp;
+		private System.Windows.Forms.Button btnExport;
+		private System.Windows.Forms.Button btnImport;
+		private System.Windows.Forms.SaveFileDialog dlgExportPixels;
+		private System.Windows.Forms.OpenFileDialog dlgImportPixels;
 	}
 }
 
