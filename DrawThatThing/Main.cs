@@ -13,6 +13,7 @@
 
 	using Helpers;
 	using Helpers.BitmapReaders;
+	using Helpers.BitmapReaders.Interface;
 	using Helpers.Classes;
 	using Helpers.Extensions;
 
@@ -41,7 +42,6 @@
 		{
 			this.InitializeComponent();
 			RegisterHotKey(this.Handle, this.GetType().GetHashCode(), 5, 'C');
-			this.Text = "DrawThatThing";
 			foreach (ColorSpot colorSpot in this._builtinColorSpots)
 			{
 				this.dataGridColors.Rows.Add(
@@ -146,7 +146,7 @@
 			IEnumerable<string[]> values;
 			try
 			{
-				values = File.ReadAllLines(fileName).Skip(1).Select(l => l.Split(";".ToCharArray()));
+				values = File.ReadAllLines(fileName).Skip(1).Select(l => l.Split(";".ToCharArray())).ToList();
 			}
 			catch (Exception)
 			{
@@ -164,7 +164,7 @@
 				}
 				this.dataGridColors.Rows.RemoveAt(i);
 			}
-			foreach (var value in values)
+			foreach (object[] value in values)
 			{
 				this.dataGridColors.Rows.Add(value);
 			}
@@ -192,7 +192,17 @@
 					};
 			}
 			List<ColorSpot> notEmptyColors = spots.Where(x => !x.Color.IsEmpty).ToList();
-			this._actions = new ColoredBitmapReader(this.dlgImportImage.FileName).getDrawInstructions(notEmptyColors);
+
+			IColoredBitmapReader reader;
+			if (chkUseAlternativeParser.Checked)
+			{
+				reader = new AlternativeColoredBitmapReader(this.dlgImportImage.FileName);
+			}
+			else
+			{
+				reader = new ColoredBitmapReader(this.dlgImportImage.FileName);				
+			}
+			this._actions = reader.getDrawInstructions(notEmptyColors);
 			this.dlgImportImage.FileName = null;
 			this.updatePreview();
 		}

@@ -329,7 +329,7 @@
 			this.MinimizeBox = false;
 			this.Name = "DrawThatThing";
 			this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
-			this.Text = "Main";
+			this.Text = "DrawThatThing";
 			((System.ComponentModel.ISupportInitialize)(this.pctPreview)).EndInit();
 			this.panel1.ResumeLayout(false);
 			((System.ComponentModel.ISupportInitialize)(this.intPreviewWidth)).EndInit();

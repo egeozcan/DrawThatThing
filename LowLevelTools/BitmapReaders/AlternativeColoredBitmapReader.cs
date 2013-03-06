@@ -16,7 +16,7 @@ namespace Helpers.BitmapReaders
 
 	using Point = Point;
 
-	internal class AlternativeColoredBitmapReader : IColoredBitmapReader
+	public class AlternativeColoredBitmapReader : IColoredBitmapReader
 	{
 		private readonly string _bitmapPath;
 		private int[,] _colors;
