@@ -17,10 +17,17 @@
 			this.Color = color.HasValue ? color.Value : Color.Empty;
 		}
 
-		public void AddPoint(Point point)
+		public void PushPoint(Point point)
 		{
 			this.Points.Add(point);
 		}
+
+		public void AddPoint(Point point)
+		{
+			this.Points.Insert(0, point);
+		}
+
+
 
 		public void Play(Point offset)
 		{

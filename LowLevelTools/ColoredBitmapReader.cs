@@ -78,18 +78,34 @@
 					}
 					var currentPixelPoint = new Point(x, y);
 					var strokesForCurrentColor = strokesForEachColor[currentPixelColorIndex];
-					var fittingStroke = strokesForCurrentColor
-						.Where(
-							stroke =>
-							{
-								var lastPoint = stroke.Points[stroke.Points.Count - 1];
-								return PointsAreNeighbors(lastPoint.X, lastPoint.Y, x, y);
-							}).FirstOrDefault();
-					if (fittingStroke != null)
+					bool found = false;
+
+					foreach (var stroke in strokesForCurrentColor)
 					{
-						fittingStroke.AddPoint(currentPixelPoint);
+						if (stroke.DiscardOffset)
+						{
+							continue;
+						}
+						var lastPoint = stroke.Points[stroke.Points.Count - 1];
+						if (PointsAreNeighbors(lastPoint.X, lastPoint.Y, x, y))
+						{
+							stroke.PushPoint(new Point(x, y));
+							found = true;
+							break;
+						}
+						var firstPoint = stroke.Points[0];
+						if (PointsAreNeighbors(firstPoint.X, firstPoint.Y, x, y))
+						{
+							stroke.AddPoint(new Point(x, y));
+							found = true;
+							break;
+						}
+					}
+					if (found)
+					{
 						continue;
 					}
+
 					strokesForEachColor[currentPixelColorIndex].Add(new MouseDragAction(new List<Point> { currentPixelPoint }));
 				}
 			}
