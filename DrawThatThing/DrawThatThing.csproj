@@ -91,9 +91,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\LowLevelTools\Helpers.csproj">
+    <ProjectReference Include="..\LowLevelTools\BitmapReader.csproj">
       <Project>{A2A65372-5623-451E-AA94-C1D5DCAF8D57}</Project>
-      <Name>Helpers</Name>
+      <Name>BitmapReader</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
