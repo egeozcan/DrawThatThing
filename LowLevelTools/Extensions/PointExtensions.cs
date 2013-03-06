@@ -1,4 +1,4 @@
-namespace Helpers.Extensions
+namespace BitmapReader.Extensions
 {
 	using System;
 	using System.Linq;

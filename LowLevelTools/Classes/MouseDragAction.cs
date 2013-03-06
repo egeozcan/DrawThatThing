@@ -1,10 +1,10 @@
-﻿namespace Helpers.Classes
+﻿namespace BitmapReader.Classes
 {
 	using System.Collections.Generic;
 	using System.Drawing;
 	using System.Linq;
 
-	using Point = Helpers.Point;
+	using Point = BitmapReader.Point;
 
 	public class MouseDragAction
 	{
@@ -37,12 +37,12 @@
 			{
 				offset = new Point(0, 0);
 			}
-			if (Points.Count < 0)
+			if (this.Points.Count < 0)
 			{
 				return;
 			}
 			MouseOperations.SetCursorPosition(
-					new MouseOperations.MousePoint(Points[0].X + offset.X, Points[0].Y + offset.Y));
+					new MouseOperations.MousePoint(this.Points[0].X + offset.X, this.Points[0].Y + offset.Y));
 			MouseOperations.MouseEvent(MouseOperations.MouseEventFlags.LeftDown);
 			System.Threading.Thread.Sleep(10);
 			foreach (var point in this.Points.Where(point => !point.IsEmpty))

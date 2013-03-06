@@ -2,8 +2,8 @@ namespace DrawThatThing.Internal
 {
 	using System.Collections.Generic;
 
-	using Helpers;
-	using Helpers.Classes;
+	using BitmapReader;
+	using BitmapReader.Classes;
 
 	internal class ClickerArguments
 	{

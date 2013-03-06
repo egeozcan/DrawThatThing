@@ -1,4 +1,4 @@
-﻿namespace Helpers
+﻿namespace BitmapReader
 {
 	using System;
 	using System.Runtime.InteropServices;

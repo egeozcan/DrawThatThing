@@ -1,10 +1,12 @@
-﻿namespace Helpers.Classes
+﻿namespace BitmapReader.Classes
 {
 	using System.Drawing;
+
+	using Point = BitmapReader.Point;
 
 	public class ColorSpot
 	{
 		public Color Color;
-		public Helpers.Point Point;
+		public Point Point;
 	}
 }

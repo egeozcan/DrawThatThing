@@ -1,4 +1,4 @@
-﻿namespace Helpers
+﻿namespace BitmapReader
 {
 	public class Point
 	{
@@ -8,14 +8,14 @@
 
 		public Point(int x, int y)
 		{
-			X = x;
-			Y = y;
+			this.X = x;
+			this.Y = y;
 		}
 
 		private Point(bool setEmpty)
 		{
 			this.IsEmpty = setEmpty;
-			X = Y = 0;
+			this.X = this.Y = 0;
 		}
 
 		public static Point Empty = new Point(true);

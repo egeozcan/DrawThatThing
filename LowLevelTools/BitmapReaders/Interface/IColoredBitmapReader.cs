@@ -1,4 +1,4 @@
-namespace Helpers.BitmapReaders.Interface
+namespace BitmapReader.BitmapReaders.Interface
 {
 	using System.Collections.Generic;
 

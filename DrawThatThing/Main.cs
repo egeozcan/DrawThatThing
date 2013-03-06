@@ -11,15 +11,15 @@
 	using System.Text;
 	using System.Windows.Forms;
 
-	using Helpers;
-	using Helpers.BitmapReaders;
-	using Helpers.BitmapReaders.Interface;
-	using Helpers.Classes;
-	using Helpers.Extensions;
+	using BitmapReader;
+	using BitmapReader.BitmapReaders;
+	using BitmapReader.BitmapReaders.Interface;
+	using BitmapReader.Classes;
+	using BitmapReader.Extensions;
 
 	using Internal;
 
-	using Point = Helpers.Point;
+	using Point = BitmapReader.Point;
 
 	public partial class DrawThatThing : Form
 	{
@@ -43,7 +43,7 @@
 			//Shift + Alt + P
 			RegisterHotKey(this.Handle, 1, 5, 'P');
 			//Shift + Alt + S
-			RegisterHotKey(this.Handle, 3, 5, 'S');
+			RegisterHotKey(this.Handle, 2, 5, 'S');
 			foreach (ColorSpot colorSpot in this._builtinColorSpots)
 			{
 				this.dataGridColors.Rows.Add(
@@ -62,14 +62,14 @@
 		{
 			if (m.Msg == 0x0312)
 			{
-				this.HandleHotkey();
+				this.HandleHotkey(m.WParam.ToInt32());
 			}
 			base.WndProc(ref m);
 		}
 
-		private void HandleHotkey()
+		private void HandleHotkey(int id)
 		{
-			if (this.workerClickAround.IsBusy)
+			if ( this.workerClickAround.IsBusy)
 			{
 				this.workerClickAround.CancelAsync();
 			}

@@ -3,7 +3,7 @@ namespace DrawThatThing.Internal
 	using System;
 	using System.Collections.Generic;
 
-	using Helpers.Classes;
+	using BitmapReader.Classes;
 
 	internal class CalculatorResults
 	{
