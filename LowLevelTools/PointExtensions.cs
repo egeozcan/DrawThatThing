@@ -34,5 +34,10 @@ namespace LowLevelTools
 			}
 			return neighboringPoints;
 		}
+
+		public static System.Drawing.Point ToStandardPoint(this Point point)
+		{
+			return new System.Drawing.Point(point.X, point.Y);
+		}
 	}
 }

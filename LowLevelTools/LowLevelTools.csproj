@@ -31,32 +31,24 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="MiniProfiler">
-      <HintPath>..\packages\MiniProfiler.2.1.0\lib\net40\MiniProfiler.dll</HintPath>
-    </Reference>
-    <Reference Include="MiniProfiler.Windows">
-      <HintPath>..\packages\MiniProfiler.Windows.1.0.0.0\lib\MiniProfiler.Windows.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
-    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ColoredBitmapReader.cs" />
     <Compile Include="ColorExtensions.cs" />
     <Compile Include="ColorSpot.cs" />
+    <Compile Include="Point.cs" />
     <Compile Include="StringExtensions.cs" />
     <Compile Include="PointExtensions.cs" />
     <Compile Include="MouseDragAction.cs" />
     <Compile Include="MouseOperations.cs" />
     <Compile Include="PixelAcceptanceArgs.cs" />
-    <Compile Include="PixelMeta.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

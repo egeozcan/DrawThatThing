@@ -2,29 +2,25 @@
 {
 	using System;
 	using System.Collections.Generic;
-	using System.Diagnostics;
 	using System.Drawing;
 	using System.Drawing.Imaging;
 	using System.Linq;
 	using System.Runtime.InteropServices;
 	using System.Threading.Tasks;
 
-	using MiniProfiler.Windows;
-
-	using StackExchange.Profiling;
-
 	public class ColoredBitmapReader
 	{
 		private readonly string _bitmapPath;
-		private ColorSpot[,] _colors;
-		private bool[,] _drawStatus;
+		private int[,] _colors;
 		private const string IgnoreColor = "ffffffff";
 
-		public IEnumerable<MouseDragAction> getDrawInstructions(ColorSpot[] PaletteColorSpots)
+		public IEnumerable<MouseDragAction> getDrawInstructions(List<ColorSpot> PaletteColorSpots)
 		{
+			int ignoreColorIndex = PaletteColorSpots.IndexOf(PaletteColorSpots.FirstOrDefault(x => x.Color.Name == IgnoreColor));
+
 			if (!PaletteColorSpots.Any())
 			{
-				return new List<MouseDragAction>();
+				PaletteColorSpots = new List<ColorSpot> { new ColorSpot{ Color = Color.Black, Point = Point.Empty() }  };
 			}
 
 			int bitmapHeight;
@@ -37,8 +33,7 @@
 				bitmapHeight = bitmap.Height;
 				bitmapWidth = bitmap.Width;
 
-				_colors = new ColorSpot[bitmapWidth,bitmapHeight];
-				_drawStatus = new bool[bitmapWidth,bitmapHeight];
+				_colors = new int[bitmapWidth,bitmapHeight];
 
 				Rectangle rect = new Rectangle(0, 0, bitmapWidth, bitmapHeight);
 				BitmapData bmpData = bitmap.LockBits(rect, ImageLockMode.ReadOnly, bitmap.PixelFormat);
@@ -56,67 +51,60 @@
 						int red = rgbValues[position + 2];
 						var currentColor = Color.FromArgb(red, green, blue);
 						var matchingColor = PaletteColorSpots.OrderBy(c => c.Color.DifferenceTo(currentColor)).First();
-						matchingColor.Count++;
-						_colors[x, y] = matchingColor;
+						_colors[x, y] = PaletteColorSpots.IndexOf(matchingColor);
 					}
 				}
 				bitmap.UnlockBits(bmpData);
 			}
 
-			Parallel.ForEach(PaletteColorSpots, delegate(ColorSpot spot)
+			var colorCount = PaletteColorSpots.Count;
+			List<MouseDragAction>[] strokesForEachColor = new List<MouseDragAction>[colorCount];
+
+			for (int i = 0; i < colorCount; i++)
 			{
-				
-			});
+				var paletteColorSpot = PaletteColorSpots[i];
+				strokesForEachColor[i] = new List<MouseDragAction>
+					{ new MouseDragAction(new List<Point> { paletteColorSpot.Point }, true, paletteColorSpot.Color) };
+			}
 
-			ConsoleProfiling.Start();
-			var groupedPixels = _pixels.AsParallel().Where(x => !x.Key.IsEmpty).GroupBy(x => x.Value.closestColor);
-			Parallel.ForEach(
-				groupedPixels,
-				delegate(IGrouping<ColorSpot, KeyValuePair<Point, PixelMeta>> pixelGroup)
+			for (int x = 0; x < bitmapWidth; x++)
+			{
+				for (int y = 0; y < bitmapHeight; y++)
+				{
+					var currentPixelColorIndex = _colors[x, y];
+					if (currentPixelColorIndex == ignoreColorIndex)
 					{
-						if (pixelGroup.Key.Color.Name == IgnoreColor)
-						{
-							return;
-						}
-						List<MouseDragAction> colorOutput = new List<MouseDragAction>();
-						//Change PaletteColorSpots
-
-						var colorChangeAction = new MouseDragAction(
-							new[] { new Point(pixelGroup.Key.Point.X, pixelGroup.Key.Point.Y) }, true) { Color = pixelGroup.Key.Color };
-						colorOutput.Add(colorChangeAction);
-						while (pixelGroup.Any(x => !x.Value.expired))
-						{
-							var points = new List<Point>();
-							KeyValuePair<Point, PixelMeta> currentPair = pixelGroup.First(x => !x.Value.expired);
-							Point currentPoint = currentPair.Key;
-							currentPair.Value.expired = true;
-							points.Add(currentPoint);
-							while (true)
+						continue;
+					}
+					var currentPixelPoint = new Point(x, y);
+					var strokesForCurrentColor = strokesForEachColor[currentPixelColorIndex];
+					var fittingStroke = strokesForCurrentColor
+						.Where(
+							stroke =>
 							{
-								Point point = currentPoint;
-								KeyValuePair<Point, PixelMeta> closestPixel;
-								//closestPixel = pixelGroup.FirstOrDefault(x => !x.Value.expired && x.Key.IsANeighborOf(Point));
-								//closestPixel = Point.GetNeighboringPoints(bitmapWidth, bitmapHeight).Where(p => p.X >= 0 && p.Y >= 0 && p.X < bitmapWidth && p.Y < bitmapHeight).Select(p => _pixels[(p.X * bitmapHeight) + p.Y]).FirstOrDefault();
-								if (closestPixel.Key.IsEmpty)
-								{
-									break;
-								}
-								currentPoint = closestPixel.Key;
-								points.Add(closestPixel.Key);
-								closestPixel.Value.expired = true;
-							}
-							var ma = new MouseDragAction(points.ToArray());
-							colorOutput.Add(ma);
-						}
-						lock (output)
-						{
-							output.AddRange(colorOutput);
-						}
-					});
-			var friendlyString = ConsoleProfiling.StopAndGetConsoleFriendlyOutputStringWithSqlTimings();
-			Console.WriteLine(friendlyString);
-			Debug.WriteLine(friendlyString);
+								var lastPoint = stroke.Points[stroke.Points.Count - 1];
+								return PointsAreNeighbors(lastPoint.X, lastPoint.Y, x, y);
+							}).FirstOrDefault();
+					if (fittingStroke != null)
+					{
+						fittingStroke.AddPoint(currentPixelPoint);
+						continue;
+					}
+					strokesForEachColor[currentPixelColorIndex].Add(new MouseDragAction(new List<Point> { currentPixelPoint }));
+				}
+			}
+
+			foreach (var mouseDragActions in strokesForEachColor)
+			{
+				output.AddRange(mouseDragActions);
+			}
+
 			return output;
+		}
+
+		private static bool PointsAreNeighbors(int x1, int y1, int x2, int y2)
+		{
+			return Math.Abs(x1 - x2) <= 1 && Math.Abs(y1 - y2) <= 1;
 		}
 
 		public ColoredBitmapReader(string path)

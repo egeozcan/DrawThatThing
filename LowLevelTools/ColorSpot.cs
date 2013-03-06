@@ -6,6 +6,5 @@
 	{
 		public Color Color;
 		public Point Point;
-		public ulong Count;
 	}
 }
