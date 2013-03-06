@@ -54,6 +54,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Internal\CalculatorArguments.cs" />
+    <Compile Include="Internal\CalculatorResults.cs" />
+    <Compile Include="Internal\ClickerArguments.cs" />
     <Compile Include="Main.cs">
       <SubType>Form</SubType>
     </Compile>

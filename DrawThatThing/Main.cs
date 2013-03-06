@@ -17,11 +17,12 @@
 	using Helpers.Classes;
 	using Helpers.Extensions;
 
+	using Internal;
+
 	using Point = Helpers.Point;
 
 	public partial class DrawThatThing : Form
 	{
-		#region Constants and Fields
 
 		private readonly ColorSpot[] _builtinColorSpots = new[]
 			{
@@ -34,14 +35,15 @@
 			};
 		private IEnumerable<MouseDragAction> _actions;
 
-		#endregion
-
-		#region Constructors and Destructors
-
 		public DrawThatThing()
 		{
 			this.InitializeComponent();
-			RegisterHotKey(this.Handle, this.GetType().GetHashCode(), 5, 'C');
+			//Shift + Alt + C
+			RegisterHotKey(this.Handle, 0, 5, 'C');
+			//Shift + Alt + P
+			RegisterHotKey(this.Handle, 1, 5, 'P');
+			//Shift + Alt + S
+			RegisterHotKey(this.Handle, 3, 5, 'S');
 			foreach (ColorSpot colorSpot in this._builtinColorSpots)
 			{
 				this.dataGridColors.Rows.Add(
@@ -51,18 +53,10 @@
 			}
 		}
 
-		#endregion
-
-		#region Public Methods
-
 		[DllImport("user32.dll")]
 		public static extern bool RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vlc);
 		[DllImport("user32.dll")]
 		public static extern bool UnregisterHotKey(IntPtr hWnd, int id);
-
-		#endregion
-
-		#region Methods
 
 		protected override void WndProc(ref Message m)
 		{
@@ -71,12 +65,6 @@
 				this.HandleHotkey();
 			}
 			base.WndProc(ref m);
-		}
-		private static void SetControlTextToMousePosition(Control boxX, Control boxY)
-		{
-			MouseOperations.MousePoint cursorPosition = MouseOperations.GetCursorPosition();
-			boxX.Text = cursorPosition.X.ToString(CultureInfo.InvariantCulture);
-			boxY.Text = cursorPosition.Y.ToString(CultureInfo.InvariantCulture);
 		}
 
 		private void HandleHotkey()
@@ -130,6 +118,7 @@
 			}
 			File.WriteAllText(fileName, sb.ToString());
 		}
+
 		private void btnGetPosition_Click(object sender, EventArgs e)
 		{
 			SetControlTextToMousePosition(this.txtMousePositionX, this.txtMousePositionY);
@@ -169,6 +158,7 @@
 				this.dataGridColors.Rows.Add(value);
 			}
 		}
+
 		private void btnLoadImage_Click(object sender, EventArgs e)
 		{
 			this.dlgImportImage.ShowDialog();
@@ -176,40 +166,36 @@
 			{
 				return;
 			}
-			using (var bitmap = new Bitmap(this.dlgImportImage.FileName))
+			var imagepath = this.dlgImportImage.FileName;
+			if (String.IsNullOrWhiteSpace(imagepath))
 			{
-				this.intPreviewHeight.Value = bitmap.Height;
-				this.intPreviewWidth.Value = bitmap.Width;
+				return;
 			}
 			var spots = new ColorSpot[this.dataGridColors.Rows.Count];
 			for (int i = 0; i < this.dataGridColors.Rows.Count; i++)
 			{
 				DataGridViewRow row = this.dataGridColors.Rows[i];
 				spots[i] = new ColorSpot
-					{
-						Color = (row.Cells[2].Value as String ?? "").ToColor(),
-						Point = new Point((row.Cells[0].Value as String ?? "").ToInt(), (row.Cells[1].Value as String ?? "").ToInt())
-					};
+				{
+					Color = (row.Cells[2].Value as String ?? "").ToColor(),
+					Point = new Point((row.Cells[0].Value as String ?? "").ToInt(), (row.Cells[1].Value as String ?? "").ToInt())
+				};
 			}
-			List<ColorSpot> notEmptyColors = spots.Where(x => !x.Color.IsEmpty).ToList();
-
-			IColoredBitmapReader reader;
-			if (chkUseAlternativeParser.Checked)
+			var colorPalette = spots.Where(x => !x.Color.IsEmpty).ToList();
+			workerCalculate.RunWorkerAsync(new CalculatorArguments
 			{
-				reader = new AlternativeColoredBitmapReader(this.dlgImportImage.FileName);
-			}
-			else
-			{
-				reader = new ColoredBitmapReader(this.dlgImportImage.FileName);				
-			}
-			this._actions = reader.getDrawInstructions(notEmptyColors);
+				useAlternativeParser = chkUseAlternativeParser.Checked,
+				ColorPalette = colorPalette,
+				imagepath = imagepath
+			});
 			this.dlgImportImage.FileName = null;
-			this.updatePreview();
 		}
+
 		private void btnPlay_Click(object sender, EventArgs e)
 		{
 			this.StartClicking();
 		}
+
 		private void updatePreview()
 		{
 			var bitmap = new Bitmap((int)this.intPreviewWidth.Value, (int)this.intPreviewHeight.Value);
@@ -233,9 +219,54 @@
 			this.pctPreview.Height = bitmap.Height;
 			this.pctPreview.Image = bitmap;
 		}
+
+		private static void SetControlTextToMousePosition(Control boxX, Control boxY)
+		{
+			MouseOperations.MousePoint cursorPosition = MouseOperations.GetCursorPosition();
+			boxX.Text = cursorPosition.X.ToString(CultureInfo.InvariantCulture);
+			boxY.Text = cursorPosition.Y.ToString(CultureInfo.InvariantCulture);
+		}
+
+		private void workerCalculate_DoWork(object sender, DoWorkEventArgs e)
+		{
+			var args = e.Argument as CalculatorArguments;
+			var results = new CalculatorResults();
+			if (args == null)
+			{
+				return;
+			}
+			using (var bitmap = new Bitmap(args.imagepath))
+			{
+				results.imageHeight = bitmap.Height;
+				results.imageWidth = bitmap.Width;
+			}
+			IColoredBitmapReader reader;
+			if (args.useAlternativeParser)
+			{
+				reader = new AlternativeColoredBitmapReader(args.imagepath);
+			}
+			else
+			{
+				reader = new ColoredBitmapReader(args.imagepath);
+			}
+			try
+			{
+				results.actions = reader.getDrawInstructions(args.ColorPalette).ToList();
+			}
+			catch (Exception err)
+			{
+				results.error = err;
+			}
+			e.Result = results;
+		}
+
 		private void workerClickAround_DoWork(object sender, DoWorkEventArgs e)
 		{
-			var args = (ClickerArguments)e.Argument;
+			var args = e.Argument as ClickerArguments;
+			if (args == null)
+			{
+				return;
+			}
 			foreach (
 				MouseDragAction action in args.mouseActions.TakeWhile(coordinate => !this.workerClickAround.CancellationPending))
 			{
@@ -243,12 +274,22 @@
 			}
 		}
 
-		#endregion
-
-		private struct ClickerArguments
+		private void workerCalculate_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
 		{
-			public IEnumerable<MouseDragAction> mouseActions;
-			public Point offset;
+			var results = e.Result as CalculatorResults;
+			if (results == null)
+			{
+				return;
+			}
+			if (results.error != null)
+			{
+				MessageBox.Show(results.error.Message);
+				return;
+			}
+			_actions = results.actions;
+			this.intPreviewHeight.Value = results.imageHeight;
+			this.intPreviewWidth.Value = results.imageWidth;
+			this.updatePreview();
 		}
 	}
 }

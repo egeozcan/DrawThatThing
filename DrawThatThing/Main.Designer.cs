@@ -54,6 +54,7 @@
 			this.dlgExportPixels = new System.Windows.Forms.SaveFileDialog();
 			this.dlgImportPixels = new System.Windows.Forms.OpenFileDialog();
 			this.chkUseAlternativeParser = new System.Windows.Forms.CheckBox();
+			this.workerCalculate = new System.ComponentModel.BackgroundWorker();
 			((System.ComponentModel.ISupportInitialize)(this.pctPreview)).BeginInit();
 			this.panel1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.intPreviewWidth)).BeginInit();
@@ -304,6 +305,11 @@
 			this.chkUseAlternativeParser.Text = "Alternative Parser";
 			this.chkUseAlternativeParser.UseVisualStyleBackColor = true;
 			// 
+			// workerCalculate
+			// 
+			this.workerCalculate.DoWork += new System.ComponentModel.DoWorkEventHandler(this.workerCalculate_DoWork);
+			this.workerCalculate.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.workerCalculate_RunWorkerCompleted);
+			// 
 			// DrawThatThing
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -370,6 +376,7 @@
 		private System.Windows.Forms.SaveFileDialog dlgExportPixels;
 		private System.Windows.Forms.OpenFileDialog dlgImportPixels;
 		private System.Windows.Forms.CheckBox chkUseAlternativeParser;
+		private System.ComponentModel.BackgroundWorker workerCalculate;
 	}
 }
 
