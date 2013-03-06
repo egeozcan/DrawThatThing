@@ -48,6 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BitmapReaders\AlternativeColoredBitmapReader.cs" />
     <Compile Include="BitmapReaders\ColoredBitmapReader.cs" />
     <Compile Include="BitmapReaders\Interface\IColoredBitmapReader.cs" />
     <Compile Include="Extensions\ColorExtensions.cs" />

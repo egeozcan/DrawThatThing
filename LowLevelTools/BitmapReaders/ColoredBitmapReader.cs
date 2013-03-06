@@ -24,10 +24,10 @@
 		private int _bitmapHeight;
 		private int _bitmapWidth;
 
-		public IEnumerable<MouseDragAction> getDrawInstructions(ColorSpot[] ColorPalette)
+		public IEnumerable<MouseDragAction> getDrawInstructions(List<ColorSpot> ColorPalette)
 		{
 			var knownColors = ColorPalette.ToList();
-			var ignoredColor = knownColors.IndexOf(knownColors.First(x => x.color.Name == "ffffffff"));
+			var ignoredColor = knownColors.IndexOf(knownColors.First(x => x.Color.Name == "ffffffff"));
 			// prevent drawing of single pixels etc
 
 			List<MouseDragAction> output = new List<MouseDragAction>();
@@ -53,7 +53,7 @@
 						int green = rgbValues[position + 1];
 						int red = rgbValues[position + 2];
 						var currentColor = Color.FromArgb(red, green, blue);
-						var closestColor = knownColors.OrderBy(c => c.color.DifferenceTo(currentColor)).FirstOrDefault();
+						var closestColor = knownColors.OrderBy(c => c.Color.DifferenceTo(currentColor)).FirstOrDefault();
 						this._pixelColorIndex[x, y] = knownColors.IndexOf(closestColor);
 					}
 				}
@@ -86,10 +86,10 @@
 				{
 					lastColorIndex = currentColorIndex;
 					var currentColor = knownColors[this._pixelColorIndex[colorGroup.First().X, colorGroup.First().Y]];
-					var colorChangeAction = new MouseDragAction(new[] { currentColor.point }, true) { Color = currentColor.color };
+					var colorChangeAction = new MouseDragAction(new List<Point> { currentColor.Point }, true, currentColor.Color);
 					colorOutput.Add(colorChangeAction);
 				}
-				var ma = new MouseDragAction(colorGroup.Select(x => new Point(x.X, x.Y)).ToArray());
+				var ma = new MouseDragAction(colorGroup.Select(x => new Point(x.X, x.Y)).ToList());
 				colorOutput.Add(ma);
 				output.AddRange(colorOutput);
 			}

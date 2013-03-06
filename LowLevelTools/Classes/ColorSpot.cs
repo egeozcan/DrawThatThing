@@ -2,11 +2,9 @@
 {
 	using System.Drawing;
 
-	using Point = Point;
-
 	public class ColorSpot
 	{
-		public Color color;
-		public Point point;
+		public Color Color;
+		public Helpers.Point Point;
 	}
 }

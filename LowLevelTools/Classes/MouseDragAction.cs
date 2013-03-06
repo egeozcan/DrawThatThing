@@ -1,33 +1,48 @@
-﻿namespace Helpers
+﻿namespace Helpers.Classes
 {
+	using System.Collections.Generic;
 	using System.Drawing;
 	using System.Linq;
 
+	using Point = Helpers.Point;
+
 	public class MouseDragAction
 	{
-		public readonly Point[] Points;
+		public readonly List<Point> Points;
 		public readonly bool DiscardOffset;
-		public Color Color;
+		public readonly Color Color;
 
-		public MouseDragAction(Point[] points, bool discardOffset = false, Color? color = null)
+		public MouseDragAction(List<Point> points, bool discardOffset = false, Color? color = null)
 		{
 			this.Points = points;
 			this.DiscardOffset = discardOffset;
 			this.Color = color.HasValue ? color.Value : Color.Empty;
 		}
 
+		public void PushPoint(Point point)
+		{
+			this.Points.Add(point);
+		}
+
+		public void AddPoint(Point point)
+		{
+			this.Points.Insert(0, point);
+		}
+
+
+
 		public void Play(Point offset)
 		{
 			if (this.DiscardOffset)
 			{
-				offset = new Point(0,0);
+				offset = new Point(0, 0);
 			}
-			if (this.Points.Length < 0)
+			if (Points.Count < 0)
 			{
 				return;
 			}
 			MouseOperations.SetCursorPosition(
-					new MouseOperations.MousePoint(this.Points[0].X + offset.X, this.Points[0].Y + offset.Y));
+					new MouseOperations.MousePoint(Points[0].X + offset.X, Points[0].Y + offset.Y));
 			MouseOperations.MouseEvent(MouseOperations.MouseEventFlags.LeftDown);
 			System.Threading.Thread.Sleep(10);
 			foreach (var point in this.Points.Where(point => !point.IsEmpty))

@@ -6,6 +6,6 @@ namespace Helpers.BitmapReaders.Interface
 
 	public interface IColoredBitmapReader
 	{
-		IEnumerable<MouseDragAction> getDrawInstructions(ColorSpot[] ColorPalette);
+		IEnumerable<MouseDragAction> getDrawInstructions(List<ColorSpot> ColorPalette);
 	}
 }

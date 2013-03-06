@@ -53,6 +53,7 @@
 			this.btnImport = new System.Windows.Forms.Button();
 			this.dlgExportPixels = new System.Windows.Forms.SaveFileDialog();
 			this.dlgImportPixels = new System.Windows.Forms.OpenFileDialog();
+			this.chkUseAlternativeParser = new System.Windows.Forms.CheckBox();
 			((System.ComponentModel.ISupportInitialize)(this.pctPreview)).BeginInit();
 			this.panel1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.intPreviewWidth)).BeginInit();
@@ -153,7 +154,7 @@
 			// 
 			// intPreviewWidth
 			// 
-			this.intPreviewWidth.Location = new System.Drawing.Point(589, 22);
+			this.intPreviewWidth.Location = new System.Drawing.Point(727, 11);
 			this.intPreviewWidth.Maximum = new decimal(new int[] {
             999999,
             0,
@@ -165,7 +166,7 @@
 			// 
 			// intPreviewHeight
 			// 
-			this.intPreviewHeight.Location = new System.Drawing.Point(704, 23);
+			this.intPreviewHeight.Location = new System.Drawing.Point(727, 43);
 			this.intPreviewHeight.Maximum = new decimal(new int[] {
             999999,
             0,
@@ -178,7 +179,7 @@
 			// label10
 			// 
 			this.label10.AutoSize = true;
-			this.label10.Location = new System.Drawing.Point(546, 25);
+			this.label10.Location = new System.Drawing.Point(684, 14);
 			this.label10.Name = "label10";
 			this.label10.Size = new System.Drawing.Size(35, 13);
 			this.label10.TabIndex = 28;
@@ -187,7 +188,7 @@
 			// label11
 			// 
 			this.label11.AutoSize = true;
-			this.label11.Location = new System.Drawing.Point(654, 26);
+			this.label11.Location = new System.Drawing.Point(681, 46);
 			this.label11.Name = "label11";
 			this.label11.Size = new System.Drawing.Size(38, 13);
 			this.label11.TabIndex = 28;
@@ -292,12 +293,24 @@
 			this.dlgImportPixels.FileName = "openFileDialog1";
 			this.dlgImportPixels.Filter = "CSV Files|*.csv";
 			// 
+			// chkUseAlternativeParser
+			// 
+			this.chkUseAlternativeParser.AutoSize = true;
+			this.chkUseAlternativeParser.Location = new System.Drawing.Point(552, 11);
+			this.chkUseAlternativeParser.Name = "chkUseAlternativeParser";
+			this.chkUseAlternativeParser.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+			this.chkUseAlternativeParser.Size = new System.Drawing.Size(109, 17);
+			this.chkUseAlternativeParser.TabIndex = 35;
+			this.chkUseAlternativeParser.Text = "Alternative Parser";
+			this.chkUseAlternativeParser.UseVisualStyleBackColor = true;
+			// 
 			// DrawThatThing
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.BackColor = System.Drawing.Color.White;
 			this.ClientSize = new System.Drawing.Size(795, 424);
+			this.Controls.Add(this.chkUseAlternativeParser);
 			this.Controls.Add(this.btnImport);
 			this.Controls.Add(this.btnExport);
 			this.Controls.Add(this.btnBringUp);
@@ -356,6 +369,7 @@
 		private System.Windows.Forms.Button btnImport;
 		private System.Windows.Forms.SaveFileDialog dlgExportPixels;
 		private System.Windows.Forms.OpenFileDialog dlgImportPixels;
+		private System.Windows.Forms.CheckBox chkUseAlternativeParser;
 	}
 }
 
