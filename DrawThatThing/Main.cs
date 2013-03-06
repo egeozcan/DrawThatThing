@@ -23,16 +23,6 @@
 
 	public partial class DrawThatThing : Form
 	{
-
-		private readonly ColorSpot[] _builtinColorSpots = new[]
-			{
-				new ColorSpot { Color = Color.Black, Point = new Point(-1884, 1025) },
-				new ColorSpot { Color = Color.Red, Point = new Point(-1850, 1038) },
-				new ColorSpot { Color = Color.Blue, Point = new Point(-1788, 1037) },
-				new ColorSpot { Color = Color.Green, Point = new Point(-1819, 1021) },
-				new ColorSpot { Color = Color.White, Point = new Point(0, 0) },
-				new ColorSpot { Color = Color.FromArgb(190, 169, 16), Point = new Point(-1673, 1039) }
-			};
 		private IEnumerable<MouseDragAction> _actions;
 
 		public DrawThatThing()
@@ -41,16 +31,9 @@
 			//Shift + Alt + C
 			RegisterHotKey(this.Handle, 0, 5, 'C');
 			//Shift + Alt + P
-			RegisterHotKey(this.Handle, 1, 5, 'P');
+			RegisterHotKey(this.Handle, 1, 5, 'S');
 			//Shift + Alt + S
-			RegisterHotKey(this.Handle, 2, 5, 'S');
-			foreach (ColorSpot colorSpot in this._builtinColorSpots)
-			{
-				this.dataGridColors.Rows.Add(
-					colorSpot.Point.X.ToString(CultureInfo.InvariantCulture),
-					colorSpot.Point.Y.ToString(CultureInfo.InvariantCulture),
-					colorSpot.Color.ToHEX());
-			}
+			RegisterHotKey(this.Handle, 2, 5, 'P');
 		}
 
 		[DllImport("user32.dll")]
@@ -66,13 +49,44 @@
 			}
 			base.WndProc(ref m);
 		}
+		private static void SetControlTextToMousePosition(Control boxX, Control boxY)
+		{
+			MouseOperations.MousePoint cursorPosition = MouseOperations.GetCursorPosition();
+			boxX.Text = cursorPosition.X.ToString(CultureInfo.InvariantCulture);
+			boxY.Text = cursorPosition.Y.ToString(CultureInfo.InvariantCulture);
+		}
 
+		private void AddCurrentMousePositionToPalette()
+		{
+			MouseOperations.MousePoint mouse = MouseOperations.GetCursorPosition();
+			using (Bitmap bitmap = new Bitmap(1, 1))
+			{
+				using (Graphics g = Graphics.FromImage(bitmap))
+				{
+					g.CopyFromScreen(new System.Drawing.Point(mouse.X, mouse.Y), new System.Drawing.Point(0, 0), bitmap.Size);
+					var color = bitmap.GetPixel(0, 0);
+					dataGridColors.Rows.Add(mouse.X, mouse.Y, color.ToHEX());
+				}
+			}
+		}
 		private void HandleHotkey(int id)
 		{
-			if ( this.workerClickAround.IsBusy)
-			{
-				this.workerClickAround.CancelAsync();
-			}
+			
+				switch (id)
+				{
+					case 0:
+						if (this.workerClickAround.IsBusy)
+						{
+							this.workerClickAround.CancelAsync();
+						}
+						break;
+					case 1:
+						SetControlTextToMousePosition(this.txtMousePositionX, this.txtMousePositionY);
+						break;
+					case 2:
+						this.AddCurrentMousePositionToPalette();
+						break;
+				}
 		}
 
 		private void StartClicking()
@@ -87,19 +101,6 @@
 						mouseActions = this._actions,
 						offset = new Point(this.txtMousePositionX.Text.ToInt(), this.txtMousePositionY.Text.ToInt())
 					});
-		}
-
-		private void btnBringUp_Click(object sender, EventArgs e)
-		{
-			if (this.dataGridColors.SelectedRows.Count > 0)
-			{
-				DataGridViewRow selectedRow = this.dataGridColors.SelectedRows[0];
-				selectedRow.SetValues(this.txtMousePositionX.Text, this.txtMousePositionY.Text);
-				if (this.dataGridColors.Rows.Count > selectedRow.Index + 1)
-				{
-					this.dataGridColors.Rows[selectedRow.Index + 1].Selected = true;
-				}
-			}
 		}
 
 		private void btnExport_Click(object sender, EventArgs e)
@@ -117,11 +118,6 @@
 				sb.AppendLine(String.Format("{0};{1};{2}", row.Cells[0].Value, row.Cells[1].Value, row.Cells[2].Value));
 			}
 			File.WriteAllText(fileName, sb.ToString());
-		}
-
-		private void btnGetPosition_Click(object sender, EventArgs e)
-		{
-			SetControlTextToMousePosition(this.txtMousePositionX, this.txtMousePositionY);
 		}
 
 		private void btnImport_Click(object sender, EventArgs e)
@@ -166,7 +162,7 @@
 			{
 				return;
 			}
-			var imagepath = this.dlgImportImage.FileName;
+			string imagepath = this.dlgImportImage.FileName;
 			if (String.IsNullOrWhiteSpace(imagepath))
 			{
 				return;
@@ -176,18 +172,15 @@
 			{
 				DataGridViewRow row = this.dataGridColors.Rows[i];
 				spots[i] = new ColorSpot
-				{
-					Color = (row.Cells[2].Value as String ?? "").ToColor(),
-					Point = new Point((row.Cells[0].Value as String ?? "").ToInt(), (row.Cells[1].Value as String ?? "").ToInt())
-				};
+					{
+						Color = (row.Cells[2].Value as String ?? "").ToColor(),
+						Point = new Point((row.Cells[0].Value as String ?? "").ToInt(), (row.Cells[1].Value as String ?? "").ToInt())
+					};
 			}
-			var colorPalette = spots.Where(x => !x.Color.IsEmpty).ToList();
-			workerCalculate.RunWorkerAsync(new CalculatorArguments
-			{
-				useAlternativeParser = chkUseAlternativeParser.Checked,
-				ColorPalette = colorPalette,
-				imagepath = imagepath
-			});
+			List<ColorSpot> colorPalette = spots.Where(x => !x.Color.IsEmpty).ToList();
+			this.workerCalculate.RunWorkerAsync(
+				new CalculatorArguments
+					{ useAlternativeParser = this.chkUseAlternativeParser.Checked, ColorPalette = colorPalette, imagepath = imagepath });
 			this.dlgImportImage.FileName = null;
 		}
 
@@ -218,13 +211,6 @@
 			this.pctPreview.Width = bitmap.Width;
 			this.pctPreview.Height = bitmap.Height;
 			this.pctPreview.Image = bitmap;
-		}
-
-		private static void SetControlTextToMousePosition(Control boxX, Control boxY)
-		{
-			MouseOperations.MousePoint cursorPosition = MouseOperations.GetCursorPosition();
-			boxX.Text = cursorPosition.X.ToString(CultureInfo.InvariantCulture);
-			boxY.Text = cursorPosition.Y.ToString(CultureInfo.InvariantCulture);
 		}
 
 		private void workerCalculate_DoWork(object sender, DoWorkEventArgs e)
@@ -260,20 +246,6 @@
 			e.Result = results;
 		}
 
-		private void workerClickAround_DoWork(object sender, DoWorkEventArgs e)
-		{
-			var args = e.Argument as ClickerArguments;
-			if (args == null)
-			{
-				return;
-			}
-			foreach (
-				MouseDragAction action in args.mouseActions.TakeWhile(coordinate => !this.workerClickAround.CancellationPending))
-			{
-				action.Play(args.offset);
-			}
-		}
-
 		private void workerCalculate_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
 		{
 			var results = e.Result as CalculatorResults;
@@ -286,10 +258,23 @@
 				MessageBox.Show(results.error.Message);
 				return;
 			}
-			_actions = results.actions;
+			this._actions = results.actions;
 			this.intPreviewHeight.Value = results.imageHeight;
 			this.intPreviewWidth.Value = results.imageWidth;
 			this.updatePreview();
+		}
+		private void workerClickAround_DoWork(object sender, DoWorkEventArgs e)
+		{
+			var args = e.Argument as ClickerArguments;
+			if (args == null)
+			{
+				return;
+			}
+			foreach (
+				MouseDragAction action in args.mouseActions.TakeWhile(coordinate => !this.workerClickAround.CancellationPending))
+			{
+				action.Play(args.offset);
+			}
 		}
 	}
 }

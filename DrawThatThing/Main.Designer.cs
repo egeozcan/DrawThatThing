@@ -31,7 +31,6 @@
 			this.txtMousePositionY = new System.Windows.Forms.TextBox();
 			this.txtMousePositionX = new System.Windows.Forms.TextBox();
 			this.lblX = new System.Windows.Forms.Label();
-			this.btnGetPosition = new System.Windows.Forms.Button();
 			this.btnPlay = new System.Windows.Forms.Button();
 			this.workerClickAround = new System.ComponentModel.BackgroundWorker();
 			this.btnLoadImage = new System.Windows.Forms.Button();
@@ -48,13 +47,18 @@
 			this.PosX = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.PosY = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.RGB = new System.Windows.Forms.DataGridViewTextBoxColumn();
-			this.btnBringUp = new System.Windows.Forms.Button();
 			this.btnExport = new System.Windows.Forms.Button();
 			this.btnImport = new System.Windows.Forms.Button();
 			this.dlgExportPixels = new System.Windows.Forms.SaveFileDialog();
 			this.dlgImportPixels = new System.Windows.Forms.OpenFileDialog();
 			this.chkUseAlternativeParser = new System.Windows.Forms.CheckBox();
 			this.workerCalculate = new System.ComponentModel.BackgroundWorker();
+			this.label1 = new System.Windows.Forms.Label();
+			this.label2 = new System.Windows.Forms.Label();
+			this.label3 = new System.Windows.Forms.Label();
+			this.label4 = new System.Windows.Forms.Label();
+			this.label5 = new System.Windows.Forms.Label();
+			this.label6 = new System.Windows.Forms.Label();
 			((System.ComponentModel.ISupportInitialize)(this.pctPreview)).BeginInit();
 			this.panel1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.intPreviewWidth)).BeginInit();
@@ -87,18 +91,6 @@
 			this.lblX.Size = new System.Drawing.Size(24, 13);
 			this.lblX.TabIndex = 2;
 			this.lblX.Text = "X,Y";
-			// 
-			// btnGetPosition
-			// 
-			this.btnGetPosition.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.btnGetPosition.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.btnGetPosition.Location = new System.Drawing.Point(230, 15);
-			this.btnGetPosition.Name = "btnGetPosition";
-			this.btnGetPosition.Size = new System.Drawing.Size(101, 30);
-			this.btnGetPosition.TabIndex = 3;
-			this.btnGetPosition.Text = "Set to cursor pos";
-			this.btnGetPosition.UseVisualStyleBackColor = true;
-			this.btnGetPosition.Click += new System.EventHandler(this.btnGetPosition_Click);
 			// 
 			// btnPlay
 			// 
@@ -167,7 +159,7 @@
 			// 
 			// intPreviewHeight
 			// 
-			this.intPreviewHeight.Location = new System.Drawing.Point(727, 43);
+			this.intPreviewHeight.Location = new System.Drawing.Point(727, 33);
 			this.intPreviewHeight.Maximum = new decimal(new int[] {
             999999,
             0,
@@ -189,7 +181,7 @@
 			// label11
 			// 
 			this.label11.AutoSize = true;
-			this.label11.Location = new System.Drawing.Point(681, 46);
+			this.label11.Location = new System.Drawing.Point(681, 36);
 			this.label11.Name = "label11";
 			this.label11.Size = new System.Drawing.Size(38, 13);
 			this.label11.TabIndex = 28;
@@ -197,13 +189,12 @@
 			// 
 			// groupBox1
 			// 
-			this.groupBox1.Controls.Add(this.btnGetPosition);
 			this.groupBox1.Controls.Add(this.txtMousePositionY);
 			this.groupBox1.Controls.Add(this.txtMousePositionX);
 			this.groupBox1.Controls.Add(this.lblX);
-			this.groupBox1.Location = new System.Drawing.Point(438, 319);
+			this.groupBox1.Location = new System.Drawing.Point(552, 319);
 			this.groupBox1.Name = "groupBox1";
-			this.groupBox1.Size = new System.Drawing.Size(345, 51);
+			this.groupBox1.Size = new System.Drawing.Size(231, 51);
 			this.groupBox1.TabIndex = 29;
 			this.groupBox1.TabStop = false;
 			this.groupBox1.Text = "Mouse Start Position";
@@ -211,11 +202,12 @@
 			// lblColorOptions
 			// 
 			this.lblColorOptions.AutoSize = true;
-			this.lblColorOptions.Location = new System.Drawing.Point(459, 58);
+			this.lblColorOptions.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.lblColorOptions.Location = new System.Drawing.Point(435, 58);
 			this.lblColorOptions.Name = "lblColorOptions";
-			this.lblColorOptions.Size = new System.Drawing.Size(70, 13);
+			this.lblColorOptions.Size = new System.Drawing.Size(80, 13);
 			this.lblColorOptions.TabIndex = 31;
-			this.lblColorOptions.Text = "Color Options";
+			this.lblColorOptions.Text = "Color Palette";
 			// 
 			// dataGridColors
 			// 
@@ -248,23 +240,11 @@
 			this.RGB.HeaderText = "RGB";
 			this.RGB.Name = "RGB";
 			// 
-			// btnBringUp
-			// 
-			this.btnBringUp.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-			this.btnBringUp.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.btnBringUp.Location = new System.Drawing.Point(551, 291);
-			this.btnBringUp.Name = "btnBringUp";
-			this.btnBringUp.Size = new System.Drawing.Size(30, 22);
-			this.btnBringUp.TabIndex = 3;
-			this.btnBringUp.Text = "^^";
-			this.btnBringUp.UseVisualStyleBackColor = true;
-			this.btnBringUp.Click += new System.EventHandler(this.btnBringUp_Click);
-			// 
 			// btnExport
 			// 
 			this.btnExport.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 			this.btnExport.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.btnExport.Location = new System.Drawing.Point(587, 291);
+			this.btnExport.Location = new System.Drawing.Point(613, 291);
 			this.btnExport.Name = "btnExport";
 			this.btnExport.Size = new System.Drawing.Size(82, 22);
 			this.btnExport.TabIndex = 3;
@@ -276,7 +256,7 @@
 			// 
 			this.btnImport.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
 			this.btnImport.Font = new System.Drawing.Font("Microsoft Sans Serif", 7F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.btnImport.Location = new System.Drawing.Point(675, 291);
+			this.btnImport.Location = new System.Drawing.Point(701, 291);
 			this.btnImport.Name = "btnImport";
 			this.btnImport.Size = new System.Drawing.Size(82, 22);
 			this.btnImport.TabIndex = 3;
@@ -310,16 +290,86 @@
 			this.workerCalculate.DoWork += new System.ComponentModel.DoWorkEventHandler(this.workerCalculate_DoWork);
 			this.workerCalculate.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.workerCalculate_RunWorkerCompleted);
 			// 
+			// label1
+			// 
+			this.label1.AutoSize = true;
+			this.label1.Location = new System.Drawing.Point(594, 374);
+			this.label1.Name = "label1";
+			this.label1.Size = new System.Drawing.Size(71, 13);
+			this.label1.TabIndex = 36;
+			this.label1.Text = "Shift + Alt + C";
+			this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+			// 
+			// label2
+			// 
+			this.label2.AutoSize = true;
+			this.label2.Location = new System.Drawing.Point(594, 388);
+			this.label2.Name = "label2";
+			this.label2.Size = new System.Drawing.Size(71, 13);
+			this.label2.TabIndex = 37;
+			this.label2.Text = "Shift + Alt + S";
+			this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+			// 
+			// label3
+			// 
+			this.label3.AutoSize = true;
+			this.label3.Location = new System.Drawing.Point(595, 403);
+			this.label3.Name = "label3";
+			this.label3.Size = new System.Drawing.Size(71, 13);
+			this.label3.TabIndex = 38;
+			this.label3.Text = "Shift + Alt + P";
+			this.label3.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+			// 
+			// label4
+			// 
+			this.label4.AutoSize = true;
+			this.label4.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label4.Location = new System.Drawing.Point(522, 403);
+			this.label4.Name = "label4";
+			this.label4.Size = new System.Drawing.Size(72, 13);
+			this.label4.TabIndex = 41;
+			this.label4.Text = "Pick color :";
+			this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			// 
+			// label5
+			// 
+			this.label5.AutoSize = true;
+			this.label5.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label5.Location = new System.Drawing.Point(428, 388);
+			this.label5.Name = "label5";
+			this.label5.Size = new System.Drawing.Size(165, 13);
+			this.label5.TabIndex = 40;
+			this.label5.Text = "Set start position to cursor :";
+			this.label5.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			// 
+			// label6
+			// 
+			this.label6.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.label6.AutoSize = true;
+			this.label6.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label6.Location = new System.Drawing.Point(517, 372);
+			this.label6.Name = "label6";
+			this.label6.Size = new System.Drawing.Size(73, 17);
+			this.label6.TabIndex = 39;
+			this.label6.Text = "Stop mouse :";
+			this.label6.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.label6.UseCompatibleTextRendering = true;
+			// 
 			// DrawThatThing
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.BackColor = System.Drawing.Color.White;
 			this.ClientSize = new System.Drawing.Size(795, 424);
+			this.Controls.Add(this.label4);
+			this.Controls.Add(this.label5);
+			this.Controls.Add(this.label6);
+			this.Controls.Add(this.label3);
+			this.Controls.Add(this.label2);
+			this.Controls.Add(this.label1);
 			this.Controls.Add(this.chkUseAlternativeParser);
 			this.Controls.Add(this.btnImport);
 			this.Controls.Add(this.btnExport);
-			this.Controls.Add(this.btnBringUp);
 			this.Controls.Add(this.dataGridColors);
 			this.Controls.Add(this.lblColorOptions);
 			this.Controls.Add(this.groupBox1);
@@ -353,7 +403,6 @@
 		private System.Windows.Forms.TextBox txtMousePositionY;
 		private System.Windows.Forms.TextBox txtMousePositionX;
 		private System.Windows.Forms.Label lblX;
-		private System.Windows.Forms.Button btnGetPosition;
 		private System.Windows.Forms.Button btnPlay;
 		private System.ComponentModel.BackgroundWorker workerClickAround;
 		private System.Windows.Forms.Button btnLoadImage;
@@ -370,13 +419,18 @@
 		private System.Windows.Forms.DataGridViewTextBoxColumn PosX;
 		private System.Windows.Forms.DataGridViewTextBoxColumn PosY;
 		private System.Windows.Forms.DataGridViewTextBoxColumn RGB;
-		private System.Windows.Forms.Button btnBringUp;
 		private System.Windows.Forms.Button btnExport;
 		private System.Windows.Forms.Button btnImport;
 		private System.Windows.Forms.SaveFileDialog dlgExportPixels;
 		private System.Windows.Forms.OpenFileDialog dlgImportPixels;
 		private System.Windows.Forms.CheckBox chkUseAlternativeParser;
 		private System.ComponentModel.BackgroundWorker workerCalculate;
+		private System.Windows.Forms.Label label1;
+		private System.Windows.Forms.Label label2;
+		private System.Windows.Forms.Label label3;
+		private System.Windows.Forms.Label label4;
+		private System.Windows.Forms.Label label5;
+		private System.Windows.Forms.Label label6;
 	}
 }
 
