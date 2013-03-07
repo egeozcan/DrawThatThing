@@ -174,7 +174,7 @@
 				spots[i] = new ColorSpot
 					{
 						Color = (row.Cells[2].Value as String ?? "").ToColor(),
-						Point = new Point((row.Cells[0].Value as String ?? "").ToInt(), (row.Cells[1].Value as String ?? "").ToInt())
+						Point = new Point((row.Cells[0].Value ?? "").ToString().ToInt(), (row.Cells[1].Value ?? "").ToString().ToInt())
 					};
 			}
 			List<ColorSpot> colorPalette = spots.Where(x => !x.Color.IsEmpty).ToList();
@@ -273,7 +273,10 @@
 			foreach (
 				MouseDragAction action in args.mouseActions.TakeWhile(coordinate => !this.workerClickAround.CancellationPending))
 			{
-				action.Play(args.offset);
+				foreach (var b in action.Play(args.offset).Where(b => this.workerClickAround.CancellationPending))
+				{
+					break;
+				}
 			}
 		}
 	}

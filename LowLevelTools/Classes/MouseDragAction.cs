@@ -31,29 +31,39 @@
 
 
 
-		public void Play(Point offset)
+		public IEnumerable<bool> Play(Point offset)
 		{
 			if (this.DiscardOffset)
 			{
 				offset = new Point(0, 0);
 				System.Threading.Thread.Sleep(100);
 			}
-			if (this.Points.Count < 0)
+			if (this.Points.Count == 0)
 			{
-				return;
+				yield return new bool();
 			}
-			MouseOperations.SetCursorPosition(
-					new MouseOperations.MousePoint(this.Points[0].X + offset.X, this.Points[0].Y + offset.Y));
-			MouseOperations.MouseEvent(MouseOperations.MouseEventFlags.LeftDown);
-			System.Threading.Thread.Sleep(this.DiscardOffset ? 100 : 10);
-			foreach (var point in this.Points.Where(point => !point.IsEmpty))
+			else
 			{
+				if (this.DiscardOffset)
+				{
+					System.Threading.Thread.Sleep(1000);
+				}
+				int waitTime = this.DiscardOffset ? 100 : 10;
+				int loopWaitTime = this.DiscardOffset ? 100 : 1;
 				MouseOperations.SetCursorPosition(
-					new MouseOperations.MousePoint(point.X + offset.X, point.Y + offset.Y));
-				System.Threading.Thread.Sleep(1);
+						new MouseOperations.MousePoint(this.Points[0].X + offset.X, this.Points[0].Y + offset.Y));
+				MouseOperations.MouseEvent(MouseOperations.MouseEventFlags.LeftDown);
+				System.Threading.Thread.Sleep(waitTime);
+				foreach (var point in this.Points.Where(point => !point.IsEmpty))
+				{
+					MouseOperations.SetCursorPosition(
+						new MouseOperations.MousePoint(point.X + offset.X, point.Y + offset.Y));
+					yield return true;
+					System.Threading.Thread.Sleep(loopWaitTime);
+				}
+				System.Threading.Thread.Sleep(waitTime);
+				MouseOperations.MouseEvent(MouseOperations.MouseEventFlags.LeftUp);
 			}
-			System.Threading.Thread.Sleep(10);
-			MouseOperations.MouseEvent(MouseOperations.MouseEventFlags.LeftUp);
 		}
 	}
 }
