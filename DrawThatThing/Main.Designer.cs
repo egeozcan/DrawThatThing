@@ -317,7 +317,7 @@
 			this.label3.Name = "label3";
 			this.label3.Size = new System.Drawing.Size(71, 13);
 			this.label3.TabIndex = 38;
-			this.label3.Text = "Shift + Alt + P";
+			this.label3.Text = "Shift + Alt + A";
 			this.label3.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// label4

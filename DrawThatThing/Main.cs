@@ -33,7 +33,7 @@
 			//Shift + Alt + P
 			RegisterHotKey(this.Handle, 1, 5, 'S');
 			//Shift + Alt + S
-			RegisterHotKey(this.Handle, 2, 5, 'P');
+			RegisterHotKey(this.Handle, 2, 5, 'A');
 		}
 
 		[DllImport("user32.dll")]
