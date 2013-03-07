@@ -36,6 +36,7 @@
 			if (this.DiscardOffset)
 			{
 				offset = new Point(0, 0);
+				System.Threading.Thread.Sleep(100);
 			}
 			if (this.Points.Count < 0)
 			{
@@ -44,7 +45,7 @@
 			MouseOperations.SetCursorPosition(
 					new MouseOperations.MousePoint(this.Points[0].X + offset.X, this.Points[0].Y + offset.Y));
 			MouseOperations.MouseEvent(MouseOperations.MouseEventFlags.LeftDown);
-			System.Threading.Thread.Sleep(10);
+			System.Threading.Thread.Sleep(this.DiscardOffset ? 100 : 10);
 			foreach (var point in this.Points.Where(point => !point.IsEmpty))
 			{
 				MouseOperations.SetCursorPosition(
