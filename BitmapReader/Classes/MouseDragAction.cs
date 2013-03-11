@@ -40,7 +40,7 @@
 			}
 			if (this.Points.Count == 0)
 			{
-				yield return new bool();
+				yield return false;
 			}
 			else
 			{
