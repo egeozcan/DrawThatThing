@@ -1,3 +1,5 @@
+using System;
+
 namespace DrawThatThing.Internal
 {
 	using System.Collections.Generic;
@@ -6,8 +8,8 @@ namespace DrawThatThing.Internal
 
 	internal class CalculatorArguments
 	{
-		public bool useAlternativeParser;
+	    public Type Parser;
 		public List<ColorSpot> ColorPalette;
-		public string imagepath;
+		public string Imagepath;
 	}
 }

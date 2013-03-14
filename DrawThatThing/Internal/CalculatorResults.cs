@@ -7,10 +7,10 @@ namespace DrawThatThing.Internal
 
 	internal class CalculatorResults
 	{
-		public List<MouseDragAction> actions;
-		public Exception error;
-		public bool useAlternativeParser;
-		public int imageWidth;
-		public int imageHeight;
+		public List<MouseDragAction> Actions;
+		public Exception Error;
+		public bool UseAlternativeParser;
+		public int ImageWidth;
+		public int ImageHeight;
 	}
 }

@@ -7,7 +7,7 @@ namespace DrawThatThing.Internal
 
 	internal class ClickerArguments
 	{
-		public IEnumerable<MouseDragAction> mouseActions;
-		public Point offset;
+		public IEnumerable<MouseDragAction> MouseActions;
+		public Point Offset;
 	}
 }
