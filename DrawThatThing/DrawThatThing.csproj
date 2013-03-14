@@ -85,7 +85,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\LowLevelTools\BitmapReader.csproj">
+    <ProjectReference Include="..\BitmapReader\BitmapReader.csproj">
       <Project>{A2A65372-5623-451E-AA94-C1D5DCAF8D57}</Project>
       <Name>BitmapReader</Name>
     </ProjectReference>

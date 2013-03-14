@@ -11,14 +11,14 @@ using Point = BitmapReader.Point;
 
 namespace AbstractReader
 {
-    public class AbstractReader : IBitmapReader
-    {
+	public class AbstractReader : IBitmapReader
+	{
 		private readonly string _bitmapPath;
 		private int _bitmapHeight;
 		private int _bitmapWidth;
 		private int[,] _colors;
 		private bool[,] _colorsProcessed;
-        public AbstractReader(string path)
+		public AbstractReader(string path)
 		{
 			this._bitmapPath = path;
 		}
@@ -74,7 +74,7 @@ namespace AbstractReader
 			}
 
 			int? lastColorIndex = null;
-            IOrderedEnumerable<List<Point>> colorGroupsOrderedByColor =
+			IOrderedEnumerable<List<Point>> colorGroupsOrderedByColor =
 				colorGroups.Where(x => x.Count >= colorGroupMinSize).OrderBy(x => this._colors[x.First().X, x.First().Y]);
 			foreach (var colorGroup in colorGroupsOrderedByColor)
 			{
@@ -95,61 +95,61 @@ namespace AbstractReader
 			return output;
 		}
 
-        private static bool AreDirectNeighbors(Point point1, Point point2)
+		private static bool AreDirectNeighbors(Point point1, Point point2)
 		{
 			return Math.Abs(point1.X - point2.X) <= 15 && Math.Abs(point1.Y - point2.Y) <= 15;
 		}
 
-        private IEnumerable<Point> GetMatchingUnprocessedDirectNeighbors(int x, int y)
+		private IEnumerable<Point> GetMatchingUnprocessedDirectNeighbors(int x, int y)
 		{
-            var directNeighbors = new List<Point>();
+			var directNeighbors = new List<Point>();
 			// top
 			int newX = x;
 			int newY = y - 1;
 			if (newY > 0 && !this._colorsProcessed[newX, newY] && this._colors[x, y] == this._colors[newX, newY])
 			{
-                directNeighbors.Add(new Point { X = newX, Y = newY });
+				directNeighbors.Add(new Point { X = newX, Y = newY });
 			}
 			// right
 			newX = x + 1;
 			newY = y;
 			if (newX < this._bitmapWidth && !this._colorsProcessed[newX, newY] && this._colors[x, y] == this._colors[newX, newY])
 			{
-                directNeighbors.Add(new Point { X = newX, Y = newY });
+				directNeighbors.Add(new Point { X = newX, Y = newY });
 			}
 			// bottom
 			newX = x;
 			newY = y + 1;
 			if (newY < this._bitmapHeight && !this._colorsProcessed[newX, newY] && this._colors[x, y] == this._colors[newX, newY])
 			{
-                directNeighbors.Add(new Point { X = newX, Y = newY });
+				directNeighbors.Add(new Point { X = newX, Y = newY });
 			}
 			// left
 			newX = x - 1;
 			newY = y;
 			if (newX > 0 && !this._colorsProcessed[newX, newY] && this._colors[x, y] == this._colors[newX, newY])
 			{
-                directNeighbors.Add(new Point { X = newX, Y = newY });
+				directNeighbors.Add(new Point { X = newX, Y = newY });
 			}
 			return directNeighbors;
 		}
-        private IEnumerable<List<Point>> GetNeighboringColors(int x, int y)
+		private IEnumerable<List<Point>> GetNeighboringColors(int x, int y)
 		{
-            var results = new List<List<Point>>();
-            var result = new List<Point>();
+			var results = new List<List<Point>>();
+			var result = new List<Point>();
 			results.Add(result);
-            var currentPoint = new Point { X = x, Y = y };
+			var currentPoint = new Point { X = x, Y = y };
 			this._colorsProcessed[x, y] = true;
 			result.Add(currentPoint);
 
-            var processQueue = new List<Point> { currentPoint };
+			var processQueue = new List<Point> { currentPoint };
 			int i = 0;
 
 			while (processQueue.Count > i)
 			{
-                Point neighbor = processQueue.ElementAt(i);
+				Point neighbor = processQueue.ElementAt(i);
 				i++;
-                foreach (Point newNeighbor in this.GetMatchingUnprocessedDirectNeighbors(neighbor.X, neighbor.Y))
+				foreach (Point newNeighbor in this.GetMatchingUnprocessedDirectNeighbors(neighbor.X, neighbor.Y))
 				{
 					this._colorsProcessed[newNeighbor.X, newNeighbor.Y] = true;
 					if (!AreDirectNeighbors(result.Last(), newNeighbor))
@@ -163,5 +163,5 @@ namespace AbstractReader
 			}
 			return results;
 		}
-    }
+	}
 }

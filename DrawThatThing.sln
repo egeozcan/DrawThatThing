@@ -3,13 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DrawThatThing", "DrawThatThing\DrawThatThing.csproj", "{A6E47037-C701-4C24-AD8C-280ACFEB0A43}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BitmapReader", "LowLevelTools\BitmapReader.csproj", "{A2A65372-5623-451E-AA94-C1D5DCAF8D57}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BitmapReader", "BitmapReader\BitmapReader.csproj", "{A2A65372-5623-451E-AA94-C1D5DCAF8D57}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{8D81C5C3-480D-4BAD-A18A-517DE647EFAA}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BitmapReaders", "BitmapReaders", "{A698FD4F-A622-4405-BEEE-8981620F948E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AbstractReader", "AbstractDrawer\AbstractReader.csproj", "{8A3F664B-38E5-407C-98AB-218C2907DF06}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AbstractReader", "AbstractReader\AbstractReader.csproj", "{8A3F664B-38E5-407C-98AB-218C2907DF06}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DetailedReader", "DetailedReader\DetailedReader.csproj", "{8B35A5CB-CBD1-4B25-AC0D-DFC07B5C1108}"
 EndProject
