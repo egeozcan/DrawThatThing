@@ -18,12 +18,13 @@ namespace AbstractReader
 		private int _bitmapWidth;
 		private int[,] _colors;
 		private bool[,] _colorsProcessed;
+
 		public AbstractReader(string path)
 		{
 			this._bitmapPath = path;
 		}
 
-		public IEnumerable<MouseDragAction> GetDrawInstructions(List<ColorSpot> color)
+		public IEnumerable<MouseDragAction> GetDrawInstructions(List<ColorSpot> color, IDictionary<string, string> settings = null)
 		{
 			List<ColorSpot> knownColors = color.ToList();
 			int ignoredColor = knownColors.IndexOf(knownColors.First(x => x.Color.Name == "ffffffff"));

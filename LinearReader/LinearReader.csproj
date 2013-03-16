@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{A2A65372-5623-451E-AA94-C1D5DCAF8D57}</ProjectGuid>
+    <ProjectGuid>{ACB9E780-B101-40AE-9B79-A437D8174F9D}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>BitmapReader</RootNamespace>
-    <AssemblyName>BitmapReader</AssemblyName>
+    <RootNamespace>LinearReader</RootNamespace>
+    <AssemblyName>LinearReader</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -17,7 +17,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\DrawThatThing\bin\Debug\</OutputPath>
+    <OutputPath>..\DrawThatThing\bin\Debug\Plugins\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -34,7 +34,6 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
-    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -42,19 +41,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Extensions\IDictionaryExtensions.cs" />
-    <Compile Include="Interface\IBitmapReader.cs" />
-    <Compile Include="Extensions\ColorExtensions.cs" />
-    <Compile Include="Classes\ColorSpot.cs" />
-    <Compile Include="Point.cs" />
-    <Compile Include="Extensions\StringExtensions.cs" />
-    <Compile Include="Extensions\PointExtensions.cs" />
-    <Compile Include="Classes\MouseDragAction.cs" />
-    <Compile Include="MouseOperations.cs" />
-    <Compile Include="PixelMeta.cs" />
+    <Compile Include="LinearReader.cs" />
+    <Compile Include="PixelAcceptanceArgs.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\BitmapReader\BitmapReader.csproj">
+      <Project>{A2A65372-5623-451E-AA94-C1D5DCAF8D57}</Project>
+      <Name>BitmapReader</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
