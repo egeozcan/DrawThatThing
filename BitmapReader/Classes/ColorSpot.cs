@@ -2,11 +2,11 @@
 {
 	using System.Drawing;
 
-	using Point = BitmapReader.Point;
+	using Point = Classes.Point;
 
 	public class ColorSpot
 	{
 		public Color Color;
-		public Point Point;
+		public Classes.Point Point;
 	}
 }

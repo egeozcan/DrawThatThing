@@ -9,11 +9,22 @@ namespace LinearReader
 	using BitmapReader.Classes;
 	using BitmapReader.Extensions;
 	using BitmapReader.Interface;
+	using BitmapReader.Attributes;
 
 	using System.Linq;
 
-	using Point = BitmapReader.Point;
+	using Point = BitmapReader.Classes.Point;
 
+	[DefaultSetting("MaxLight", 700)]
+	[DefaultSetting("BlueEnabled", false)]
+	[DefaultSetting("BlueMax", 255)]
+	[DefaultSetting("BlueMin", 0)]
+	[DefaultSetting("GreenEnabled", false)]
+	[DefaultSetting("GreenMax", 255)]
+	[DefaultSetting("GreenMin", 0)]
+	[DefaultSetting("RedEnabled", false)]
+	[DefaultSetting("RedMax", 255)]
+	[DefaultSetting("RedMin", 0)]
 	public class LinearReader : IBitmapReader
 	{
 		private readonly string _bitmapPath;
@@ -23,7 +34,7 @@ namespace LinearReader
 			_bitmapPath = path;
 		}
 
-		private PixelAcceptanceArgs _defaultArgs = new PixelAcceptanceArgs
+		private readonly PixelAcceptanceArgs _defaultArgs = new PixelAcceptanceArgs
 			{
 				MaxLight = 700,
 				BlueEnabled = false,
@@ -43,7 +54,7 @@ namespace LinearReader
 			{
 				throw new ArgumentException("I need a black color in the palette!");
 			}
-			var selectedColor = colorPalette.First(c => c.Color.R + c.Color.G + c.Color.B != 0);
+			var selectedColor = colorPalette.First(c => c.Color.R + c.Color.G + c.Color.B == 0);
 			var args = settings != null ? new PixelAcceptanceArgs
 				{
 					MaxLight = settings.GetIntValueOrDefault("MaxLight", _defaultArgs.MaxLight),
@@ -55,7 +66,7 @@ namespace LinearReader
 					GreenMin = settings.GetIntValueOrDefault("GreenMin", _defaultArgs.GreenMin),
 					RedEnabled = settings.GetBoolValueOrDefault("RedEnabled", _defaultArgs.RedEnabled),
 					RedMin = settings.GetIntValueOrDefault("RedMin", _defaultArgs.RedMin),
-					RedMax = settings.GetIntValueOrDefault("BlueMax", _defaultArgs.RedMax)
+					RedMax = settings.GetIntValueOrDefault("RedMax", _defaultArgs.RedMax)
 				} : _defaultArgs;
 			if (String.IsNullOrEmpty(_bitmapPath))
 			{
@@ -82,32 +93,30 @@ namespace LinearReader
 				int blue;
 				var output = new List<MouseDragAction>
 					{ new MouseDragAction(new List<Point> { selectedColor.Point }, true, selectedColor.Color) };
-				// y1 x1 y2 x2
-				int[] lc = new[] { 0, 0, 0, 0 };
+
+				var lc = new[] { 0, 0, 0, 0 };
 
 				for (int x = 0; x < bitmap.Width; x++)
 				{
 					bool lineInProgress = false;
 					for (int y = 0; y < bitmap.Height; y++)
 					{
-						//See the link above for an explanation 
-						//of this calculation (assumes 24bppRgb format)
 						int position = (y * bmpData.Stride) + (x * 3);
-						blue = rgbValues[position];
-						green = rgbValues[position + 1];
 						red = rgbValues[position + 2];
+						green = rgbValues[position + 1];
+						blue = rgbValues[position];
 						if (pixelFits(red, green, blue, args))
 						{
 							if (lineInProgress)
 							{
-								lc[2] = y;
-								lc[3] = x;
+								lc[2] = x;
+								lc[3] = y;
 							}
 							else
 							{
 								lineInProgress = true;
-								lc[0] = lc[2] = y;
-								lc[1] = lc[3] = x;
+								lc[0] = lc[2] = x;
+								lc[1] = lc[3] = y;
 							}
 						}
 						else if (lineInProgress)
@@ -135,7 +144,9 @@ namespace LinearReader
 			}
 			else
 			{
-				action = new MouseDragAction(new List<Point> { new Point(lc[0], lc[1]) });
+				return;
+				//ignore single points
+				//action = new MouseDragAction(new List<Point> { new Point(lc[0], lc[1]) });
 			}
 			output.Add(action);
 		}

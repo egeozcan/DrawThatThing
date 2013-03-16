@@ -42,16 +42,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Attributes\DefaultSettingAttribute.cs" />
     <Compile Include="Extensions\IDictionaryExtensions.cs" />
     <Compile Include="Interface\IBitmapReader.cs" />
     <Compile Include="Extensions\ColorExtensions.cs" />
     <Compile Include="Classes\ColorSpot.cs" />
-    <Compile Include="Point.cs" />
+    <Compile Include="Classes\Point.cs" />
     <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\PointExtensions.cs" />
     <Compile Include="Classes\MouseDragAction.cs" />
-    <Compile Include="MouseOperations.cs" />
-    <Compile Include="PixelMeta.cs" />
+    <Compile Include="Win32\MouseOperations.cs" />
+    <Compile Include="Classes\PixelMeta.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup />

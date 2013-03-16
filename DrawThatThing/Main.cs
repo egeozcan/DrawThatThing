@@ -8,20 +8,25 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
-using BitmapReader;
+
 using BitmapReader.Classes;
 using BitmapReader.Extensions;
 using BitmapReader.Interface;
 using DrawThatThing.Internal;
-using Point = System.Drawing.Point;
+using Point = BitmapReader.Classes.Point;
 
 namespace DrawThatThing
 {
+	using BitmapReader.Attributes;
+	using BitmapReader.Win32;
+
+	using Point = Point;
+
 	public partial class DrawThatThing : Form
 	{
 		private const string BitmapreaderInterface = "BitmapReader.Interface.IBitmapReader";
 		private IEnumerable<MouseDragAction> _actions;
-		private readonly Dictionary<string, Type> _plugins = new Dictionary<string, Type>();  
+		private readonly Dictionary<string, Type> _plugins = new Dictionary<string, Type>();
 
 		public DrawThatThing()
 		{
@@ -91,11 +96,21 @@ namespace DrawThatThing
 			{
 				using (Graphics g = Graphics.FromImage(bitmap))
 				{
-					g.CopyFromScreen(new Point(mouse.X, mouse.Y), new Point(0, 0), bitmap.Size);
+					g.CopyFromScreen(new System.Drawing.Point(mouse.X, mouse.Y), new System.Drawing.Point(0, 0), bitmap.Size);
 					Color color = bitmap.GetPixel(0, 0);
-					dataGridColors.Rows.Add(mouse.X, mouse.Y, color.ToHEX());
+					var i = dataGridColors.Rows.Add(mouse.X, mouse.Y, color.ToHEX());
+					UpdateCellColor(i);
 				}
 			}
+		}
+
+		private void UpdateCellColor(int rowIndex)
+		{
+			var cell = this.dataGridColors.Rows[rowIndex].Cells[this.dataGridColors.Rows[rowIndex].Cells.Count - 1];
+			cell.Style = new DataGridViewCellStyle
+			{
+				BackColor = (cell.Value as String ?? "").ToColor()
+			};
 		}
 
 		private void HandleHotkey(int id)
@@ -127,7 +142,7 @@ namespace DrawThatThing
 				new ClickerArguments
 					{
 						MouseActions = _actions,
-						Offset = new BitmapReader.Point(txtMousePositionX.Text.ToInt(), txtMousePositionY.Text.ToInt())
+						Offset = new Point(txtMousePositionX.Text.ToInt(), txtMousePositionY.Text.ToInt())
 					});
 		}
 
@@ -195,6 +210,8 @@ namespace DrawThatThing
 			{
 				return;
 			}
+			btnLoadImage.Enabled = false;
+			btnLoadImage.Text = "Loading...";
 			var spots = new ColorSpot[dataGridColors.Rows.Count];
 			for (int i = 0; i < dataGridColors.Rows.Count; i++)
 			{
@@ -203,17 +220,21 @@ namespace DrawThatThing
 					{
 						Color = (row.Cells[2].Value as String ?? "").ToColor(),
 						Point =
-							new BitmapReader.Point((row.Cells[0].Value ?? "").ToString().ToInt(),
+							new Point((row.Cells[0].Value ?? "").ToString().ToInt(),
 												   (row.Cells[1].Value ?? "").ToString().ToInt())
 					};
 			}
 			List<ColorSpot> colorPalette = spots.Where(x => !x.Color.IsEmpty).ToList();
+			var parserOptions =
+				this.dataGridSettings.Rows.Cast<DataGridViewRow>().ToDictionary(
+					row => (row.Cells[0].Value ?? "").ToString(), row => (row.Cells[1].Value ?? "").ToString());
 			workerCalculate.RunWorkerAsync(
 				new CalculatorArguments
 					{
 						Parser = _plugins[cmbParser.Text],
 						ColorPalette = colorPalette,
-						Imagepath = imagepath
+						Imagepath = imagepath,
+						ParserOptions = parserOptions
 					});
 			dlgImportImage.FileName = null;
 		}
@@ -221,6 +242,17 @@ namespace DrawThatThing
 		private void btnPlay_Click(object sender, EventArgs e)
 		{
 			StartClicking();
+		}
+
+		private void UpdateOptions()
+		{
+			dataGridSettings.Rows.Clear();
+			var currentPlugin = _plugins[cmbParser.Text];
+			var attributes = currentPlugin.GetCustomAttributes(true).Select(x => x as DefaultSettingAttribute);
+			foreach (DefaultSettingAttribute setting in attributes.Where(setting => setting != null))
+			{
+				this.dataGridSettings.Rows.Add(setting.Name, setting.DefaultValue);
+			}
 		}
 
 		private void UpdatePreview()
@@ -233,9 +265,9 @@ namespace DrawThatThing
 				{
 					Pen cPen = action.Color.IsEmpty ? pen : new Pen(action.Color, 1);
 					pen = cPen;
-					List<BitmapReader.Point> points = action.Points;
-					BitmapReader.Point lastP = points[0];
-					foreach (BitmapReader.Point point in points)
+					List<Point> points = action.Points;
+					Point lastP = points[0];
+					foreach (Point point in points)
 					{
 						graphics.DrawLine(cPen, lastP.ToStandardPoint(), point.ToStandardPoint());
 						lastP = point;
@@ -263,7 +295,7 @@ namespace DrawThatThing
 			var reader = (IBitmapReader)Activator.CreateInstance(args.Parser, new object[]{ args.Imagepath });
 			try
 			{
-				results.Actions = reader.GetDrawInstructions(args.ColorPalette).ToList();
+				results.Actions = reader.GetDrawInstructions(args.ColorPalette, args.ParserOptions).ToList();
 			}
 			catch (Exception err)
 			{
@@ -274,6 +306,8 @@ namespace DrawThatThing
 
 		private void workerCalculate_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
 		{
+			btnLoadImage.Enabled = true;
+			btnLoadImage.Text = "Parse Image";
 			var results = e.Result as CalculatorResults;
 			if (results == null)
 			{
@@ -306,6 +340,26 @@ namespace DrawThatThing
 					break;
 				}
 			}
+		}
+
+		private void dataGridColors_RowLeave(object sender, DataGridViewCellEventArgs e)
+		{
+			UpdateCellColor(e.RowIndex);
+		}
+
+		private void dataGridColors_CellLeave(object sender, DataGridViewCellEventArgs e)
+		{
+			UpdateCellColor(e.RowIndex);
+		}
+
+		private void dataGridColors_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+		{
+			UpdateCellColor(e.RowIndex);
+		}
+
+		private void cmbParser_SelectedIndexChanged(object sender, EventArgs e)
+		{
+			UpdateOptions();
 		}
 	}
 }

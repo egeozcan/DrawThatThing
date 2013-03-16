@@ -1,6 +1,6 @@
 namespace LinearReader
 {
-	public struct PixelAcceptanceArgs
+	public class PixelAcceptanceArgs
 	{
 		public int RedMin;
 		public int RedMax;

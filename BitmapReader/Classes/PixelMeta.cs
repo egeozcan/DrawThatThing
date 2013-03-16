@@ -1,8 +1,6 @@
-namespace BitmapReader
+namespace BitmapReader.Classes
 {
 	using System.Drawing;
-
-	using Classes;
 
 	public class PixelMeta
 	{

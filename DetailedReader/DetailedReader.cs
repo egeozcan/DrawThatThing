@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using BitmapReader.Classes;
 using BitmapReader.Extensions;
 using BitmapReader.Interface;
-using Point = BitmapReader.Point;
+using Point = BitmapReader.Classes.Point;
 
 namespace DetailedReader
 {

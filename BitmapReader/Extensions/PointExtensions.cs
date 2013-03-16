@@ -3,6 +3,8 @@ namespace BitmapReader.Extensions
 	using System;
 	using System.Linq;
 
+	using Classes;
+
 	public static class PointExtensions
 	{
 		public static bool IsANeighborOf(this Point point, Point toPoint)
