@@ -37,13 +37,15 @@ namespace PointReader
 				bitmap.LoopThroughPixels((point, color) =>
 					{
 						var selectedColor = colorPalette.OrderBy(c => c.Color.DifferenceTo(color)).FirstOrDefault();
-						if (selectedColor != null && colorPixels.ContainsKey(selectedColor))
+						if (selectedColor == null || !colorPixels.ContainsKey(selectedColor) ||
+						    selectedColor.Color.DifferenceTo(Color.White) == 0)
 						{
-							colorPixels[selectedColor].Add(point);
+							return;
 						}
+						colorPixels[selectedColor].Add(point);
 					});
 			}
-			foreach (var colorPixel in colorPixels)
+			foreach (var colorPixel in colorPixels.Where(colorPixel => colorPixel.Value.Any()))
 			{
 				output.Add(new MouseDragAction(new List<Point> { colorPixel.Key.Point }, true, colorPixel.Key.Color));
 				var actions = colorPixel.Value.Select(point => new MouseDragAction(new List<Point> { point })).ToList();
