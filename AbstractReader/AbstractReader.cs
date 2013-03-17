@@ -11,6 +11,9 @@ using Point = BitmapReader.Classes.Point;
 
 namespace AbstractReader
 {
+	using BitmapReader.Attributes;
+
+	[DefaultSetting("MinimumStrokeSize", 15)]
 	public class AbstractReader : IBitmapReader
 	{
 		private readonly string _bitmapPath;
@@ -29,7 +32,7 @@ namespace AbstractReader
 			List<ColorSpot> knownColors = color.ToList();
 			int ignoredColor = knownColors.IndexOf(knownColors.First(x => x.Color.Name == "ffffffff"));
 			// prevent drawing of single pixels etc
-			const int colorGroupMinSize = 15;
+			int colorGroupMinSize = settings.GetIntValueOrDefault("MinimumStrokeSize", 15);
 
 			var output = new List<MouseDragAction>();
 

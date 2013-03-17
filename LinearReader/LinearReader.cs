@@ -4,7 +4,6 @@ namespace LinearReader
 {
 	using System.Collections.Generic;
 	using System.Drawing;
-	using System.Runtime.InteropServices;
 
 	using BitmapReader.Classes;
 	using BitmapReader.Extensions;
@@ -34,20 +33,6 @@ namespace LinearReader
 			_bitmapPath = path;
 		}
 
-		private readonly PixelAcceptanceArgs _defaultArgs = new PixelAcceptanceArgs
-			{
-				MaxLight = 700,
-				BlueEnabled = false,
-				BlueMax = 255,
-				BlueMin = 0,
-				GreenEnabled = false,
-				GreenMax = 255,
-				GreenMin = 0,
-				RedEnabled = false,
-				RedMin = 0,
-				RedMax = 255
-			};
-
 		public IEnumerable<MouseDragAction> GetDrawInstructions(List<ColorSpot> colorPalette, IDictionary<string, string> settings = null)
 		{
 			if (colorPalette.All(c => c.Color.R + c.Color.G + c.Color.B != 0))
@@ -55,100 +40,49 @@ namespace LinearReader
 				throw new ArgumentException("I need a black color in the palette!");
 			}
 			var selectedColor = colorPalette.First(c => c.Color.R + c.Color.G + c.Color.B == 0);
-			var args = settings != null ? new PixelAcceptanceArgs
+			if (settings == null)
+			{
+				settings = new Dictionary<string, string>();
+			}
+			var args = new PixelAcceptanceArgs
 				{
-					MaxLight = settings.GetIntValueOrDefault("MaxLight", _defaultArgs.MaxLight),
-					BlueEnabled = settings.GetBoolValueOrDefault("BlueEnabled", _defaultArgs.BlueEnabled),
-					BlueMax = settings.GetIntValueOrDefault("BlueMax", _defaultArgs.BlueMax),
-					BlueMin = settings.GetIntValueOrDefault("BlueMin", _defaultArgs.BlueMin),
-					GreenEnabled = settings.GetBoolValueOrDefault("GreenEnabled", _defaultArgs.GreenEnabled),
-					GreenMax = settings.GetIntValueOrDefault("GreenMax", _defaultArgs.GreenMax),
-					GreenMin = settings.GetIntValueOrDefault("GreenMin", _defaultArgs.GreenMin),
-					RedEnabled = settings.GetBoolValueOrDefault("RedEnabled", _defaultArgs.RedEnabled),
-					RedMin = settings.GetIntValueOrDefault("RedMin", _defaultArgs.RedMin),
-					RedMax = settings.GetIntValueOrDefault("RedMax", _defaultArgs.RedMax)
-				} : _defaultArgs;
+					MaxLight = settings.GetIntValueOrDefault("MaxLight", 700),
+					BlueEnabled = settings.GetBoolValueOrDefault("BlueEnabled", false),
+					BlueMax = settings.GetIntValueOrDefault("BlueMax", 255),
+					BlueMin = settings.GetIntValueOrDefault("BlueMin", 0),
+					GreenEnabled = settings.GetBoolValueOrDefault("GreenEnabled", false),
+					GreenMax = settings.GetIntValueOrDefault("GreenMax", 255),
+					GreenMin = settings.GetIntValueOrDefault("GreenMin", 0),
+					RedEnabled = settings.GetBoolValueOrDefault("RedEnabled", false),
+					RedMin = settings.GetIntValueOrDefault("RedMin", 0),
+					RedMax = settings.GetIntValueOrDefault("RedMax", 255)
+				};
 			if (String.IsNullOrEmpty(_bitmapPath))
 			{
 				return null;
 			}
+			var output = new List<MouseDragAction>
+				{
+					new MouseDragAction(new List<Point> { selectedColor.Point }, true, selectedColor.Color)
+				};
 			using (var bitmap = new Bitmap(_bitmapPath))
 			{
-				Rectangle rect = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
-
-				System.Drawing.Imaging.BitmapData bmpData =
-					bitmap.LockBits(rect,
-						System.Drawing.Imaging.ImageLockMode.ReadOnly,
-						bitmap.PixelFormat);
-
-				IntPtr ptr = bmpData.Scan0;
-
-				int bytes = bmpData.Stride * bitmap.Height;
-				byte[] rgbValues = new byte[bytes];
-
-				Marshal.Copy(ptr, rgbValues, 0, bytes);
-
-				int red;
-				int green;
-				int blue;
-				var output = new List<MouseDragAction>
-					{ new MouseDragAction(new List<Point> { selectedColor.Point }, true, selectedColor.Color) };
-
-				var lc = new[] { 0, 0, 0, 0 };
-
-				for (int x = 0; x < bitmap.Width; x++)
+				var currentAction = new List<Point>();
+				bitmap.LoopThroughPixels((point, color) =>
 				{
-					bool lineInProgress = false;
-					for (int y = 0; y < bitmap.Height; y++)
+					if (!pixelFits(color.R, color.G, color.B, args))
 					{
-						int position = (y * bmpData.Stride) + (x * 3);
-						red = rgbValues[position + 2];
-						green = rgbValues[position + 1];
-						blue = rgbValues[position];
-						if (pixelFits(red, green, blue, args))
-						{
-							if (lineInProgress)
-							{
-								lc[2] = x;
-								lc[3] = y;
-							}
-							else
-							{
-								lineInProgress = true;
-								lc[0] = lc[2] = x;
-								lc[1] = lc[3] = y;
-							}
-						}
-						else if (lineInProgress)
-						{
-							noteCoordinates(lc, output);
-							lineInProgress = false;
-						}
+						return;
 					}
-					if (lineInProgress)
+					if (currentAction.Any() && !currentAction.Last().IsANeighborOf(point))
 					{
-						noteCoordinates(lc, output);
+						output.Add(new MouseDragAction(currentAction));
+						currentAction = new List<Point>();
 					}
-				}
-				bitmap.UnlockBits(bmpData);
-				return output.ToArray();
+					currentAction.Add(point);
+				});
 			}
-		}
-
-		private static void noteCoordinates(int[] lc, List<MouseDragAction> output)
-		{
-			MouseDragAction action;
-			if (lc[1] != lc[3] || lc[0] != lc[2])
-			{
-				action = new MouseDragAction(new List<Point> { new Point(lc[0], lc[1]), new Point(lc[2], lc[3]) });
-			}
-			else
-			{
-				return;
-				//ignore single points
-				//action = new MouseDragAction(new List<Point> { new Point(lc[0], lc[1]) });
-			}
-			output.Add(action);
+			return output.ToArray();
 		}
 
 		private static bool pixelFits(int red, int green, int blue, PixelAcceptanceArgs args)

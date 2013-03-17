@@ -28,6 +28,7 @@ namespace DrawThatThing
 		private IEnumerable<MouseDragAction> _actions;
 		private readonly Dictionary<string, Type> _plugins = new Dictionary<string, Type>();
 		private string _lastParsedImage;
+		private bool _loadComplete = true;
 
 		public DrawThatThing()
 		{
@@ -227,6 +228,23 @@ namespace DrawThatThing
 			btnLoadImage.Text = "Loading...";
 			btnReparse.Visible = false;
 			_lastParsedImage = imagepath;
+			_loadComplete = false;
+			
+			var parserOptions =
+				this.dataGridSettings.Rows.Cast<DataGridViewRow>().ToDictionary(
+					row => (row.Cells[0].Value ?? "").ToString(), row => (row.Cells[1].Value ?? "").ToString());
+			workerCalculate.RunWorkerAsync(
+				new CalculatorArguments
+				{
+					Parser = _plugins[cmbParser.Text],
+					ColorPalette = GetColorPalette(),
+					Imagepath = imagepath,
+					ParserOptions = parserOptions
+				});
+		}
+
+		private List<ColorSpot> GetColorPalette()
+		{
 			var spots = new ColorSpot[dataGridColors.Rows.Count];
 			for (int i = 0; i < dataGridColors.Rows.Count; i++)
 			{
@@ -239,18 +257,7 @@ namespace DrawThatThing
 											   (row.Cells[1].Value ?? "").ToString().ToInt())
 				};
 			}
-			List<ColorSpot> colorPalette = spots.Where(x => !x.Color.IsEmpty).ToList();
-			var parserOptions =
-				this.dataGridSettings.Rows.Cast<DataGridViewRow>().ToDictionary(
-					row => (row.Cells[0].Value ?? "").ToString(), row => (row.Cells[1].Value ?? "").ToString());
-			workerCalculate.RunWorkerAsync(
-				new CalculatorArguments
-				{
-					Parser = _plugins[cmbParser.Text],
-					ColorPalette = colorPalette,
-					Imagepath = imagepath,
-					ParserOptions = parserOptions
-				});
+			return spots.Where(x => !x.Color.IsEmpty).ToList();
 		}
 
 		private void UpdateOptions()
@@ -267,10 +274,74 @@ namespace DrawThatThing
 
 		private void ShowReparseButton()
 		{
-			if (!string.IsNullOrWhiteSpace(_lastParsedImage))
+			if (_lastParsedImage == null || string.IsNullOrWhiteSpace(_lastParsedImage) || !_loadComplete)
 			{
-				btnReparse.Show();
+				return;
 			}
+			btnReparse.Show();
+			ShowClearUnusedColorsButton();
+		}
+
+		private void ShowClearUnusedColorsButton()
+		{
+			if (GetUnusedColors().Any())
+			{
+				btnClearUnusedColors.Show();
+			}
+			else
+			{
+				btnClearUnusedColors.Hide();
+			}
+		}
+
+		private IEnumerable<Color> GetUnusedColors()
+		{
+			if (!ActionsLoaded())
+			{
+				return new List<Color>();
+			}
+			return
+				GetColorPalette()
+					.Where(colorSpot => this._actions.All(x => x.Color.DifferenceTo(colorSpot.Color) != 0))
+					.Where(colorSpot => colorSpot.Color.DifferenceTo(Color.White) != 0)
+					.Select(x => x.Color);
+		} 
+
+		private bool ActionsLoaded()
+		{
+			return _actions != null && _actions.Any();
+		}
+
+		private void ClearUnusedColors()
+		{
+			if (!ActionsLoaded())
+			{
+				return;
+			}
+			foreach (var color in GetUnusedColors())
+			{
+				RemoveColorFromPalette(color);
+			}
+			btnClearUnusedColors.Hide();
+		}
+
+		private void RemoveColorFromPalette(Color color)
+		{
+			if (color.R == 255 && color.G == 255 && color.B == 255)
+			{
+				return;
+			}
+			for (int i = dataGridColors.Rows.Count - 1; i >= 0; i--)
+			{
+				DataGridViewRow row = dataGridColors.Rows[i];
+				var rowColor = (row.Cells[2].Value as String ?? "").ToColor();
+				if (color.DifferenceTo(rowColor) == 0)
+				{
+					dataGridColors.Rows.RemoveAt(i);
+				}
+			}
+			btnClearUnusedColors.Hide();
+			ShowReparseButton();
 		}
 
 		private void UpdatePreview()
@@ -287,7 +358,14 @@ namespace DrawThatThing
 					Point lastP = points[0];
 					foreach (Point point in points)
 					{
-						graphics.DrawLine(cPen, lastP.ToStandardPoint(), point.ToStandardPoint());
+						if (point.X == lastP.X && point.Y == lastP.Y)
+						{
+							graphics.FillRectangle(new SolidBrush(cPen.Color), point.X, point.Y, 1, 1);
+						}
+						else
+						{
+							graphics.DrawLine(cPen, lastP.ToStandardPoint(), point.ToStandardPoint());							
+						}
 						lastP = point;
 					}
 				}
@@ -326,6 +404,7 @@ namespace DrawThatThing
 		{
 			btnLoadImage.Enabled = true;
 			btnLoadImage.Text = "Parse Image";
+			_loadComplete = true;
 			var results = e.Result as CalculatorResults;
 			if (results == null)
 			{
@@ -340,6 +419,7 @@ namespace DrawThatThing
 			intPreviewHeight.Value = results.ImageHeight;
 			intPreviewWidth.Value = results.ImageWidth;
 			UpdatePreview();
+			ShowClearUnusedColorsButton();
 		}
 
 		private void workerClickAround_DoWork(object sender, DoWorkEventArgs e)
@@ -388,6 +468,11 @@ namespace DrawThatThing
 		private void dataGridSettings_CellEndEdit(object sender, DataGridViewCellEventArgs e)
 		{
 			ShowReparseButton();
+		}
+
+		private void btnClearUnusedColors_Click(object sender, EventArgs e)
+		{
+			ClearUnusedColors();
 		}
 	}
 }

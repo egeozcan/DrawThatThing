@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DetailedReader", "DetailedR
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinearReader", "LinearReader\LinearReader.csproj", "{ACB9E780-B101-40AE-9B79-A437D8174F9D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PointReader", "PointReader\PointReader.csproj", "{9F7A72AD-8468-411A-9770-16D4916C3789}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -75,6 +77,16 @@ Global
 		{ACB9E780-B101-40AE-9B79-A437D8174F9D}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{ACB9E780-B101-40AE-9B79-A437D8174F9D}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{ACB9E780-B101-40AE-9B79-A437D8174F9D}.Release|x86.ActiveCfg = Release|Any CPU
+		{9F7A72AD-8468-411A-9770-16D4916C3789}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F7A72AD-8468-411A-9770-16D4916C3789}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F7A72AD-8468-411A-9770-16D4916C3789}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{9F7A72AD-8468-411A-9770-16D4916C3789}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{9F7A72AD-8468-411A-9770-16D4916C3789}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9F7A72AD-8468-411A-9770-16D4916C3789}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F7A72AD-8468-411A-9770-16D4916C3789}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F7A72AD-8468-411A-9770-16D4916C3789}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{9F7A72AD-8468-411A-9770-16D4916C3789}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{9F7A72AD-8468-411A-9770-16D4916C3789}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -84,5 +96,6 @@ Global
 		{8A3F664B-38E5-407C-98AB-218C2907DF06} = {A698FD4F-A622-4405-BEEE-8981620F948E}
 		{8B35A5CB-CBD1-4B25-AC0D-DFC07B5C1108} = {A698FD4F-A622-4405-BEEE-8981620F948E}
 		{ACB9E780-B101-40AE-9B79-A437D8174F9D} = {A698FD4F-A622-4405-BEEE-8981620F948E}
+		{9F7A72AD-8468-411A-9770-16D4916C3789} = {A698FD4F-A622-4405-BEEE-8981620F948E}
 	EndGlobalSection
 EndGlobal

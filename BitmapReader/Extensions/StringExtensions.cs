@@ -14,7 +14,7 @@ namespace BitmapReader.Extensions
 
 		public static bool ToBool(this string str, bool defVal = false)
 		{
-			return str.EqualsToAny("true", "1");
+			return str.ToLowerInvariant().EqualsToAny("true", "1");
 		}
 
 		public static bool EqualsToAny(this string str, params string[] values)

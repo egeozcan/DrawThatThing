@@ -28,9 +28,9 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
-			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
-			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
-			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
+			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle4 = new System.Windows.Forms.DataGridViewCellStyle();
+			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle5 = new System.Windows.Forms.DataGridViewCellStyle();
+			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle6 = new System.Windows.Forms.DataGridViewCellStyle();
 			this.txtMousePositionY = new System.Windows.Forms.TextBox();
 			this.txtMousePositionX = new System.Windows.Forms.TextBox();
 			this.lblX = new System.Windows.Forms.Label();
@@ -68,6 +68,7 @@
 			this.Value = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.label8 = new System.Windows.Forms.Label();
 			this.btnReparse = new System.Windows.Forms.Button();
+			this.btnClearUnusedColors = new System.Windows.Forms.Button();
 			((System.ComponentModel.ISupportInitialize)(this.pctPreview)).BeginInit();
 			this.panel1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.intPreviewWidth)).BeginInit();
@@ -232,26 +233,26 @@
             this.PosX,
             this.PosY,
             this.RGB});
-			dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-			dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Window;
-			dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F);
-			dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.ControlText;
-			dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-			dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-			dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-			this.dataGridColors.DefaultCellStyle = dataGridViewCellStyle1;
+			dataGridViewCellStyle4.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+			dataGridViewCellStyle4.BackColor = System.Drawing.SystemColors.Window;
+			dataGridViewCellStyle4.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F);
+			dataGridViewCellStyle4.ForeColor = System.Drawing.SystemColors.ControlText;
+			dataGridViewCellStyle4.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+			dataGridViewCellStyle4.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+			dataGridViewCellStyle4.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+			this.dataGridColors.DefaultCellStyle = dataGridViewCellStyle4;
 			this.dataGridColors.EnableHeadersVisualStyles = false;
 			this.dataGridColors.Location = new System.Drawing.Point(17, 74);
 			this.dataGridColors.Name = "dataGridColors";
 			this.dataGridColors.RowHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
-			dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-			dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
-			dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.WindowText;
-			dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-			dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-			dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
-			this.dataGridColors.RowHeadersDefaultCellStyle = dataGridViewCellStyle2;
+			dataGridViewCellStyle5.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+			dataGridViewCellStyle5.BackColor = System.Drawing.SystemColors.Control;
+			dataGridViewCellStyle5.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			dataGridViewCellStyle5.ForeColor = System.Drawing.SystemColors.WindowText;
+			dataGridViewCellStyle5.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+			dataGridViewCellStyle5.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+			dataGridViewCellStyle5.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+			this.dataGridColors.RowHeadersDefaultCellStyle = dataGridViewCellStyle5;
 			this.dataGridColors.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
 			this.dataGridColors.Size = new System.Drawing.Size(345, 211);
 			this.dataGridColors.TabIndex = 34;
@@ -409,14 +410,14 @@
 			this.dataGridSettings.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.settingName,
             this.Value});
-			dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
-			dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Window;
-			dataGridViewCellStyle3.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F);
-			dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.ControlText;
-			dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
-			dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
-			dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
-			this.dataGridSettings.DefaultCellStyle = dataGridViewCellStyle3;
+			dataGridViewCellStyle6.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+			dataGridViewCellStyle6.BackColor = System.Drawing.SystemColors.Window;
+			dataGridViewCellStyle6.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F);
+			dataGridViewCellStyle6.ForeColor = System.Drawing.SystemColors.ControlText;
+			dataGridViewCellStyle6.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+			dataGridViewCellStyle6.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+			dataGridViewCellStyle6.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+			this.dataGridSettings.DefaultCellStyle = dataGridViewCellStyle6;
 			this.dataGridSettings.EnableHeadersVisualStyles = false;
 			this.dataGridSettings.Location = new System.Drawing.Point(379, 74);
 			this.dataGridSettings.Name = "dataGridSettings";
@@ -460,6 +461,20 @@
 			this.btnReparse.Visible = false;
 			this.btnReparse.Click += new System.EventHandler(this.btnReparse_Click);
 			// 
+			// btnClearUnusedColors
+			// 
+			this.btnClearUnusedColors.BackColor = System.Drawing.Color.Red;
+			this.btnClearUnusedColors.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+			this.btnClearUnusedColors.ForeColor = System.Drawing.Color.White;
+			this.btnClearUnusedColors.Location = new System.Drawing.Point(305, 10);
+			this.btnClearUnusedColors.Name = "btnClearUnusedColors";
+			this.btnClearUnusedColors.Size = new System.Drawing.Size(101, 37);
+			this.btnClearUnusedColors.TabIndex = 3;
+			this.btnClearUnusedColors.Text = "Clear Unused Colors";
+			this.btnClearUnusedColors.UseVisualStyleBackColor = false;
+			this.btnClearUnusedColors.Visible = false;
+			this.btnClearUnusedColors.Click += new System.EventHandler(this.btnClearUnusedColors_Click);
+			// 
 			// DrawThatThing
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -486,6 +501,7 @@
 			this.Controls.Add(this.intPreviewHeight);
 			this.Controls.Add(this.intPreviewWidth);
 			this.Controls.Add(this.panel1);
+			this.Controls.Add(this.btnClearUnusedColors);
 			this.Controls.Add(this.btnReparse);
 			this.Controls.Add(this.btnLoadImage);
 			this.Controls.Add(this.btnPlay);
@@ -547,6 +563,7 @@
 		private System.Windows.Forms.DataGridViewTextBoxColumn Value;
 		private System.Windows.Forms.Label label8;
 		private System.Windows.Forms.Button btnReparse;
+		private System.Windows.Forms.Button btnClearUnusedColors;
 	}
 }
 
