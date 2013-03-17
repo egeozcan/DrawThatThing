@@ -27,6 +27,7 @@ namespace DrawThatThing
 		private const string BitmapreaderInterface = "BitmapReader.Interface.IBitmapReader";
 		private IEnumerable<MouseDragAction> _actions;
 		private readonly Dictionary<string, Type> _plugins = new Dictionary<string, Type>();
+		private string _lastParsedImage;
 
 		public DrawThatThing()
 		{
@@ -111,6 +112,7 @@ namespace DrawThatThing
 			{
 				BackColor = (cell.Value as String ?? "").ToColor()
 			};
+			ShowReparseButton();
 		}
 
 		private void HandleHotkey(int id)
@@ -210,19 +212,32 @@ namespace DrawThatThing
 			{
 				return;
 			}
+			ParseImage(imagepath);
+			dlgImportImage.FileName = null;
+		}
+
+		private void btnPlay_Click(object sender, EventArgs e)
+		{
+			StartClicking();
+		}
+
+		private void ParseImage(string imagepath)
+		{
 			btnLoadImage.Enabled = false;
 			btnLoadImage.Text = "Loading...";
+			btnReparse.Visible = false;
+			_lastParsedImage = imagepath;
 			var spots = new ColorSpot[dataGridColors.Rows.Count];
 			for (int i = 0; i < dataGridColors.Rows.Count; i++)
 			{
 				DataGridViewRow row = dataGridColors.Rows[i];
 				spots[i] = new ColorSpot
-					{
-						Color = (row.Cells[2].Value as String ?? "").ToColor(),
-						Point =
-							new Point((row.Cells[0].Value ?? "").ToString().ToInt(),
-												   (row.Cells[1].Value ?? "").ToString().ToInt())
-					};
+				{
+					Color = (row.Cells[2].Value as String ?? "").ToColor(),
+					Point =
+						new Point((row.Cells[0].Value ?? "").ToString().ToInt(),
+											   (row.Cells[1].Value ?? "").ToString().ToInt())
+				};
 			}
 			List<ColorSpot> colorPalette = spots.Where(x => !x.Color.IsEmpty).ToList();
 			var parserOptions =
@@ -230,18 +245,12 @@ namespace DrawThatThing
 					row => (row.Cells[0].Value ?? "").ToString(), row => (row.Cells[1].Value ?? "").ToString());
 			workerCalculate.RunWorkerAsync(
 				new CalculatorArguments
-					{
-						Parser = _plugins[cmbParser.Text],
-						ColorPalette = colorPalette,
-						Imagepath = imagepath,
-						ParserOptions = parserOptions
-					});
-			dlgImportImage.FileName = null;
-		}
-
-		private void btnPlay_Click(object sender, EventArgs e)
-		{
-			StartClicking();
+				{
+					Parser = _plugins[cmbParser.Text],
+					ColorPalette = colorPalette,
+					Imagepath = imagepath,
+					ParserOptions = parserOptions
+				});
 		}
 
 		private void UpdateOptions()
@@ -252,6 +261,15 @@ namespace DrawThatThing
 			foreach (DefaultSettingAttribute setting in attributes.Where(setting => setting != null))
 			{
 				this.dataGridSettings.Rows.Add(setting.Name, setting.DefaultValue);
+			}
+			ShowReparseButton();
+		}
+
+		private void ShowReparseButton()
+		{
+			if (!string.IsNullOrWhiteSpace(_lastParsedImage))
+			{
+				btnReparse.Show();
 			}
 		}
 
@@ -360,6 +378,16 @@ namespace DrawThatThing
 		private void cmbParser_SelectedIndexChanged(object sender, EventArgs e)
 		{
 			UpdateOptions();
+		}
+
+		private void btnReparse_Click(object sender, EventArgs e)
+		{
+			ParseImage(_lastParsedImage);
+		}
+
+		private void dataGridSettings_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+		{
+			ShowReparseButton();
 		}
 	}
 }

@@ -28,6 +28,9 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
+			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
+			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
+			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
 			this.txtMousePositionY = new System.Windows.Forms.TextBox();
 			this.txtMousePositionX = new System.Windows.Forms.TextBox();
 			this.lblX = new System.Windows.Forms.Label();
@@ -64,6 +67,7 @@
 			this.settingName = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.Value = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.label8 = new System.Windows.Forms.Label();
+			this.btnReparse = new System.Windows.Forms.Button();
 			((System.ComponentModel.ISupportInitialize)(this.pctPreview)).BeginInit();
 			this.panel1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.intPreviewWidth)).BeginInit();
@@ -228,9 +232,27 @@
             this.PosX,
             this.PosY,
             this.RGB});
+			dataGridViewCellStyle1.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+			dataGridViewCellStyle1.BackColor = System.Drawing.SystemColors.Window;
+			dataGridViewCellStyle1.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F);
+			dataGridViewCellStyle1.ForeColor = System.Drawing.SystemColors.ControlText;
+			dataGridViewCellStyle1.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+			dataGridViewCellStyle1.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+			dataGridViewCellStyle1.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+			this.dataGridColors.DefaultCellStyle = dataGridViewCellStyle1;
+			this.dataGridColors.EnableHeadersVisualStyles = false;
 			this.dataGridColors.Location = new System.Drawing.Point(17, 74);
 			this.dataGridColors.Name = "dataGridColors";
 			this.dataGridColors.RowHeadersBorderStyle = System.Windows.Forms.DataGridViewHeaderBorderStyle.None;
+			dataGridViewCellStyle2.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+			dataGridViewCellStyle2.BackColor = System.Drawing.SystemColors.Control;
+			dataGridViewCellStyle2.Font = new System.Drawing.Font("Microsoft Sans Serif", 7.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			dataGridViewCellStyle2.ForeColor = System.Drawing.SystemColors.WindowText;
+			dataGridViewCellStyle2.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+			dataGridViewCellStyle2.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+			dataGridViewCellStyle2.WrapMode = System.Windows.Forms.DataGridViewTriState.True;
+			this.dataGridColors.RowHeadersDefaultCellStyle = dataGridViewCellStyle2;
+			this.dataGridColors.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.DisableResizing;
 			this.dataGridColors.Size = new System.Drawing.Size(345, 211);
 			this.dataGridColors.TabIndex = 34;
 			this.dataGridColors.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridColors_CellEndEdit);
@@ -360,7 +382,7 @@
 			// 
 			this.cmbParser.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
 			this.cmbParser.FormattingEnabled = true;
-			this.cmbParser.Location = new System.Drawing.Point(18, 30);
+			this.cmbParser.Location = new System.Drawing.Point(18, 29);
 			this.cmbParser.Name = "cmbParser";
 			this.cmbParser.Size = new System.Drawing.Size(121, 21);
 			this.cmbParser.TabIndex = 42;
@@ -369,7 +391,7 @@
 			// label7
 			// 
 			this.label7.AutoSize = true;
-			this.label7.Location = new System.Drawing.Point(15, 16);
+			this.label7.Location = new System.Drawing.Point(15, 15);
 			this.label7.Name = "label7";
 			this.label7.Size = new System.Drawing.Size(37, 13);
 			this.label7.TabIndex = 43;
@@ -387,11 +409,21 @@
 			this.dataGridSettings.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.settingName,
             this.Value});
+			dataGridViewCellStyle3.Alignment = System.Windows.Forms.DataGridViewContentAlignment.MiddleLeft;
+			dataGridViewCellStyle3.BackColor = System.Drawing.SystemColors.Window;
+			dataGridViewCellStyle3.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.25F);
+			dataGridViewCellStyle3.ForeColor = System.Drawing.SystemColors.ControlText;
+			dataGridViewCellStyle3.SelectionBackColor = System.Drawing.SystemColors.Highlight;
+			dataGridViewCellStyle3.SelectionForeColor = System.Drawing.SystemColors.HighlightText;
+			dataGridViewCellStyle3.WrapMode = System.Windows.Forms.DataGridViewTriState.False;
+			this.dataGridSettings.DefaultCellStyle = dataGridViewCellStyle3;
+			this.dataGridSettings.EnableHeadersVisualStyles = false;
 			this.dataGridSettings.Location = new System.Drawing.Point(379, 74);
 			this.dataGridSettings.Name = "dataGridSettings";
 			this.dataGridSettings.RowHeadersVisible = false;
-			this.dataGridSettings.Size = new System.Drawing.Size(243, 237);
+			this.dataGridSettings.Size = new System.Drawing.Size(243, 239);
 			this.dataGridSettings.TabIndex = 44;
+			this.dataGridSettings.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridSettings_CellEndEdit);
 			// 
 			// settingName
 			// 
@@ -413,6 +445,20 @@
 			this.label8.Size = new System.Drawing.Size(93, 13);
 			this.label8.TabIndex = 45;
 			this.label8.Text = "Parser Settings";
+			// 
+			// btnReparse
+			// 
+			this.btnReparse.BackColor = System.Drawing.Color.RoyalBlue;
+			this.btnReparse.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+			this.btnReparse.ForeColor = System.Drawing.Color.White;
+			this.btnReparse.Location = new System.Drawing.Point(412, 10);
+			this.btnReparse.Name = "btnReparse";
+			this.btnReparse.Size = new System.Drawing.Size(101, 37);
+			this.btnReparse.TabIndex = 3;
+			this.btnReparse.Text = "Refresh";
+			this.btnReparse.UseVisualStyleBackColor = false;
+			this.btnReparse.Visible = false;
+			this.btnReparse.Click += new System.EventHandler(this.btnReparse_Click);
 			// 
 			// DrawThatThing
 			// 
@@ -440,6 +486,7 @@
 			this.Controls.Add(this.intPreviewHeight);
 			this.Controls.Add(this.intPreviewWidth);
 			this.Controls.Add(this.panel1);
+			this.Controls.Add(this.btnReparse);
 			this.Controls.Add(this.btnLoadImage);
 			this.Controls.Add(this.btnPlay);
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
@@ -499,6 +546,7 @@
 		private System.Windows.Forms.DataGridViewTextBoxColumn settingName;
 		private System.Windows.Forms.DataGridViewTextBoxColumn Value;
 		private System.Windows.Forms.Label label8;
+		private System.Windows.Forms.Button btnReparse;
 	}
 }
 
