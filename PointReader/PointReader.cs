@@ -51,8 +51,7 @@ namespace PointReader
 				var actions = colorPixel.Value.Select(point => new MouseDragAction(new List<Point> { point })).ToList();
 				if (options.GetBoolValueOrDefault("MixPoints", false))
 				{
-					var random = new Random();
-					actions.Sort((a, b) => random.Next(-1, 1));
+					actions = actions.Shuffle().ToList();
 				}
 				output.AddRange(actions);
 			}
