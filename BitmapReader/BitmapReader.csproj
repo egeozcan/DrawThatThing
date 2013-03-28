@@ -43,9 +43,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Attributes\DefaultSettingAttribute.cs" />
+    <Compile Include="Classes\Brush.cs" />
+    <Compile Include="Classes\BrushSize.cs" />
+    <Compile Include="Enum\BrushShape.cs" />
     <Compile Include="Extensions\BitmapExtensions.cs" />
     <Compile Include="Extensions\IDictionaryExtensions.cs" />
     <Compile Include="Extensions\IListExtensions.cs" />
+    <Compile Include="Interface\IBrushChanger.cs" />
     <Compile Include="Interface\IBitmapReader.cs" />
     <Compile Include="Extensions\ColorExtensions.cs" />
     <Compile Include="Classes\ColorSpot.cs" />
