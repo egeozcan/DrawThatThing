@@ -41,6 +41,10 @@ namespace DrawThatThing
 			RegisterHotKey(Handle, 1, 5, 'S');
 			//Shift + Alt + A
 			RegisterHotKey(Handle, 2, 5, 'A');
+			//Shift + Alt + D
+			RegisterHotKey(Handle, 3, 5, 'D');
+			//Shift + Alt + Q
+			RegisterHotKey(Handle, 4, 5, 'Q');
 
 			var dir = Path.Combine(Environment.CurrentDirectory, "Plugins");
 			var pluginFiles = Directory.GetFiles(dir, "*.dll");
@@ -143,6 +147,19 @@ namespace DrawThatThing
 					break;
 				case 2:
 					AddCurrentMousePositionToPalette();
+					break;
+				case 3:
+					if (panelDebug.Visible)
+					{
+						panelDebug.Hide();
+					}
+					else
+					{
+						panelDebug.Show();
+					}
+					break;
+				case 4:
+					AddDebugPoint();
 					break;
 			}
 		}
@@ -453,6 +470,50 @@ namespace DrawThatThing
 			}
 		}
 
+		private void AddDebugPoint()
+		{
+			MouseOperations.MousePoint mouse = MouseOperations.GetCursorPosition();
+			var currentDebugPoints = txtDebugRoutes.Text;
+			if (!currentDebugPoints.EndsWith(",") && !currentDebugPoints.EndsWith("\n") && currentDebugPoints.Trim().Length > 0)
+			{
+				currentDebugPoints += ", ";
+			}
+			currentDebugPoints += String.Format("{0}|{1}", mouse.X, mouse.Y);
+			txtDebugRoutes.Text = currentDebugPoints;
+			txtDebugRoutes.Focus();
+			txtDebugRoutes.SelectionStart = currentDebugPoints.Length;
+			txtDebugRoutes.SelectionLength = 0;
+		}
+
+		private void PlayDebugPoints()
+		{
+			try
+			{
+				foreach (var line in txtDebugRoutes.Lines)
+				{
+					var started = false;
+					foreach (var cor in line.Split(',').Select(point => point.Trim().Split('|')))
+					{
+						var xy = cor.Where(x => x.Trim().Length > 0).ToArray();
+						var cx = int.Parse(xy[0]);
+						var cy = int.Parse(xy[1]);
+						MouseOperations.SetCursorPosition(cx, cy);
+						if (!started)
+						{
+							started = true;
+							MouseOperations.MouseEvent(MouseOperations.MouseEventFlags.LeftDown);
+						}
+						System.Threading.Thread.Sleep(10);
+					}
+					MouseOperations.MouseEvent(MouseOperations.MouseEventFlags.LeftUp);
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(ex.Message);
+			}
+		}
+
 		private void dataGridColors_RowLeave(object sender, DataGridViewCellEventArgs e)
 		{
 			UpdateCellColor(e.RowIndex);
@@ -486,6 +547,16 @@ namespace DrawThatThing
 		private void btnClearUnusedColors_Click(object sender, EventArgs e)
 		{
 			ClearUnusedColors();
+		}
+
+		private void btnDebugAddPoint_Click(object sender, EventArgs e)
+		{
+			AddDebugPoint();
+		}
+
+		private void btnDebugPlay_Click(object sender, EventArgs e)
+		{
+			PlayDebugPoints();
 		}
 	}
 }

@@ -9,15 +9,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Plugins", "Plugins", "{8D81
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BitmapReaders", "BitmapReaders", "{A698FD4F-A622-4405-BEEE-8981620F948E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AbstractReader", "AbstractReader\AbstractReader.csproj", "{8A3F664B-38E5-407C-98AB-218C2907DF06}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AbstractReader", "Plugins\AbstractReader\AbstractReader.csproj", "{8A3F664B-38E5-407C-98AB-218C2907DF06}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DetailedReader", "DetailedReader\DetailedReader.csproj", "{8B35A5CB-CBD1-4B25-AC0D-DFC07B5C1108}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DetailedReader", "Plugins\DetailedReader\DetailedReader.csproj", "{8B35A5CB-CBD1-4B25-AC0D-DFC07B5C1108}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinearReader", "LinearReader\LinearReader.csproj", "{ACB9E780-B101-40AE-9B79-A437D8174F9D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LinearReader", "Plugins\LinearReader\LinearReader.csproj", "{ACB9E780-B101-40AE-9B79-A437D8174F9D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PointReader", "PointReader\PointReader.csproj", "{9F7A72AD-8468-411A-9770-16D4916C3789}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PointReader", "Plugins\PointReader\PointReader.csproj", "{9F7A72AD-8468-411A-9770-16D4916C3789}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BrushChangers", "BrushChangers", "{DC28AD05-1BF6-4E24-946A-1D62C3C6EFA7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DoodleOrDieBrushChanger", "Plugins\DoodleOrDieBrushChanger\DoodleOrDieBrushChanger.csproj", "{22A9D74F-98C7-4E2C-A7EC-FDD1C78D6203}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -89,6 +91,16 @@ Global
 		{9F7A72AD-8468-411A-9770-16D4916C3789}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{9F7A72AD-8468-411A-9770-16D4916C3789}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{9F7A72AD-8468-411A-9770-16D4916C3789}.Release|x86.ActiveCfg = Release|Any CPU
+		{22A9D74F-98C7-4E2C-A7EC-FDD1C78D6203}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{22A9D74F-98C7-4E2C-A7EC-FDD1C78D6203}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{22A9D74F-98C7-4E2C-A7EC-FDD1C78D6203}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{22A9D74F-98C7-4E2C-A7EC-FDD1C78D6203}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{22A9D74F-98C7-4E2C-A7EC-FDD1C78D6203}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{22A9D74F-98C7-4E2C-A7EC-FDD1C78D6203}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{22A9D74F-98C7-4E2C-A7EC-FDD1C78D6203}.Release|Any CPU.Build.0 = Release|Any CPU
+		{22A9D74F-98C7-4E2C-A7EC-FDD1C78D6203}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{22A9D74F-98C7-4E2C-A7EC-FDD1C78D6203}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{22A9D74F-98C7-4E2C-A7EC-FDD1C78D6203}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -100,5 +112,6 @@ Global
 		{8B35A5CB-CBD1-4B25-AC0D-DFC07B5C1108} = {A698FD4F-A622-4405-BEEE-8981620F948E}
 		{ACB9E780-B101-40AE-9B79-A437D8174F9D} = {A698FD4F-A622-4405-BEEE-8981620F948E}
 		{9F7A72AD-8468-411A-9770-16D4916C3789} = {A698FD4F-A622-4405-BEEE-8981620F948E}
+		{22A9D74F-98C7-4E2C-A7EC-FDD1C78D6203} = {DC28AD05-1BF6-4E24-946A-1D62C3C6EFA7}
 	EndGlobalSection
 EndGlobal

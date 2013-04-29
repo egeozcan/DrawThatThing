@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{9F7A72AD-8468-411A-9770-16D4916C3789}</ProjectGuid>
+    <ProjectGuid>{22A9D74F-98C7-4E2C-A7EC-FDD1C78D6203}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>PointReader</RootNamespace>
-    <AssemblyName>PointReader</AssemblyName>
+    <RootNamespace>DoodleOrDieBrushChanger</RootNamespace>
+    <AssemblyName>DoodleOrDieBrushChanger</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -17,7 +17,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\DrawThatThing\bin\Debug\Plugins\</OutputPath>
+    <OutputPath>..\..\DrawThatThing\bin\Debug\Plugins\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -33,7 +33,6 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -41,11 +40,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PointReader.cs" />
+    <Compile Include="Class1.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\BitmapReader\BitmapReader.csproj">
+    <ProjectReference Include="..\..\BitmapReader\BitmapReader.csproj">
       <Project>{A2A65372-5623-451E-AA94-C1D5DCAF8D57}</Project>
       <Name>BitmapReader</Name>
     </ProjectReference>

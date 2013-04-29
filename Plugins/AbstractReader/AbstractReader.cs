@@ -37,7 +37,7 @@ namespace AbstractReader
 			}
 			catch (Exception)
 			{
-				throw new Exception("I need a background color!");
+				throw new Exception("I need a background color!!");
 			}
 			// prevent drawing of single pixels etc
 			int colorGroupMinSize = settings.GetIntValueOrDefault("MinimumStrokeSize", 15);

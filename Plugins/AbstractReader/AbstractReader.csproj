@@ -17,7 +17,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\DrawThatThing\bin\Debug\Plugins\</OutputPath>
+    <OutputPath>..\..\DrawThatThing\bin\Debug\Plugins\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -45,7 +45,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\BitmapReader\BitmapReader.csproj">
+    <ProjectReference Include="..\..\BitmapReader\BitmapReader.csproj">
       <Project>{a2a65372-5623-451e-aa94-c1d5dcaf8d57}</Project>
       <Name>BitmapReader</Name>
     </ProjectReference>

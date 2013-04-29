@@ -28,10 +28,10 @@
 		/// </summary>
 		private void InitializeComponent()
 		{
+			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(DrawThatThing));
 			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
 			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle2 = new System.Windows.Forms.DataGridViewCellStyle();
 			System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle3 = new System.Windows.Forms.DataGridViewCellStyle();
-			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(DrawThatThing));
 			this.txtMousePositionY = new System.Windows.Forms.TextBox();
 			this.txtMousePositionX = new System.Windows.Forms.TextBox();
 			this.lblX = new System.Windows.Forms.Label();
@@ -41,6 +41,7 @@
 			this.dlgImportImage = new System.Windows.Forms.OpenFileDialog();
 			this.pctPreview = new System.Windows.Forms.PictureBox();
 			this.panelPreview = new System.Windows.Forms.Panel();
+			this.panelPreviewInner = new System.Windows.Forms.Panel();
 			this.panelPlay = new System.Windows.Forms.Panel();
 			this.groupBox1 = new System.Windows.Forms.GroupBox();
 			this.lblStopMouseShortcut = new System.Windows.Forms.Label();
@@ -81,9 +82,13 @@
 			this.panelMiddleLeft = new System.Windows.Forms.Panel();
 			this.panelMiddle = new System.Windows.Forms.Panel();
 			this.panelMiddleMiddle = new System.Windows.Forms.Panel();
-			this.panelPreviewInner = new System.Windows.Forms.Panel();
+			this.panelDebug = new System.Windows.Forms.Panel();
+			this.txtDebugRoutes = new System.Windows.Forms.TextBox();
+			this.btnDebugAddPoint = new System.Windows.Forms.Button();
+			this.btnDebugPlay = new System.Windows.Forms.Button();
 			((System.ComponentModel.ISupportInitialize)(this.pctPreview)).BeginInit();
 			this.panelPreview.SuspendLayout();
+			this.panelPreviewInner.SuspendLayout();
 			this.panelPlay.SuspendLayout();
 			this.groupBox1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.intPreviewWidth)).BeginInit();
@@ -96,7 +101,7 @@
 			this.panelTop.SuspendLayout();
 			this.panelMiddleLeft.SuspendLayout();
 			this.panelMiddle.SuspendLayout();
-			this.panelPreviewInner.SuspendLayout();
+			this.panelDebug.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// txtMousePositionY
@@ -178,8 +183,19 @@
 			this.panelPreview.Location = new System.Drawing.Point(0, 0);
 			this.panelPreview.Name = "panelPreview";
 			this.panelPreview.Padding = new System.Windows.Forms.Padding(0, 5, 0, 0);
-			this.panelPreview.Size = new System.Drawing.Size(672, 362);
+			this.panelPreview.Size = new System.Drawing.Size(672, 239);
 			this.panelPreview.TabIndex = 26;
+			// 
+			// panelPreviewInner
+			// 
+			this.panelPreviewInner.AutoScroll = true;
+			this.panelPreviewInner.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("panelPreviewInner.BackgroundImage")));
+			this.panelPreviewInner.Controls.Add(this.pctPreview);
+			this.panelPreviewInner.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.panelPreviewInner.Location = new System.Drawing.Point(0, 5);
+			this.panelPreviewInner.Name = "panelPreviewInner";
+			this.panelPreviewInner.Size = new System.Drawing.Size(672, 234);
+			this.panelPreviewInner.TabIndex = 23;
 			// 
 			// panelPlay
 			// 
@@ -192,7 +208,7 @@
 			this.panelPlay.Controls.Add(this.lblStartPositionTitle);
 			this.panelPlay.Controls.Add(this.lblPickColorTitle);
 			this.panelPlay.Dock = System.Windows.Forms.DockStyle.Bottom;
-			this.panelPlay.Location = new System.Drawing.Point(0, 362);
+			this.panelPlay.Location = new System.Drawing.Point(0, 239);
 			this.panelPlay.Name = "panelPlay";
 			this.panelPlay.Size = new System.Drawing.Size(672, 60);
 			this.panelPlay.TabIndex = 23;
@@ -559,9 +575,9 @@
 			this.panelBottom.Controls.Add(this.panelPreview);
 			this.panelBottom.Controls.Add(this.panelPlay);
 			this.panelBottom.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.panelBottom.Location = new System.Drawing.Point(10, 228);
+			this.panelBottom.Location = new System.Drawing.Point(10, 351);
 			this.panelBottom.Name = "panelBottom";
-			this.panelBottom.Size = new System.Drawing.Size(672, 422);
+			this.panelBottom.Size = new System.Drawing.Size(672, 299);
 			this.panelBottom.TabIndex = 48;
 			// 
 			// panelMiddleRight
@@ -636,16 +652,54 @@
 			this.panelMiddleMiddle.Size = new System.Drawing.Size(55, 160);
 			this.panelMiddleMiddle.TabIndex = 46;
 			// 
-			// panelPreviewInner
+			// panelDebug
 			// 
-			this.panelPreviewInner.AutoScroll = true;
-			this.panelPreviewInner.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("panelPreviewInner.BackgroundImage")));
-			this.panelPreviewInner.Controls.Add(this.pctPreview);
-			this.panelPreviewInner.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.panelPreviewInner.Location = new System.Drawing.Point(0, 5);
-			this.panelPreviewInner.Name = "panelPreviewInner";
-			this.panelPreviewInner.Size = new System.Drawing.Size(672, 357);
-			this.panelPreviewInner.TabIndex = 23;
+			this.panelDebug.Controls.Add(this.txtDebugRoutes);
+			this.panelDebug.Controls.Add(this.btnDebugAddPoint);
+			this.panelDebug.Controls.Add(this.btnDebugPlay);
+			this.panelDebug.Dock = System.Windows.Forms.DockStyle.Top;
+			this.panelDebug.Location = new System.Drawing.Point(10, 228);
+			this.panelDebug.Name = "panelDebug";
+			this.panelDebug.Padding = new System.Windows.Forms.Padding(0, 5, 0, 5);
+			this.panelDebug.Size = new System.Drawing.Size(672, 123);
+			this.panelDebug.TabIndex = 53;
+			this.panelDebug.Visible = false;
+			// 
+			// txtDebugRoutes
+			// 
+			this.txtDebugRoutes.Dock = System.Windows.Forms.DockStyle.Right;
+			this.txtDebugRoutes.Location = new System.Drawing.Point(122, 5);
+			this.txtDebugRoutes.Multiline = true;
+			this.txtDebugRoutes.Name = "txtDebugRoutes";
+			this.txtDebugRoutes.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+			this.txtDebugRoutes.Size = new System.Drawing.Size(443, 113);
+			this.txtDebugRoutes.TabIndex = 45;
+			// 
+			// btnDebugAddPoint
+			// 
+			this.btnDebugAddPoint.BackColor = System.Drawing.Color.White;
+			this.btnDebugAddPoint.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+			this.btnDebugAddPoint.Location = new System.Drawing.Point(7, 6);
+			this.btnDebugAddPoint.Name = "btnDebugAddPoint";
+			this.btnDebugAddPoint.Size = new System.Drawing.Size(109, 30);
+			this.btnDebugAddPoint.TabIndex = 44;
+			this.btnDebugAddPoint.Text = "Add Point";
+			this.btnDebugAddPoint.UseVisualStyleBackColor = false;
+			this.btnDebugAddPoint.Click += new System.EventHandler(this.btnDebugAddPoint_Click);
+			// 
+			// btnDebugPlay
+			// 
+			this.btnDebugPlay.BackColor = System.Drawing.Color.White;
+			this.btnDebugPlay.Dock = System.Windows.Forms.DockStyle.Right;
+			this.btnDebugPlay.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
+			this.btnDebugPlay.Location = new System.Drawing.Point(565, 5);
+			this.btnDebugPlay.Name = "btnDebugPlay";
+			this.btnDebugPlay.Padding = new System.Windows.Forms.Padding(5, 0, 0, 0);
+			this.btnDebugPlay.Size = new System.Drawing.Size(107, 113);
+			this.btnDebugPlay.TabIndex = 42;
+			this.btnDebugPlay.Text = "TEST >>";
+			this.btnDebugPlay.UseVisualStyleBackColor = false;
+			this.btnDebugPlay.Click += new System.EventHandler(this.btnDebugPlay_Click);
 			// 
 			// DrawThatThing
 			// 
@@ -654,6 +708,7 @@
 			this.BackColor = System.Drawing.Color.White;
 			this.ClientSize = new System.Drawing.Size(692, 660);
 			this.Controls.Add(this.panelBottom);
+			this.Controls.Add(this.panelDebug);
 			this.Controls.Add(this.panelMiddle);
 			this.Controls.Add(this.panelTop);
 			this.MinimumSize = new System.Drawing.Size(700, 333);
@@ -663,6 +718,7 @@
 			this.Text = "DrawThatThing";
 			((System.ComponentModel.ISupportInitialize)(this.pctPreview)).EndInit();
 			this.panelPreview.ResumeLayout(false);
+			this.panelPreviewInner.ResumeLayout(false);
 			this.panelPlay.ResumeLayout(false);
 			this.panelPlay.PerformLayout();
 			this.groupBox1.ResumeLayout(false);
@@ -680,7 +736,8 @@
 			this.panelMiddleLeft.ResumeLayout(false);
 			this.panelMiddleLeft.PerformLayout();
 			this.panelMiddle.ResumeLayout(false);
-			this.panelPreviewInner.ResumeLayout(false);
+			this.panelDebug.ResumeLayout(false);
+			this.panelDebug.PerformLayout();
 			this.ResumeLayout(false);
 
 		}
@@ -737,6 +794,10 @@
 		private System.Windows.Forms.Panel panelMiddle;
 		private System.Windows.Forms.Panel panelMiddleMiddle;
 		private System.Windows.Forms.Panel panelPreviewInner;
+		private System.Windows.Forms.Panel panelDebug;
+		private System.Windows.Forms.Button btnDebugPlay;
+		private System.Windows.Forms.TextBox txtDebugRoutes;
+		private System.Windows.Forms.Button btnDebugAddPoint;
 	}
 }
 
