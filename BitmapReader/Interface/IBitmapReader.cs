@@ -6,6 +6,8 @@ namespace BitmapReader.Interface
 	public interface IBitmapReader
 	{
 		IEnumerable<MouseDragAction> GetDrawInstructions(
-			List<ColorSpot> colorPalette, IDictionary<string, string> options = null);
+			List<ColorSpot> colorPalette,
+			IDictionary<string, string> options = null,
+			IBrushChanger brushChanger = null);
 	}
 }

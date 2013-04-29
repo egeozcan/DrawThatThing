@@ -22,7 +22,7 @@ namespace DetailedReader
 			_bitmapPath = path;
 		}
 
-		public IEnumerable<MouseDragAction> GetDrawInstructions(List<ColorSpot> PaletteColorSpots, IDictionary<string, string> settings = null)
+		public IEnumerable<MouseDragAction> GetDrawInstructions(List<ColorSpot> PaletteColorSpots, IDictionary<string, string> settings = null, IBrushChanger brushChanger = null)
 		{
 			int ignoreColorIndex =
 				PaletteColorSpots.IndexOf(PaletteColorSpots.FirstOrDefault(x => x.Color.Name == IgnoreColor));

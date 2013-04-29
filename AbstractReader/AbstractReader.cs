@@ -27,7 +27,7 @@ namespace AbstractReader
 			this._bitmapPath = path;
 		}
 
-		public IEnumerable<MouseDragAction> GetDrawInstructions(List<ColorSpot> color, IDictionary<string, string> settings = null)
+		public IEnumerable<MouseDragAction> GetDrawInstructions(List<ColorSpot> color, IDictionary<string, string> settings = null, IBrushChanger brushChanger = null)
 		{
 			List<ColorSpot> knownColors = color.ToList();
 			int ignoredColor;

@@ -24,7 +24,7 @@ namespace PointReader
 			_bitmapPath = path;
 		}
 
-		public IEnumerable<MouseDragAction> GetDrawInstructions(List<ColorSpot> colorPalette, IDictionary<string, string> options = null)
+		public IEnumerable<MouseDragAction> GetDrawInstructions(List<ColorSpot> colorPalette, IDictionary<string, string> options = null, IBrushChanger brushChanger = null)
 		{
 			if (!colorPalette.Any())
 			{

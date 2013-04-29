@@ -33,7 +33,7 @@ namespace LinearReader
 			_bitmapPath = path;
 		}
 
-		public IEnumerable<MouseDragAction> GetDrawInstructions(List<ColorSpot> colorPalette, IDictionary<string, string> settings = null)
+		public IEnumerable<MouseDragAction> GetDrawInstructions(List<ColorSpot> colorPalette, IDictionary<string, string> settings = null, IBrushChanger brushChanger = null)
 		{
 			if (colorPalette.All(c => c.Color.R + c.Color.G + c.Color.B != 0))
 			{

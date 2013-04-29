@@ -25,8 +25,10 @@ namespace DrawThatThing
 	public partial class DrawThatThing : Form
 	{
 		private const string BitmapreaderInterface = "BitmapReader.Interface.IBitmapReader";
+		private const string BrushSelectorInterface = "BitmapReader.Interface.IBrushSelector";
 		private IEnumerable<MouseDragAction> _actions;
-		private readonly Dictionary<string, Type> _plugins = new Dictionary<string, Type>();
+		private readonly Dictionary<string, Type> _bitmapReaderPlugins = new Dictionary<string, Type>();
+		private readonly Dictionary<string, Type> _brushSelectorPlugins = new Dictionary<string, Type>();
 		private string _lastParsedImage;
 		private bool _loadComplete = true;
 
@@ -48,18 +50,28 @@ namespace DrawThatThing
 				var pluginCandidateTypes = pluginCandidate.GetTypes();
 				foreach (var pluginCandidateType in pluginCandidateTypes)
 				{
-					if (pluginCandidateType.GetInterface(BitmapreaderInterface) == null)
+					var pluginName = Path.GetFileName(pluginFile);
+					if (pluginName == null || String.IsNullOrWhiteSpace(pluginFile))
 					{
 						continue;
 					}
-					var pluginName = Path.GetFileName(pluginFile);
-					if (pluginName != null && !String.IsNullOrWhiteSpace(pluginFile) && !_plugins.ContainsKey(pluginName))
+					if (pluginCandidateType.GetInterface(BitmapreaderInterface) != null)
 					{
-						_plugins.Add(pluginName, pluginCandidateType);                            
+						if (!this._bitmapReaderPlugins.ContainsKey(pluginName))
+						{
+							this._bitmapReaderPlugins.Add(pluginName, pluginCandidateType);
+						}
+					}
+					else if (pluginCandidateType.GetInterface(BrushSelectorInterface) != null)
+					{
+						if (!this._brushSelectorPlugins.ContainsKey(pluginName))
+						{
+							this._brushSelectorPlugins.Add(pluginName, pluginCandidateType);
+						}
 					}
 				}
 			}
-			foreach (var plugin in _plugins)
+			foreach (var plugin in this._bitmapReaderPlugins)
 			{
 				cmbParser.Items.Add(plugin.Key);
 			}
@@ -236,7 +248,7 @@ namespace DrawThatThing
 			workerCalculate.RunWorkerAsync(
 				new CalculatorArguments
 				{
-					Parser = _plugins[cmbParser.Text],
+					Parser = this._bitmapReaderPlugins[cmbParser.Text],
 					ColorPalette = GetColorPalette(),
 					Imagepath = imagepath,
 					ParserOptions = parserOptions
@@ -264,7 +276,7 @@ namespace DrawThatThing
 		private void UpdateOptions()
 		{
 			dataGridSettings.Rows.Clear();
-			var currentPlugin = _plugins[cmbParser.Text];
+			var currentPlugin = this._bitmapReaderPlugins[cmbParser.Text];
 			var attributes = currentPlugin.GetCustomAttributes(true).Select(x => x as DefaultSettingAttribute);
 			foreach (DefaultSettingAttribute setting in attributes.Where(setting => setting != null))
 			{
