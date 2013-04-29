@@ -172,14 +172,13 @@
 			// 
 			// panelPreview
 			// 
-			this.panelPreview.AutoScroll = true;
 			this.panelPreview.BackColor = System.Drawing.Color.White;
 			this.panelPreview.Controls.Add(this.panelPreviewInner);
 			this.panelPreview.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.panelPreview.Location = new System.Drawing.Point(0, 0);
 			this.panelPreview.Name = "panelPreview";
 			this.panelPreview.Padding = new System.Windows.Forms.Padding(0, 5, 0, 0);
-			this.panelPreview.Size = new System.Drawing.Size(672, 422);
+			this.panelPreview.Size = new System.Drawing.Size(672, 362);
 			this.panelPreview.TabIndex = 26;
 			// 
 			// panelPlay
@@ -557,8 +556,8 @@
 			// 
 			// panelBottom
 			// 
-			this.panelBottom.Controls.Add(this.panelPlay);
 			this.panelBottom.Controls.Add(this.panelPreview);
+			this.panelBottom.Controls.Add(this.panelPlay);
 			this.panelBottom.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.panelBottom.Location = new System.Drawing.Point(10, 228);
 			this.panelBottom.Name = "panelBottom";
@@ -639,12 +638,13 @@
 			// 
 			// panelPreviewInner
 			// 
+			this.panelPreviewInner.AutoScroll = true;
 			this.panelPreviewInner.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("panelPreviewInner.BackgroundImage")));
 			this.panelPreviewInner.Controls.Add(this.pctPreview);
 			this.panelPreviewInner.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.panelPreviewInner.Location = new System.Drawing.Point(0, 5);
 			this.panelPreviewInner.Name = "panelPreviewInner";
-			this.panelPreviewInner.Size = new System.Drawing.Size(672, 417);
+			this.panelPreviewInner.Size = new System.Drawing.Size(672, 357);
 			this.panelPreviewInner.TabIndex = 23;
 			// 
 			// DrawThatThing
