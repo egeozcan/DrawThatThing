@@ -108,7 +108,7 @@ namespace DrawThatThing
 
 		private void UpdateCellColor(int rowIndex)
 		{
-			var cell = this.dataGridColors.Rows[rowIndex].Cells[this.dataGridColors.Rows[rowIndex].Cells.Count - 1];
+			var cell = this.dataGridColors.Rows[rowIndex].Cells[this.dataGridColors.Rows[rowIndex].Cells.Count - 2];
 			cell.Style = new DataGridViewCellStyle
 			{
 				BackColor = (cell.Value as String ?? "").ToColor()
@@ -254,7 +254,8 @@ namespace DrawThatThing
 					Color = (row.Cells[2].Value as String ?? "").ToColor(),
 					Point =
 						new Point((row.Cells[0].Value ?? "").ToString().ToInt(),
-											   (row.Cells[1].Value ?? "").ToString().ToInt())
+											   (row.Cells[1].Value ?? "").ToString().ToInt()),
+					IsBackgroundColor = (bool)(row.Cells[3].Value ?? false)
 				};
 			}
 			return spots.Where(x => !x.Color.IsEmpty).ToList();

@@ -30,7 +30,15 @@ namespace AbstractReader
 		public IEnumerable<MouseDragAction> GetDrawInstructions(List<ColorSpot> color, IDictionary<string, string> settings = null)
 		{
 			List<ColorSpot> knownColors = color.ToList();
-			int ignoredColor = knownColors.IndexOf(knownColors.First(x => x.Color.Name == "ffffffff"));
+			int ignoredColor;
+			try
+			{
+				ignoredColor = knownColors.IndexOf(knownColors.First(x => x.IsBackgroundColor));
+			}
+			catch (Exception)
+			{
+				throw new Exception("I need a background color!");
+			}
 			// prevent drawing of single pixels etc
 			int colorGroupMinSize = settings.GetIntValueOrDefault("MinimumStrokeSize", 15);
 

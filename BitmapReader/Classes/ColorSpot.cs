@@ -8,5 +8,6 @@
 	{
 		public Color Color;
 		public Classes.Point Point;
+		public bool IsBackgroundColor;
 	}
 }
