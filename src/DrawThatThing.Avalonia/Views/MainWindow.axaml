@@ -1,0 +1,164 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:DrawThatThing.Avalonia.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="700" d:DesignHeight="660"
+        x:Class="DrawThatThing.Avalonia.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="DrawThatThing"
+        MinWidth="700" MinHeight="500"
+        Width="700" Height="660"
+        Background="White">
+
+    <Grid Margin="10" RowDefinitions="Auto,Auto,Auto,*,Auto">
+
+        <!-- Top Panel: Parser Selection & Controls -->
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,150,20,Auto,150,20,Auto,60,Auto,60,*,Auto,Auto,Auto">
+            <TextBlock Grid.Column="0" Text="Parser" VerticalAlignment="Center" Margin="0,0,10,0"/>
+            <ComboBox Grid.Column="1"
+                      ItemsSource="{Binding Parsers}"
+                      SelectedItem="{Binding SelectedParser}"
+                      HorizontalAlignment="Stretch"/>
+
+            <TextBlock Grid.Column="3" Text="Brush Selector" VerticalAlignment="Center" Margin="0,0,10,0"/>
+            <ComboBox Grid.Column="4"
+                      ItemsSource="{Binding BrushSelectors}"
+                      SelectedItem="{Binding SelectedBrushSelector}"
+                      HorizontalAlignment="Stretch"/>
+
+            <TextBlock Grid.Column="6" Text="Width" VerticalAlignment="Center" Margin="0,0,5,0"/>
+            <NumericUpDown Grid.Column="7" Value="{Binding PreviewWidth}" IsEnabled="False" Minimum="0" Maximum="9999"/>
+
+            <TextBlock Grid.Column="8" Text="Height" VerticalAlignment="Center" Margin="10,0,5,0"/>
+            <NumericUpDown Grid.Column="9" Value="{Binding PreviewHeight}" IsEnabled="False" Minimum="0" Maximum="9999"/>
+
+            <Button Grid.Column="11" Content="Clear Unused Colors"
+                    Command="{Binding ClearUnusedColorsCommand}"
+                    IsVisible="{Binding ShowClearUnusedColors}"
+                    Background="Red" Foreground="White"
+                    Padding="10,8" Margin="5,0"/>
+
+            <Button Grid.Column="12" Content="Refresh"
+                    Command="{Binding ReparseCommand}"
+                    IsVisible="{Binding ShowReparse}"
+                    Background="RoyalBlue" Foreground="White"
+                    Padding="10,8" Margin="5,0"/>
+
+            <Button Grid.Column="13" Content="Parse Image"
+                    Command="{Binding LoadImageCommand}"
+                    IsEnabled="{Binding CanLoadImage}"
+                    Background="Yellow" Foreground="Black"
+                    Padding="15,8"/>
+        </Grid>
+
+        <!-- Middle Panel: Settings & Colors -->
+        <Grid Grid.Row="1" Margin="0,10,0,0" ColumnDefinitions="230,*,390">
+
+            <!-- Parser Settings -->
+            <Border Grid.Column="0" Background="White" Padding="0,0,5,0">
+                <Grid RowDefinitions="Auto,*">
+                    <TextBlock Grid.Row="0" Text="Parser Settings" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <DataGrid Grid.Row="1"
+                              ItemsSource="{Binding ParserSettings}"
+                              AutoGenerateColumns="False"
+                              CanUserResizeColumns="True"
+                              Height="150">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Name" Binding="{Binding Name}" IsReadOnly="True" Width="*"/>
+                            <DataGridTextColumn Header="Value" Binding="{Binding Value}" Width="*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+
+            <!-- Spacer -->
+            <Border Grid.Column="1"/>
+
+            <!-- Color Palette -->
+            <Border Grid.Column="2" Background="White" Padding="5,0,0,0">
+                <Grid RowDefinitions="Auto,*,Auto">
+                    <TextBlock Grid.Row="0" Text="Color Palette" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <DataGrid Grid.Row="1"
+                              ItemsSource="{Binding ColorPalette}"
+                              AutoGenerateColumns="False"
+                              CanUserResizeColumns="True"
+                              CanUserDeleteRows="True"
+                              Height="110">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="X" Binding="{Binding X}" Width="50"/>
+                            <DataGridTextColumn Header="Y" Binding="{Binding Y}" Width="50"/>
+                            <DataGridTextColumn Header="RGB" Binding="{Binding Hex}" Width="*"/>
+                            <DataGridCheckBoxColumn Header="BG Color" Binding="{Binding IsBackground}" Width="70"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,5,0,0">
+                        <Button Content="Export" Command="{Binding ExportColorsCommand}" Margin="0,0,5,0" Padding="15,5"/>
+                        <Button Content="Import" Command="{Binding ImportColorsCommand}" Padding="15,5"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Debug Panel (toggle visibility) -->
+        <Border Grid.Row="2" IsVisible="{Binding ShowDebugPanel}" Margin="0,10,0,0" Padding="0,5">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <Button Grid.Column="0" Content="Add Point" Command="{Binding AddDebugPointCommand}" Margin="0,0,10,0" Padding="15,8"/>
+                <TextBox Grid.Column="1"
+                         Text="{Binding DebugRoutes}"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         Height="100"/>
+                <Button Grid.Column="2" Content="TEST >>" Command="{Binding PlayDebugCommand}" Margin="10,0,0,0" Padding="15,8"/>
+            </Grid>
+        </Border>
+
+        <!-- Preview Panel -->
+        <Border Grid.Row="3" Background="White" Margin="0,10,0,0">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+                <Image Source="{Binding PreviewImage}"
+                       Width="{Binding PreviewWidth}"
+                       Height="{Binding PreviewHeight}"
+                       Stretch="None"
+                       HorizontalAlignment="Left"
+                       VerticalAlignment="Top"/>
+            </ScrollViewer>
+        </Border>
+
+        <!-- Bottom Panel: Play Controls & Shortcuts -->
+        <Grid Grid.Row="4" Margin="0,10,0,0" ColumnDefinitions="Auto,*,Auto">
+
+            <!-- Mouse Start Position -->
+            <Border Grid.Column="0" BorderBrush="Gray" BorderThickness="1" CornerRadius="3" Padding="10">
+                <Grid ColumnDefinitions="Auto,80,10,80" RowDefinitions="Auto,Auto">
+                    <TextBlock Grid.Row="0" Grid.ColumnSpan="4" Text="Mouse Start Position" FontWeight="Bold" Margin="0,0,0,5"/>
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="X,Y" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding MousePositionX}"/>
+                    <TextBox Grid.Row="1" Grid.Column="3" Text="{Binding MousePositionY}"/>
+                </Grid>
+            </Border>
+
+            <!-- Keyboard Shortcuts Info -->
+            <StackPanel Grid.Column="1" Orientation="Vertical" VerticalAlignment="Center" Margin="20,0">
+                <Grid ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto,Auto">
+                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Stop mouse :" FontWeight="Bold" Margin="0,0,10,0"/>
+                    <TextBlock Grid.Row="0" Grid.Column="1" Text="Shift + Alt + C"/>
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Set start position to cursor :" FontWeight="Bold" Margin="0,0,10,0"/>
+                    <TextBlock Grid.Row="1" Grid.Column="1" Text="Shift + Alt + S"/>
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Pick color :" FontWeight="Bold" Margin="0,0,10,0"/>
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="Shift + Alt + A"/>
+                </Grid>
+            </StackPanel>
+
+            <!-- Play Button -->
+            <Button Grid.Column="2"
+                    Content="PLAY >>"
+                    Command="{Binding PlayCommand}"
+                    Background="Green" Foreground="White"
+                    FontSize="14" FontWeight="Bold"
+                    Padding="30,15"/>
+        </Grid>
+    </Grid>
+</Window>
