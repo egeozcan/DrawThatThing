@@ -161,3 +161,29 @@ pip-log.txt
 
 # Mac crap
 .DS_Store
+
+#############
+## .NET Core / .NET 8
+#############
+
+# Build outputs
+publish/
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# VS Code
+.vscode/
+
+# User-specific files
+*.rsuser
+*.DotSettings.user
+
+# Rider auto-generated
+*.csproj.user
