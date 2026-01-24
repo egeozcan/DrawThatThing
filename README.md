@@ -17,25 +17,20 @@ A cross-platform desktop application that converts images into automated mouse d
 
 ```
 DrawThatThing/
-├── DrawThatThing/          # Original Windows Forms application (.NET Framework 4.0)
-├── BitmapReader/           # Original core library
-├── Plugins/                # Parser and brush changer plugins
-└── src/                    # Cross-platform Avalonia application (.NET 8)
-    ├── DrawThatThing.Avalonia/
-    ├── DrawThatThing.Core/
-    ├── DrawThatThing.Platform/
-    ├── DrawThatThing.Platform.Windows/
-    ├── DrawThatThing.Platform.macOS/
-    └── DrawThatThing.Platform.Linux/
+├── DrawThatThing.Avalonia/         # Main Avalonia UI application
+├── DrawThatThing.Core/             # Platform-agnostic core library
+├── DrawThatThing.Platform/         # Platform abstraction interfaces
+├── DrawThatThing.Platform.Windows/ # Windows-specific implementations
+├── DrawThatThing.Platform.macOS/   # macOS-specific implementations
+├── DrawThatThing.Platform.Linux/   # Linux-specific implementations
+├── DrawThatThing.sln               # Solution file
+├── build.sh                        # Build script for Linux/macOS
+└── build.cmd                       # Build script for Windows
 ```
 
 ---
 
-## Cross-Platform Version (Recommended)
-
-The new cross-platform version uses Avalonia UI and runs on Windows, macOS, and Linux.
-
-### Requirements
+## Requirements
 
 | Platform | .NET SDK | Additional Requirements |
 |----------|----------|------------------------|
@@ -44,9 +39,9 @@ The new cross-platform version uses Avalonia UI and runs on Windows, macOS, and 
 | macOS | - | Accessibility permissions (System Preferences → Security & Privacy → Privacy → Accessibility) |
 | Linux | - | X11, libXtst (XTest extension) |
 
-### Installing .NET 8 SDK
+## Installing .NET 8 SDK
 
-#### Windows
+### Windows
 ```powershell
 # Using winget
 winget install Microsoft.DotNet.SDK.8
@@ -54,7 +49,7 @@ winget install Microsoft.DotNet.SDK.8
 # Or download from https://dotnet.microsoft.com/download/dotnet/8.0
 ```
 
-#### macOS
+### macOS
 ```bash
 # Using Homebrew
 brew install --cask dotnet-sdk
@@ -62,7 +57,7 @@ brew install --cask dotnet-sdk
 # Or download from https://dotnet.microsoft.com/download/dotnet/8.0
 ```
 
-#### Linux (Ubuntu/Debian)
+### Linux (Ubuntu/Debian)
 ```bash
 # Add Microsoft package repository
 wget https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
@@ -77,23 +72,23 @@ sudo apt-get install -y dotnet-sdk-8.0
 sudo apt-get install -y libx11-dev libxtst-dev
 ```
 
-#### Linux (Fedora)
+### Linux (Fedora)
 ```bash
 sudo dnf install dotnet-sdk-8.0
 sudo dnf install libX11-devel libXtst-devel
 ```
 
-#### Linux (Arch)
+### Linux (Arch)
 ```bash
 sudo pacman -S dotnet-sdk
 sudo pacman -S libx11 libxtst
 ```
 
-### Building from Source
+---
+
+## Building from Source
 
 ```bash
-cd src
-
 # Restore dependencies
 dotnet restore DrawThatThing.sln
 
@@ -114,57 +109,58 @@ Or use the provided build scripts:
 build.cmd
 ```
 
-### Running the Application
+## Running the Application
 
 ```bash
-cd src
 dotnet run --project DrawThatThing.Avalonia/DrawThatThing.Avalonia.csproj
 ```
 
-### Publishing Self-Contained Executables
+## Publishing Self-Contained Executables
 
 Create standalone executables that don't require .NET to be installed:
 
-#### Windows (x64)
+### Windows (x64)
 ```bash
-dotnet publish src/DrawThatThing.Avalonia -c Release -r win-x64 --self-contained -o publish/win-x64
+dotnet publish DrawThatThing.Avalonia -c Release -r win-x64 --self-contained -o publish/win-x64
 ```
 
-#### Windows (ARM64)
+### Windows (ARM64)
 ```bash
-dotnet publish src/DrawThatThing.Avalonia -c Release -r win-arm64 --self-contained -o publish/win-arm64
+dotnet publish DrawThatThing.Avalonia -c Release -r win-arm64 --self-contained -o publish/win-arm64
 ```
 
-#### macOS (Intel)
+### macOS (Intel)
 ```bash
-dotnet publish src/DrawThatThing.Avalonia -c Release -r osx-x64 --self-contained -o publish/osx-x64
+dotnet publish DrawThatThing.Avalonia -c Release -r osx-x64 --self-contained -o publish/osx-x64
 ```
 
-#### macOS (Apple Silicon)
+### macOS (Apple Silicon)
 ```bash
-dotnet publish src/DrawThatThing.Avalonia -c Release -r osx-arm64 --self-contained -o publish/osx-arm64
+dotnet publish DrawThatThing.Avalonia -c Release -r osx-arm64 --self-contained -o publish/osx-arm64
 ```
 
-#### Linux (x64)
+### Linux (x64)
 ```bash
-dotnet publish src/DrawThatThing.Avalonia -c Release -r linux-x64 --self-contained -o publish/linux-x64
+dotnet publish DrawThatThing.Avalonia -c Release -r linux-x64 --self-contained -o publish/linux-x64
 ```
 
-#### Linux (ARM64)
+### Linux (ARM64)
 ```bash
-dotnet publish src/DrawThatThing.Avalonia -c Release -r linux-arm64 --self-contained -o publish/linux-arm64
+dotnet publish DrawThatThing.Avalonia -c Release -r linux-arm64 --self-contained -o publish/linux-arm64
 ```
 
-### Platform-Specific Notes
+---
 
-#### Windows
+## Platform-Specific Notes
+
+### Windows
 
 No additional configuration required. The application uses Win32 APIs for:
 - Mouse control (`user32.dll` - SetCursorPos, mouse_event)
 - Global hotkeys (`user32.dll` - RegisterHotKey)
 - Screen capture (`gdi32.dll` - BitBlt)
 
-#### macOS
+### macOS
 
 **Important**: You must grant Accessibility permissions for mouse automation to work.
 
@@ -178,7 +174,7 @@ The application uses:
 - Carbon framework for global hotkeys (`RegisterEventHotKey`)
 - CoreGraphics for screen capture (`CGWindowListCreateImage`)
 
-#### Linux
+### Linux
 
 Requires X11 and the XTest extension. Wayland is not currently supported for mouse automation.
 
@@ -208,21 +204,6 @@ The application uses:
 
 ---
 
-## Legacy Windows Version
-
-The original Windows Forms application is still available for Windows users who prefer the classic version.
-
-### Requirements
-
-- Windows 7 or later
-- .NET Framework 4.0
-
-### Building
-
-Open `DrawThatThing.sln` in Visual Studio 2010 or later and build the solution.
-
----
-
 ## Global Hotkeys
 
 | Hotkey | Action |
@@ -232,25 +213,6 @@ Open `DrawThatThing.sln` in Visual Studio 2010 or later and build the solution.
 | `Shift+Alt+A` | Add color at current cursor position |
 | `Shift+Alt+D` | Toggle debug panel |
 | `Shift+Alt+Q` | Add debug point |
-
----
-
-## Plugin System
-
-DrawThatThing supports plugins for:
-
-### Bitmap Readers
-Parse images using different algorithms:
-- **AbstractReader**: Region-based parsing with flood fill
-- **DetailedReader**: Detailed pixel analysis
-- **LinearReader**: Linear color scanning with RGB filters
-- **PointReader**: Individual pixel-to-point mapping
-
-### Brush Changers
-Automate brush selection in drawing applications:
-- **DoodleOrDieBrushChanger**: Brush selection for DoodleOrDie
-
-Plugins are loaded dynamically from the `Plugins/` directory.
 
 ---
 
@@ -294,4 +256,4 @@ sudo apt-get install libicu-dev libssl-dev
 
 ## License
 
-See [LICENSE](LICENSE) file for details.
+This project is licensed under the GPL-3.0 License - see the [LICENSE.txt](LICENSE.txt) file for details.
