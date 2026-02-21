@@ -34,19 +34,19 @@ DrawThatThing/
 
 | Platform | .NET SDK | Additional Requirements |
 |----------|----------|------------------------|
-| All | .NET 8.0 SDK or later | - |
+| All | .NET 9.0 SDK or later | - |
 | Windows | - | None (Win32 APIs included) |
 | macOS | - | Accessibility permissions (System Preferences → Security & Privacy → Privacy → Accessibility) |
 | Linux | - | X11, libXtst (XTest extension) |
 
-## Installing .NET 8 SDK
+## Installing .NET 9 SDK
 
 ### Windows
 ```powershell
 # Using winget
-winget install Microsoft.DotNet.SDK.8
+winget install Microsoft.DotNet.SDK.9
 
-# Or download from https://dotnet.microsoft.com/download/dotnet/8.0
+# Or download from https://dotnet.microsoft.com/download/dotnet/9.0
 ```
 
 ### macOS
@@ -54,7 +54,7 @@ winget install Microsoft.DotNet.SDK.8
 # Using Homebrew
 brew install --cask dotnet-sdk
 
-# Or download from https://dotnet.microsoft.com/download/dotnet/8.0
+# Or download from https://dotnet.microsoft.com/download/dotnet/9.0
 ```
 
 ### Linux (Ubuntu/Debian)
@@ -66,7 +66,7 @@ rm packages-microsoft-prod.deb
 
 # Install .NET SDK
 sudo apt-get update
-sudo apt-get install -y dotnet-sdk-8.0
+sudo apt-get install -y dotnet-sdk-9.0
 
 # Install X11 dependencies for mouse automation
 sudo apt-get install -y libx11-dev libxtst-dev
@@ -74,7 +74,7 @@ sudo apt-get install -y libx11-dev libxtst-dev
 
 ### Linux (Fedora)
 ```bash
-sudo dnf install dotnet-sdk-8.0
+sudo dnf install dotnet-sdk-9.0
 sudo dnf install libX11-devel libXtst-devel
 ```
 
@@ -230,7 +230,7 @@ The application uses:
 
 ### Application won't start
 
-**All platforms**: Verify .NET 8 SDK is installed: `dotnet --version`
+**All platforms**: Verify .NET 9 SDK is installed: `dotnet --version`
 
 **Linux**: Install missing dependencies:
 ```bash

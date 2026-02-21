@@ -1,0 +1,21 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="AvaloniaMacFilePickerPasteBug.MainWindow"
+        Title="Avalonia macOS FilePicker Paste Repro"
+        Width="760"
+        Height="360"
+        MinWidth="700"
+        MinHeight="320">
+    <StackPanel Margin="14" Spacing="10">
+        <TextBlock Text="1) Verify Cmd+V works in the textbox below."/>
+        <TextBox x:Name="ClipboardTestBox"
+                 Watermark="Clipboard test (Cmd+V / Cmd+A should work here)"
+                 MinWidth="500"/>
+
+        <Separator Margin="0,4,0,4"/>
+
+        <TextBlock Text="2) Click Open File Picker. In the picker, press Cmd+Shift+G and try Cmd+V in the path modal."/>
+        <Button Content="Open File Picker" Width="170" Click="OpenFilePicker_Click"/>
+        <TextBlock x:Name="SelectedPathText" Text="Selected path: (none)" TextWrapping="Wrap"/>
+    </StackPanel>
+</Window>

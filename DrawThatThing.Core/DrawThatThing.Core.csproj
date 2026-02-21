@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>DrawThatThing.Core</RootNamespace>
@@ -9,6 +9,10 @@
 
   <ItemGroup>
     <PackageReference Include="SkiaSharp" Version="2.88.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DrawThatThing.Platform\DrawThatThing.Platform.csproj" />
   </ItemGroup>
 
 </Project>

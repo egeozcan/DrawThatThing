@@ -111,16 +111,35 @@ public class MacScreenCapture : IScreenCapture
             return new byte[width * height * 4];
         }
 
+        IntPtr data = IntPtr.Zero;
         try
         {
             var dataProvider = CGImageGetDataProvider(imageRef);
-            var data = CGDataProviderCopyData(dataProvider);
+            if (dataProvider == IntPtr.Zero)
+            {
+                return new byte[width * height * 4];
+            }
+
+            data = CGDataProviderCopyData(dataProvider);
+            if (data == IntPtr.Zero)
+            {
+                return new byte[width * height * 4];
+            }
+
             var dataPtr = CFDataGetBytePtr(data);
             var dataLength = CFDataGetLength(data);
+            if (dataPtr == IntPtr.Zero || dataLength <= 0)
+            {
+                return new byte[width * height * 4];
+            }
 
             var capturedWidth = CGImageGetWidth(imageRef);
             var capturedHeight = CGImageGetHeight(imageRef);
             var bytesPerRow = CGImageGetBytesPerRow(imageRef);
+            if (capturedWidth <= 0 || capturedHeight <= 0 || bytesPerRow <= 0)
+            {
+                return new byte[width * height * 4];
+            }
 
             byte[] pixels = new byte[width * height * 4];
 
@@ -147,14 +166,16 @@ public class MacScreenCapture : IScreenCapture
                         }
                     }
                 }
-
-                CFRelease(data);
             }
 
             return pixels;
         }
         finally
         {
+            if (data != IntPtr.Zero)
+            {
+                CFRelease(data);
+            }
             CFRelease(imageRef);
         }
     }
