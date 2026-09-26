@@ -2,10 +2,15 @@ using System.Runtime.InteropServices;
 
 namespace DrawThatThing.Platform.macOS;
 
+/// <summary>
+/// Synthesizes mouse input with Quartz events. Posting events requires the Accessibility
+/// permission (System Settings → Privacy &amp; Security → Accessibility); without it macOS
+/// silently drops them.
+/// </summary>
 public class MacMouseOperations : IMouseOperations
 {
-    // CoreGraphics framework
     private const string CoreGraphics = "/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics";
+    private const string CoreFoundation = "/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation";
 
     [DllImport(CoreGraphics)]
     private static extern IntPtr CGEventCreateMouseEvent(IntPtr source, CGEventType mouseType, CGPoint mouseCursorPosition, CGMouseButton mouseButton);
@@ -14,13 +19,18 @@ public class MacMouseOperations : IMouseOperations
     private static extern void CGEventPost(CGEventTapLocation tap, IntPtr eventRef);
 
     [DllImport(CoreGraphics)]
-    private static extern void CFRelease(IntPtr cf);
+    private static extern void CGEventSetIntegerValueField(IntPtr eventRef, int field, long value);
 
     [DllImport(CoreGraphics)]
     private static extern CGPoint CGEventGetLocation(IntPtr eventRef);
 
     [DllImport(CoreGraphics)]
     private static extern IntPtr CGEventCreate(IntPtr source);
+
+    [DllImport(CoreFoundation)]
+    private static extern void CFRelease(IntPtr cf);
+
+    private const int KCGMouseEventClickState = 1;
 
     private enum CGEventType : uint
     {
@@ -60,81 +70,49 @@ public class MacMouseOperations : IMouseOperations
         }
     }
 
+    private volatile bool _leftButtonDown;
+    private volatile bool _rightButtonDown;
+
     public void SetCursorPosition(int x, int y)
     {
-        var point = new CGPoint(x, y);
-        var moveEvent = CGEventCreateMouseEvent(IntPtr.Zero, CGEventType.MouseMoved, point, CGMouseButton.Left);
-        if (moveEvent != IntPtr.Zero)
-        {
-            CGEventPost(CGEventTapLocation.HID, moveEvent);
-            CFRelease(moveEvent);
-        }
+        // Moving while a button is held has to be reported as a drag, otherwise
+        // applications see a plain hover and nothing gets drawn.
+        var (type, button) = _leftButtonDown
+            ? (CGEventType.LeftMouseDragged, CGMouseButton.Left)
+            : _rightButtonDown
+                ? (CGEventType.RightMouseDragged, CGMouseButton.Right)
+                : (CGEventType.MouseMoved, CGMouseButton.Left);
+        Post(type, new CGPoint(x, y), button, clickState: null);
     }
 
     public (int X, int Y) GetCursorPosition()
     {
-        var eventRef = CGEventCreate(IntPtr.Zero);
-        if (eventRef != IntPtr.Zero)
-        {
-            try
-            {
-                var point = CGEventGetLocation(eventRef);
-                return ((int)point.X, (int)point.Y);
-            }
-            finally
-            {
-                CFRelease(eventRef);
-            }
-        }
-        return (0, 0);
+        var point = GetCursorLocation();
+        return ((int)Math.Round(point.X), (int)Math.Round(point.Y));
     }
 
     public void LeftMouseDown()
     {
-        var pos = GetCursorPosition();
-        var point = new CGPoint(pos.X, pos.Y);
-        var downEvent = CGEventCreateMouseEvent(IntPtr.Zero, CGEventType.LeftMouseDown, point, CGMouseButton.Left);
-        if (downEvent != IntPtr.Zero)
-        {
-            CGEventPost(CGEventTapLocation.HID, downEvent);
-            CFRelease(downEvent);
-        }
+        _leftButtonDown = true;
+        Post(CGEventType.LeftMouseDown, GetCursorLocation(), CGMouseButton.Left, clickState: 1);
     }
 
     public void LeftMouseUp()
     {
-        var pos = GetCursorPosition();
-        var point = new CGPoint(pos.X, pos.Y);
-        var upEvent = CGEventCreateMouseEvent(IntPtr.Zero, CGEventType.LeftMouseUp, point, CGMouseButton.Left);
-        if (upEvent != IntPtr.Zero)
-        {
-            CGEventPost(CGEventTapLocation.HID, upEvent);
-            CFRelease(upEvent);
-        }
+        _leftButtonDown = false;
+        Post(CGEventType.LeftMouseUp, GetCursorLocation(), CGMouseButton.Left, clickState: 1);
     }
 
     public void RightMouseDown()
     {
-        var pos = GetCursorPosition();
-        var point = new CGPoint(pos.X, pos.Y);
-        var downEvent = CGEventCreateMouseEvent(IntPtr.Zero, CGEventType.RightMouseDown, point, CGMouseButton.Right);
-        if (downEvent != IntPtr.Zero)
-        {
-            CGEventPost(CGEventTapLocation.HID, downEvent);
-            CFRelease(downEvent);
-        }
+        _rightButtonDown = true;
+        Post(CGEventType.RightMouseDown, GetCursorLocation(), CGMouseButton.Right, clickState: 1);
     }
 
     public void RightMouseUp()
     {
-        var pos = GetCursorPosition();
-        var point = new CGPoint(pos.X, pos.Y);
-        var upEvent = CGEventCreateMouseEvent(IntPtr.Zero, CGEventType.RightMouseUp, point, CGMouseButton.Right);
-        if (upEvent != IntPtr.Zero)
-        {
-            CGEventPost(CGEventTapLocation.HID, upEvent);
-            CFRelease(upEvent);
-        }
+        _rightButtonDown = false;
+        Post(CGEventType.RightMouseUp, GetCursorLocation(), CGMouseButton.Right, clickState: 1);
     }
 
     public void Click()
@@ -148,5 +126,45 @@ public class MacMouseOperations : IMouseOperations
     {
         SetCursorPosition(x, y);
         Click();
+    }
+
+    private static CGPoint GetCursorLocation()
+    {
+        var eventRef = CGEventCreate(IntPtr.Zero);
+        if (eventRef == IntPtr.Zero)
+        {
+            return new CGPoint(0, 0);
+        }
+
+        try
+        {
+            return CGEventGetLocation(eventRef);
+        }
+        finally
+        {
+            CFRelease(eventRef);
+        }
+    }
+
+    private static void Post(CGEventType type, CGPoint point, CGMouseButton button, long? clickState)
+    {
+        var eventRef = CGEventCreateMouseEvent(IntPtr.Zero, type, point, button);
+        if (eventRef == IntPtr.Zero)
+        {
+            return;
+        }
+
+        try
+        {
+            if (clickState.HasValue)
+            {
+                CGEventSetIntegerValueField(eventRef, KCGMouseEventClickState, clickState.Value);
+            }
+            CGEventPost(CGEventTapLocation.HID, eventRef);
+        }
+        finally
+        {
+            CFRelease(eventRef);
+        }
     }
 }

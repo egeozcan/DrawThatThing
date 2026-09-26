@@ -1,9 +1,11 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using Avalonia.Platform.Storage;
+using Avalonia.Threading;
+using DrawThatThing.Avalonia.Services;
 using DrawThatThing.Avalonia.ViewModels;
 using DrawThatThing.Avalonia.Views;
+using DrawThatThing.Platform.macOS;
 
 namespace DrawThatThing.Avalonia;
 
@@ -19,42 +21,29 @@ public partial class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             var mainWindow = new MainWindow();
-            var viewModel = new MainWindowViewModel(() => PickImagePathAsync(mainWindow));
-
+            var viewModel = new MainWindowViewModel(PlatformServicesFactory.Create(), new DialogService(mainWindow));
             mainWindow.DataContext = viewModel;
+
+            mainWindow.Opened += (_, _) =>
+            {
+                viewModel.RegisterHotkeys();
+                if (OperatingSystem.IsMacOS())
+                {
+                    // Drawing needs permission to control the mouse; let macOS ask for it right away.
+                    MacAppIntegration.EnsureAccessibilityAccess();
+                }
+            };
+            if (OperatingSystem.IsMacOS())
+            {
+                // The menu bar is rebuilt whenever the window becomes active, so re-add the Edit menu afterwards.
+                mainWindow.Activated += (_, _) =>
+                    Dispatcher.UIThread.Post(MacAppIntegration.EnsureEditMenu, DispatcherPriority.Background);
+            }
+            desktop.ShutdownRequested += (_, _) => viewModel.UnregisterHotkeys();
+
             desktop.MainWindow = mainWindow;
         }
 
         base.OnFrameworkInitializationCompleted();
-    }
-
-    private static async Task<string?> PickImagePathAsync(MainWindow mainWindow)
-    {
-        var files = await mainWindow.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-        {
-            Title = "Select image",
-            AllowMultiple = false,
-            FileTypeFilter =
-            [
-                new FilePickerFileType("Images")
-                {
-                    Patterns = ["*.png", "*.jpg", "*.jpeg", "*.bmp", "*.gif", "*.webp"]
-                }
-            ]
-        });
-
-        var file = files.FirstOrDefault();
-        if (file == null)
-        {
-            return null;
-        }
-
-        var localPath = file.TryGetLocalPath();
-        if (!string.IsNullOrWhiteSpace(localPath))
-        {
-            return localPath;
-        }
-
-        return file.Path.IsFile ? file.Path.LocalPath : null;
     }
 }

@@ -17,6 +17,4 @@ public class WindowsPlatformServices : IPlatformServices
     public IHotkeyManager Hotkeys => _hotkeys;
     public IScreenCapture ScreenCapture => _screenCapture;
     public PlatformType Platform => PlatformType.Windows;
-
-    public WindowsHotkeyManager WindowsHotkeys => _hotkeys;
 }

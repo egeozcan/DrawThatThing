@@ -26,7 +26,12 @@ public readonly struct Color : IEquatable<Color>
         if (string.IsNullOrWhiteSpace(hex))
             return Empty;
 
-        hex = hex.TrimStart('#');
+        hex = hex.Trim().TrimStart('#');
+
+        if (hex.Length == 3)
+        {
+            hex = string.Concat(hex[0], hex[0], hex[1], hex[1], hex[2], hex[2]);
+        }
 
         if (hex.Length == 6)
         {

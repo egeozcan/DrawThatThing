@@ -5,7 +5,13 @@ namespace DrawThatThing.Core.Models;
 public class MouseDragAction
 {
     public List<Point> Points { get; }
+
+    /// <summary>
+    /// True for actions that click on a screen position as-is (e.g. choosing a color on the palette),
+    /// instead of relative to the mouse start position.
+    /// </summary>
     public bool DiscardOffset { get; }
+
     public Color Color { get; }
 
     public MouseDragAction(List<Point> points, bool discardOffset = false, Color? color = null)
@@ -25,46 +31,49 @@ public class MouseDragAction
         Points.Insert(0, point);
     }
 
-    public async IAsyncEnumerable<bool> PlayAsync(Point offset, IMouseOperations mouse, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Presses the left button on the first point, drags through all points and releases.
+    /// Blocks the calling thread; yields after every point so the caller can stop early.
+    /// The button is always released, even when cancelled half way.
+    /// </summary>
+    public IEnumerable<bool> Play(Point offset, IMouseOperations mouse, CancellationToken cancellationToken = default)
     {
         if (DiscardOffset)
         {
             offset = new Point(0, 0);
-            await Task.Delay(100, cancellationToken);
+            Thread.Sleep(100);
         }
-
         if (Points.Count == 0)
         {
             yield return false;
             yield break;
         }
-
         if (DiscardOffset)
         {
-            await Task.Delay(1000, cancellationToken);
+            Thread.Sleep(1000);
         }
-
         int waitTime = DiscardOffset ? 100 : 10;
         int loopWaitTime = DiscardOffset ? 100 : 1;
-
         mouse.SetCursorPosition(Points[0].X + offset.X, Points[0].Y + offset.Y);
         mouse.LeftMouseDown();
-        await Task.Delay(waitTime, cancellationToken);
-
-        foreach (var point in Points.Where(p => !p.IsEmpty))
+        try
         {
-            if (cancellationToken.IsCancellationRequested)
+            Thread.Sleep(waitTime);
+            foreach (var point in Points.Where(point => !point.IsEmpty))
             {
-                mouse.LeftMouseUp();
-                yield break;
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    yield break;
+                }
+                mouse.SetCursorPosition(point.X + offset.X, point.Y + offset.Y);
+                yield return true;
+                Thread.Sleep(loopWaitTime);
             }
-
-            mouse.SetCursorPosition(point.X + offset.X, point.Y + offset.Y);
-            yield return true;
-            await Task.Delay(loopWaitTime, cancellationToken);
+            Thread.Sleep(waitTime);
         }
-
-        await Task.Delay(waitTime, cancellationToken);
-        mouse.LeftMouseUp();
+        finally
+        {
+            mouse.LeftMouseUp();
+        }
     }
 }
