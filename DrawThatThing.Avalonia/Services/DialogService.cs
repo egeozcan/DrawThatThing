@@ -11,21 +11,26 @@ public sealed class DialogService : IDialogService
 
     private readonly Window _owner;
     private readonly Func<IDisposable>? _beginNativeDialog;
+    private readonly IStorageProvider? _storageProvider;
 
     /// <param name="owner">The window the dialogs belong to.</param>
     /// <param name="beginNativeDialog">
     /// Called before a native file dialog opens; the result is disposed once it closes.
     /// </param>
-    public DialogService(Window owner, Func<IDisposable>? beginNativeDialog = null)
+    /// <param name="storageProvider">Shows the file dialogs; the owner window's by default.</param>
+    public DialogService(Window owner, Func<IDisposable>? beginNativeDialog = null, IStorageProvider? storageProvider = null)
     {
         _owner = owner;
         _beginNativeDialog = beginNativeDialog;
+        _storageProvider = storageProvider;
     }
+
+    private IStorageProvider StorageProvider => _storageProvider ?? _owner.StorageProvider;
 
     public async Task<string?> PickImageAsync()
     {
         using var nativeDialog = _beginNativeDialog?.Invoke();
-        var files = await _owner.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
             Title = "Parse Image",
             AllowMultiple = false,
@@ -42,7 +47,7 @@ public sealed class DialogService : IDialogService
     public async Task<string?> PickPaletteToImportAsync()
     {
         using var nativeDialog = _beginNativeDialog?.Invoke();
-        var files = await _owner.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
             Title = "Import Color Palette",
             AllowMultiple = false,
@@ -54,7 +59,7 @@ public sealed class DialogService : IDialogService
     public async Task<string?> PickPaletteExportPathAsync()
     {
         using var nativeDialog = _beginNativeDialog?.Invoke();
-        var file = await _owner.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
             Title = "Export Color Palette",
             DefaultExtension = "csv",
