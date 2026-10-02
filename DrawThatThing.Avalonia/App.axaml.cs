@@ -37,9 +37,12 @@ public partial class App : Application
             };
             if (OperatingSystem.IsMacOS())
             {
-                // The menu bar is rebuilt whenever the window becomes active, so an open dialog's Edit menu has to be re-added.
+                // The toolkit rearranges the menu bar when the window gains or loses the focus (e.g. to a file
+                // dialog), so an open dialog's Edit menu has to be put back in its place afterwards.
                 mainWindow.Activated += (_, _) =>
-                    Dispatcher.UIThread.Post(MacAppIntegration.OnWindowActivated, DispatcherPriority.Background);
+                    Dispatcher.UIThread.Post(MacAppIntegration.OnWindowActivationChanged, DispatcherPriority.Background);
+                mainWindow.Deactivated += (_, _) =>
+                    Dispatcher.UIThread.Post(MacAppIntegration.OnWindowActivationChanged, DispatcherPriority.Background);
             }
             desktop.ShutdownRequested += (_, _) => viewModel.UnregisterHotkeys();
 

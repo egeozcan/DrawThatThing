@@ -13,7 +13,7 @@ public class MacAppIntegrationTests
     {
         AppKit.ResetMainMenu();
 
-        MacAppIntegration.OnWindowActivated();
+        MacAppIntegration.OnWindowActivationChanged();
 
         // A menu item claiming Cmd+V (even a disabled one) would stop the app's text boxes from ever seeing the paste.
         Assert.False(AppKit.MenuBarClaimsCommandKey('v', KeyCodeV));
@@ -33,15 +33,31 @@ public class MacAppIntegrationTests
     }
 
     [MacOSFact]
-    public void TheEditMenuComesBackWhenTheMenuBarIsRebuiltDuringADialog()
+    public void TheEditMenuGoesNextToTheApplicationMenu()
     {
         AppKit.ResetMainMenu();
 
         using (MacAppIntegration.BeginNativeDialog())
         {
-            AppKit.ResetMainMenu(); // the toolkit rebuilds the menu bar when the window is activated
-            MacAppIntegration.OnWindowActivated();
+            Assert.Equal([AppKit.AppMenuTitle, "Edit"], AppKit.MenuBarTitles());
+        }
 
+        Assert.Equal([AppKit.AppMenuTitle], AppKit.MenuBarTitles());
+    }
+
+    [MacOSFact]
+    public void TheEditMenuDoesNotTakeOverTheApplicationMenuWhileTheDialogIsOpen()
+    {
+        AppKit.ResetMainMenu();
+
+        using (MacAppIntegration.BeginNativeDialog())
+        {
+            // The dialog sheet takes the focus, so Avalonia moves its application menu to the end of the menu bar,
+            // where the Edit menu would end up first, i.e. shown as the application menu.
+            AppKit.MoveAppMenuToTheEnd();
+            MacAppIntegration.OnWindowActivationChanged();
+
+            Assert.Equal([AppKit.AppMenuTitle, "Edit"], AppKit.MenuBarTitles());
             Assert.True(AppKit.MenuBarClaimsCommandKey('v', KeyCodeV));
         }
     }

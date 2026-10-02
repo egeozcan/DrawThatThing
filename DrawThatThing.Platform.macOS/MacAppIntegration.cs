@@ -115,10 +115,11 @@ public static class MacAppIntegration
     }
 
     /// <summary>
-    /// The toolkit rebuilds the menu bar whenever the window becomes active, so a dialog that is still open
-    /// needs its Edit menu back.
+    /// When its window gains or loses the focus (e.g. to a dialog sheet), the toolkit takes its application
+    /// menu out of the menu bar and appends it again, which would leave the Edit menu first, where macOS
+    /// shows it as the application menu. Call this afterwards to put the Edit menu back behind it.
     /// </summary>
-    public static void OnWindowActivated()
+    public static void OnWindowActivationChanged()
     {
         if (_openNativeDialogs > 0)
         {
@@ -136,7 +137,8 @@ public static class MacAppIntegration
                 return;
             }
 
-            if (_editMenuItem != IntPtr.Zero && SendNInt(mainMenu, Sel("indexOfItem:"), _editMenuItem) >= 0)
+            // Its place is right after the application menu, which is always the first one.
+            if (_editMenuItem != IntPtr.Zero && SendNInt(mainMenu, Sel("indexOfItem:"), _editMenuItem) >= 1)
             {
                 return;
             }
