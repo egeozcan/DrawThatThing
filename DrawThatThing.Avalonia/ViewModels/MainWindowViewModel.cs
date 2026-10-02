@@ -299,7 +299,15 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         var (x, y) = _platformServices.Mouse.GetCursorPosition();
-        var (r, g, b) = _platformServices.ScreenCapture.GetPixelColor(x, y);
+        if (_platformServices.ScreenCapture.GetPixelColor(x, y) is not { } color)
+        {
+            var hint = _platformServices.Platform == PlatformType.macOS
+                ? " Allow DrawThatThing under System Settings → Privacy & Security → Screen & System Audio Recording, then restart it."
+                : string.Empty;
+            _ = _dialogs.ShowMessageAsync("Could not read the color under the cursor." + hint);
+            return;
+        }
+        var (r, g, b) = color;
         AddPaletteRow(
             x.ToString(CultureInfo.InvariantCulture),
             y.ToString(CultureInfo.InvariantCulture),

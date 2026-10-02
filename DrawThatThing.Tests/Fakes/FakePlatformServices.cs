@@ -17,9 +17,10 @@ public class FakePlatformServices : IPlatformServices
 
 public class FakeScreenCapture : IScreenCapture
 {
-    public (byte R, byte G, byte B) Color { get; set; }
+    /// <summary>The color on the whole screen; null when the screen cannot be read.</summary>
+    public (byte R, byte G, byte B)? Color { get; set; } = (0, 0, 0);
 
-    public (byte R, byte G, byte B) GetPixelColor(int x, int y) => Color;
+    public (byte R, byte G, byte B)? GetPixelColor(int x, int y) => Color;
 
     public byte[] CaptureRegion(int x, int y, int width, int height) => new byte[width * height * 4];
 }

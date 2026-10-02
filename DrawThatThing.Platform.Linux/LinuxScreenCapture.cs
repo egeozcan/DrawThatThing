@@ -51,12 +51,12 @@ public class LinuxScreenCapture : IScreenCapture
         public IntPtr obdata;
     }
 
-    public (byte R, byte G, byte B) GetPixelColor(int x, int y)
+    public (byte R, byte G, byte B)? GetPixelColor(int x, int y)
     {
         IntPtr display = XOpenDisplay(IntPtr.Zero);
         if (display == IntPtr.Zero)
         {
-            return (0, 0, 0);
+            return null;
         }
 
         try
@@ -67,7 +67,7 @@ public class LinuxScreenCapture : IScreenCapture
 
             if (image == IntPtr.Zero)
             {
-                return (0, 0, 0);
+                return null;
             }
 
             try

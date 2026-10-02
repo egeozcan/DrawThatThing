@@ -7,38 +7,38 @@ namespace DrawThatThing.Platform.macOS;
 /// Reads pixels from the screen. Needs the Screen Recording permission
 /// (System Settings → Privacy &amp; Security → Screen &amp; System Audio Recording); without it
 /// macOS only returns the desktop wallpaper instead of other applications' windows.
+/// Colors are returned in sRGB, the color space of the images being drawn, rather than in the
+/// display's own color space (which differs noticeably on wide-gamut screens).
 /// </summary>
 public class MacScreenCapture : IScreenCapture
 {
     private const string CoreGraphics = "/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics";
     private const string CoreFoundation = "/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation";
+    private const string ImageIO = "/System/Library/Frameworks/ImageIO.framework/ImageIO";
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
     private delegate IntPtr CGWindowListCreateImageProc(CGRect screenBounds, uint listOption, uint windowId, uint imageOption);
 
     [DllImport(CoreGraphics)]
-    private static extern IntPtr CGImageGetDataProvider(IntPtr image);
-
-    [DllImport(CoreGraphics)]
-    private static extern IntPtr CGDataProviderCopyData(IntPtr provider);
-
-    [DllImport(CoreGraphics)]
-    private static extern nint CGImageGetWidth(IntPtr image);
-
-    [DllImport(CoreGraphics)]
-    private static extern nint CGImageGetHeight(IntPtr image);
-
-    [DllImport(CoreGraphics)]
-    private static extern nint CGImageGetBytesPerRow(IntPtr image);
-
-    [DllImport(CoreGraphics)]
-    private static extern nint CGImageGetBitsPerPixel(IntPtr image);
-
-    [DllImport(CoreGraphics)]
-    private static extern uint CGImageGetBitmapInfo(IntPtr image);
-
-    [DllImport(CoreGraphics)]
     private static extern void CGImageRelease(IntPtr image);
+
+    [DllImport(CoreGraphics)]
+    private static extern IntPtr CGColorSpaceCreateWithName(IntPtr name);
+
+    [DllImport(CoreGraphics)]
+    private static extern void CGColorSpaceRelease(IntPtr space);
+
+    [DllImport(CoreGraphics)]
+    private static extern IntPtr CGBitmapContextCreate(IntPtr data, nuint width, nuint height, nuint bitsPerComponent, nuint bytesPerRow, IntPtr space, uint bitmapInfo);
+
+    [DllImport(CoreGraphics)]
+    private static extern void CGContextSetInterpolationQuality(IntPtr context, int quality);
+
+    [DllImport(CoreGraphics)]
+    private static extern void CGContextDrawImage(IntPtr context, CGRect rect, IntPtr image);
+
+    [DllImport(CoreGraphics)]
+    private static extern void CGContextRelease(IntPtr context);
 
     [DllImport(CoreGraphics)]
     [return: MarshalAs(UnmanagedType.I1)]
@@ -49,13 +49,16 @@ public class MacScreenCapture : IScreenCapture
     private static extern bool CGRequestScreenCaptureAccess();
 
     [DllImport(CoreFoundation)]
-    private static extern IntPtr CFDataGetBytePtr(IntPtr theData);
-
-    [DllImport(CoreFoundation)]
-    private static extern nint CFDataGetLength(IntPtr theData);
+    private static extern IntPtr CFDataCreate(IntPtr allocator, byte[] bytes, nint length);
 
     [DllImport(CoreFoundation)]
     private static extern void CFRelease(IntPtr cf);
+
+    [DllImport(ImageIO)]
+    private static extern IntPtr CGImageSourceCreateWithData(IntPtr data, IntPtr options);
+
+    [DllImport(ImageIO)]
+    private static extern IntPtr CGImageSourceCreateImageAtIndex(IntPtr source, nuint index, IntPtr options);
 
     [StructLayout(LayoutKind.Sequential)]
     private struct CGRect
@@ -70,12 +73,26 @@ public class MacScreenCapture : IScreenCapture
     private const uint KCGNullWindowId = 0;
     private const uint KCGWindowImageDefault = 0;
 
-    private const uint AlphaInfoMask = 0x1F;
-    private const uint ByteOrderMask = 0x7000;
-    private const uint ByteOrder32Little = 0x2000;
+    private const uint KCGImageAlphaNoneSkipLast = 5;
+    private const uint KCGBitmapByteOrder32Big = 0x4000;
+    private const int KCGInterpolationNone = 1;
 
     private static readonly Lazy<CGWindowListCreateImageProc?> WindowListCreateImage = new(LoadWindowListCreateImage);
+    private static readonly Lazy<IntPtr> SrgbColorSpaceName = new(
+        () => Marshal.ReadIntPtr(NativeLibrary.GetExport(NativeLibrary.Load(CoreGraphics), "kCGColorSpaceSRGB")));
+    private readonly Func<bool> _hasAccess;
     private bool _accessRequested;
+
+    public MacScreenCapture()
+    {
+        _hasAccess = EnsureAccess;
+    }
+
+    /// <param name="hasAccess">Replaces the permission check, so tests never trigger the system prompt.</param>
+    internal MacScreenCapture(Func<bool> hasAccess)
+    {
+        _hasAccess = hasAccess;
+    }
 
     /// <summary>
     /// Asks macOS for the Screen Recording permission if it has not been granted yet.
@@ -102,18 +119,30 @@ public class MacScreenCapture : IScreenCapture
         return false;
     }
 
-    public (byte R, byte G, byte B) GetPixelColor(int x, int y)
+    /// <summary>
+    /// Returns null without the Screen Recording permission: the screen would only show the wallpaper,
+    /// so any color read from it would be made up.
+    /// </summary>
+    public (byte R, byte G, byte B)? GetPixelColor(int x, int y)
     {
-        EnsureAccess();
-        var pixels = CaptureRegion(x, y, 1, 1);
-        return (pixels[0], pixels[1], pixels[2]);
+        if (!_hasAccess())
+        {
+            return null;
+        }
+
+        var pixels = Capture(x, y, 1, 1);
+        return pixels == null ? null : (pixels[0], pixels[1], pixels[2]);
     }
 
     public byte[] CaptureRegion(int x, int y, int width, int height)
     {
+        return Capture(x, y, width, height) ?? new byte[width * height * 4];
+    }
+
+    private static byte[]? Capture(int x, int y, int width, int height)
+    {
         return CaptureWithCoreGraphics(x, y, width, height)
-               ?? CaptureWithScreencaptureTool(x, y, width, height)
-               ?? new byte[width * height * 4];
+               ?? CaptureWithScreencaptureTool(x, y, width, height);
     }
 
     private static CGWindowListCreateImageProc? LoadWindowListCreateImage()
@@ -148,90 +177,104 @@ public class MacScreenCapture : IScreenCapture
             return null;
         }
 
-        IntPtr data = IntPtr.Zero;
         try
         {
-            var capturedWidth = (int)CGImageGetWidth(imageRef);
-            var capturedHeight = (int)CGImageGetHeight(imageRef);
-            var bytesPerRow = (int)CGImageGetBytesPerRow(imageRef);
-            if (capturedWidth <= 0 || capturedHeight <= 0 || bytesPerRow <= 0 || CGImageGetBitsPerPixel(imageRef) != 32)
-            {
-                return null;
-            }
-
-            var dataProvider = CGImageGetDataProvider(imageRef);
-            if (dataProvider == IntPtr.Zero)
-            {
-                return null;
-            }
-
-            data = CGDataProviderCopyData(dataProvider);
-            if (data == IntPtr.Zero)
-            {
-                return null;
-            }
-
-            var dataPtr = CFDataGetBytePtr(data);
-            var dataLength = (int)CFDataGetLength(data);
-            if (dataPtr == IntPtr.Zero || dataLength <= 0)
-            {
-                return null;
-            }
-
-            var rawData = new byte[dataLength];
-            Marshal.Copy(dataPtr, rawData, 0, dataLength);
-
-            // Work out where each channel lives in memory from the image's bitmap info.
-            var bitmapInfo = CGImageGetBitmapInfo(imageRef);
-            var alphaFirst = (bitmapInfo & AlphaInfoMask) is 2 or 4 or 6; // premultiplied first, first, none-skip-first
-            var littleEndian = (bitmapInfo & ByteOrderMask) == ByteOrder32Little;
-            var (rIndex, gIndex, bIndex) = (alphaFirst, littleEndian) switch
-            {
-                (true, true) => (2, 1, 0),   // BGRA
-                (true, false) => (1, 2, 3),  // ARGB
-                (false, true) => (3, 2, 1),  // ABGR
-                (false, false) => (0, 1, 2)  // RGBA
-            };
-
-            // On Retina displays one point covers several pixels; sample the pixel grid proportionally.
-            var pixels = new byte[width * height * 4];
-            for (int row = 0; row < height; row++)
-            {
-                int srcRow = Math.Min(capturedHeight - 1, row * capturedHeight / height);
-                for (int col = 0; col < width; col++)
-                {
-                    int srcCol = Math.Min(capturedWidth - 1, col * capturedWidth / width);
-                    int srcIndex = srcRow * bytesPerRow + srcCol * 4;
-                    int dstIndex = (row * width + col) * 4;
-                    if (srcIndex + 3 >= rawData.Length)
-                    {
-                        continue;
-                    }
-                    pixels[dstIndex] = rawData[srcIndex + rIndex];
-                    pixels[dstIndex + 1] = rawData[srcIndex + gIndex];
-                    pixels[dstIndex + 2] = rawData[srcIndex + bIndex];
-                    pixels[dstIndex + 3] = 255;
-                }
-            }
-
-            return pixels;
+            return ReadSrgbPixels(imageRef, width, height);
         }
         finally
         {
-            if (data != IntPtr.Zero)
-            {
-                CFRelease(data);
-            }
             CGImageRelease(imageRef);
         }
     }
 
     /// <summary>
+    /// Returns the image's pixels as sRGB RGBA bytes, scaled to the given size. CoreGraphics does the color
+    /// matching from the image's color space and handles any pixel layout. Scaling picks single pixels
+    /// instead of blending, because on Retina screens a one-point region covers several pixels and a blend
+    /// at the edge of a palette swatch would be a color that does not exist.
+    /// </summary>
+    internal static byte[]? ReadSrgbPixels(IntPtr image, int width, int height)
+    {
+        var pixels = new byte[width * height * 4];
+        var colorSpace = CGColorSpaceCreateWithName(SrgbColorSpaceName.Value);
+        if (colorSpace == IntPtr.Zero)
+        {
+            return null;
+        }
+
+        var handle = GCHandle.Alloc(pixels, GCHandleType.Pinned);
+        try
+        {
+            var context = CGBitmapContextCreate(
+                handle.AddrOfPinnedObject(), (nuint)width, (nuint)height, 8, (nuint)(width * 4), colorSpace,
+                KCGImageAlphaNoneSkipLast | KCGBitmapByteOrder32Big);
+            if (context == IntPtr.Zero)
+            {
+                return null;
+            }
+
+            try
+            {
+                CGContextSetInterpolationQuality(context, KCGInterpolationNone);
+                CGContextDrawImage(context, new CGRect { Width = width, Height = height }, image);
+            }
+            finally
+            {
+                CGContextRelease(context);
+            }
+        }
+        finally
+        {
+            handle.Free();
+            CGColorSpaceRelease(colorSpace);
+        }
+
+        for (int i = 3; i < pixels.Length; i += 4)
+        {
+            pixels[i] = 255;
+        }
+        return pixels;
+    }
+
+    /// <summary>Decodes an image file (keeping its embedded color profile). The caller releases the image.</summary>
+    internal static IntPtr CreateImageFromFileData(byte[] fileData)
+    {
+        var data = CFDataCreate(IntPtr.Zero, fileData, fileData.Length);
+        if (data == IntPtr.Zero)
+        {
+            return IntPtr.Zero;
+        }
+
+        try
+        {
+            var source = CGImageSourceCreateWithData(data, IntPtr.Zero);
+            if (source == IntPtr.Zero)
+            {
+                return IntPtr.Zero;
+            }
+
+            try
+            {
+                return CGImageSourceCreateImageAtIndex(source, 0, IntPtr.Zero);
+            }
+            finally
+            {
+                CFRelease(source);
+            }
+        }
+        finally
+        {
+            CFRelease(data);
+        }
+    }
+
+    /// <summary>
     /// Fallback for macOS versions without CGWindowListCreateImage: the built-in screencapture tool.
+    /// Its PNG files carry the display's color profile, so they go through the same color matching.
     /// </summary>
     private static byte[]? CaptureWithScreencaptureTool(int x, int y, int width, int height)
     {
-        var file = Path.Combine(Path.GetTempPath(), $"drawthatthing-{Guid.NewGuid():N}.bmp");
+        var file = Path.Combine(Path.GetTempPath(), $"drawthatthing-{Guid.NewGuid():N}.png");
         try
         {
             var startInfo = new ProcessStartInfo("/usr/sbin/screencapture")
@@ -239,18 +282,41 @@ public class MacScreenCapture : IScreenCapture
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
-            foreach (var argument in new[] { "-x", "-t", "bmp", $"-R{x},{y},{width},{height}", file })
+            foreach (var argument in new[] { "-x", "-t", "png", $"-R{x},{y},{width},{height}", file })
             {
                 startInfo.ArgumentList.Add(argument);
             }
 
             using var process = Process.Start(startInfo);
-            if (process == null || !process.WaitForExit(5000) || process.ExitCode != 0 || !File.Exists(file))
+            if (process == null)
+            {
+                return null;
+            }
+            if (!process.WaitForExit(5000))
+            {
+                // Otherwise it may still write the file after it has been cleaned up below.
+                process.Kill();
+                return null;
+            }
+            if (process.ExitCode != 0 || !File.Exists(file))
             {
                 return null;
             }
 
-            return ReadBmp(File.ReadAllBytes(file), width, height);
+            var image = CreateImageFromFileData(File.ReadAllBytes(file));
+            if (image == IntPtr.Zero)
+            {
+                return null;
+            }
+
+            try
+            {
+                return ReadSrgbPixels(image, width, height);
+            }
+            finally
+            {
+                CGImageRelease(image);
+            }
         }
         catch
         {
@@ -260,53 +326,5 @@ public class MacScreenCapture : IScreenCapture
         {
             try { File.Delete(file); } catch { /* ignore */ }
         }
-    }
-
-    private static byte[]? ReadBmp(byte[] bmp, int width, int height)
-    {
-        if (bmp.Length < 54 || bmp[0] != 'B' || bmp[1] != 'M')
-        {
-            return null;
-        }
-
-        int dataOffset = BitConverter.ToInt32(bmp, 10);
-        int bmpWidth = BitConverter.ToInt32(bmp, 18);
-        int bmpHeight = BitConverter.ToInt32(bmp, 22);
-        int bitsPerPixel = BitConverter.ToInt16(bmp, 28);
-        if (bmpWidth <= 0 || bmpHeight == 0 || (bitsPerPixel != 24 && bitsPerPixel != 32))
-        {
-            return null;
-        }
-
-        bool bottomUp = bmpHeight > 0;
-        bmpHeight = Math.Abs(bmpHeight);
-        int bytesPerPixel = bitsPerPixel / 8;
-        int stride = (bmpWidth * bytesPerPixel + 3) & ~3;
-
-        var pixels = new byte[width * height * 4];
-        for (int row = 0; row < height; row++)
-        {
-            int srcRow = Math.Min(bmpHeight - 1, row * bmpHeight / height);
-            if (bottomUp)
-            {
-                srcRow = bmpHeight - 1 - srcRow;
-            }
-            for (int col = 0; col < width; col++)
-            {
-                int srcCol = Math.Min(bmpWidth - 1, col * bmpWidth / width);
-                int srcIndex = dataOffset + srcRow * stride + srcCol * bytesPerPixel;
-                int dstIndex = (row * width + col) * 4;
-                if (srcIndex + 2 >= bmp.Length)
-                {
-                    continue;
-                }
-                pixels[dstIndex] = bmp[srcIndex + 2];
-                pixels[dstIndex + 1] = bmp[srcIndex + 1];
-                pixels[dstIndex + 2] = bmp[srcIndex];
-                pixels[dstIndex + 3] = 255;
-            }
-        }
-
-        return pixels;
     }
 }
