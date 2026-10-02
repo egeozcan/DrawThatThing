@@ -6,8 +6,6 @@ namespace DrawThatThing.Tests.Platform;
 [Collection(nameof(MacAppIntegrationTests))]
 public class MacAppIntegrationTests
 {
-    private const ushort KeyCodeV = 0x09;
-
     [MacOSFact]
     public void WithoutANativeDialogCommandVReachesTheAppsOwnWindow()
     {
@@ -16,7 +14,7 @@ public class MacAppIntegrationTests
         MacAppIntegration.OnWindowActivationChanged();
 
         // A menu item claiming Cmd+V (even a disabled one) would stop the app's text boxes from ever seeing the paste.
-        Assert.False(AppKit.MenuBarClaimsCommandKey('v', KeyCodeV));
+        Assert.False(AppKit.MenuBarClaimsCommandKey('v'));
     }
 
     [MacOSFact]
@@ -26,10 +24,10 @@ public class MacAppIntegrationTests
 
         using (MacAppIntegration.BeginNativeDialog())
         {
-            Assert.True(AppKit.MenuBarClaimsCommandKey('v', KeyCodeV));
+            Assert.True(AppKit.MenuBarClaimsCommandKey('v'));
         }
 
-        Assert.False(AppKit.MenuBarClaimsCommandKey('v', KeyCodeV));
+        Assert.False(AppKit.MenuBarClaimsCommandKey('v'));
     }
 
     [MacOSFact]
@@ -58,7 +56,7 @@ public class MacAppIntegrationTests
             MacAppIntegration.OnWindowActivationChanged();
 
             Assert.Equal([AppKit.AppMenuTitle, "Edit"], AppKit.MenuBarTitles());
-            Assert.True(AppKit.MenuBarClaimsCommandKey('v', KeyCodeV));
+            Assert.True(AppKit.MenuBarClaimsCommandKey('v'));
         }
     }
 
@@ -73,9 +71,9 @@ public class MacAppIntegrationTests
             {
             }
 
-            Assert.True(AppKit.MenuBarClaimsCommandKey('v', KeyCodeV));
+            Assert.True(AppKit.MenuBarClaimsCommandKey('v'));
         }
 
-        Assert.False(AppKit.MenuBarClaimsCommandKey('v', KeyCodeV));
+        Assert.False(AppKit.MenuBarClaimsCommandKey('v'));
     }
 }

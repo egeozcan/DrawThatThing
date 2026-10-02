@@ -4,7 +4,7 @@ using DrawThatThing.Platform.macOS;
 namespace DrawThatThing.Tests.Platform;
 
 /// <summary>
-/// Just enough Objective-C interop to ask a menu bar which key presses it claims. AppKit only allows the
+/// Just enough Objective-C interop to find out which key presses a menu bar claims. AppKit only allows the
 /// real menu bar to be used from the main thread, which tests do not run on, so a standalone menu stands in.
 /// </summary>
 internal static class AppKit
@@ -19,15 +19,10 @@ internal static class AppKit
     }
 
     private const string ObjC = "/usr/lib/libobjc.A.dylib";
-    private const ulong NSEventTypeKeyDown = 10;
+    private const ulong NSEventModifierFlagShift = 1 << 17;
+    private const ulong NSEventModifierFlagControl = 1 << 18;
+    private const ulong NSEventModifierFlagOption = 1 << 19;
     private const ulong NSEventModifierFlagCommand = 1 << 20;
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct CGPoint
-    {
-        public double X;
-        public double Y;
-    }
 
     [DllImport(ObjC)]
     private static extern IntPtr objc_getClass(string name);
@@ -48,14 +43,7 @@ internal static class AppKit
     private static extern nint SendNInt(IntPtr receiver, IntPtr selector);
 
     [DllImport(ObjC, EntryPoint = "objc_msgSend")]
-    [return: MarshalAs(UnmanagedType.I1)]
-    private static extern bool SendBool(IntPtr receiver, IntPtr selector, IntPtr arg1);
-
-    [DllImport(ObjC, EntryPoint = "objc_msgSend")]
-    private static extern IntPtr SendKeyEvent(
-        IntPtr receiver, IntPtr selector, ulong type, CGPoint location, ulong modifierFlags, double timestamp,
-        nint windowNumber, IntPtr context, IntPtr characters, IntPtr charactersIgnoringModifiers,
-        [MarshalAs(UnmanagedType.I1)] bool isARepeat, ushort keyCode);
+    private static extern ulong SendULong(IntPtr receiver, IntPtr selector);
 
     /// <summary>A fresh menu bar holding only the application menu, as Avalonia sets it up.</summary>
     public static void ResetMainMenu()
@@ -84,8 +72,7 @@ internal static class AppKit
         var count = (int)SendNInt(_menuBar, Sel("numberOfItems"));
         for (int i = 0; i < count; i++)
         {
-            var title = Send(Send(_menuBar, Sel("itemAtIndex:"), i), Sel("title"));
-            titles.Add(Marshal.PtrToStringUTF8(Send(title, Sel("UTF8String"))) ?? string.Empty);
+            titles.Add(ToString(Send(Send(_menuBar, Sel("itemAtIndex:"), i), Sel("title"))));
         }
         return titles;
     }
@@ -98,16 +85,38 @@ internal static class AppKit
             NSString(title), IntPtr.Zero, NSString(string.Empty));
     }
 
-    /// <summary>Whether the menu bar swallows Command + the given key instead of letting the focused window handle it.</summary>
-    public static bool MenuBarClaimsCommandKey(char key, ushort keyCode)
+    /// <summary>
+    /// Whether the menu bar swallows Command + the given key instead of letting the focused window handle it.
+    /// AppKit offers a key press to the menu bar first, and any item with that shortcut takes it, even a
+    /// disabled one (which then just plays the alert sound). The items are inspected rather than sent a key
+    /// press, because that sound would play on every test run.
+    /// </summary>
+    public static bool MenuBarClaimsCommandKey(char key) => HasCommandKeyItem(_menuBar, key.ToString());
+
+    private static bool HasCommandKeyItem(IntPtr menu, string key)
     {
-        var characters = NSString(key.ToString());
-        var keyEvent = SendKeyEvent(
-            objc_getClass("NSEvent"),
-            Sel("keyEventWithType:location:modifierFlags:timestamp:windowNumber:context:characters:charactersIgnoringModifiers:isARepeat:keyCode:"),
-            NSEventTypeKeyDown, default, NSEventModifierFlagCommand, 0, 0, IntPtr.Zero, characters, characters, false, keyCode);
-        return SendBool(_menuBar, Sel("performKeyEquivalent:"), keyEvent);
+        const ulong relevantModifiers =
+            NSEventModifierFlagShift | NSEventModifierFlagControl | NSEventModifierFlagOption | NSEventModifierFlagCommand;
+        var count = (int)SendNInt(menu, Sel("numberOfItems"));
+        for (int i = 0; i < count; i++)
+        {
+            var item = Send(menu, Sel("itemAtIndex:"), i);
+            var modifiers = SendULong(item, Sel("keyEquivalentModifierMask")) & relevantModifiers;
+            if (ToString(Send(item, Sel("keyEquivalent"))) == key && modifiers == NSEventModifierFlagCommand)
+            {
+                return true;
+            }
+
+            var submenu = Send(item, Sel("submenu"));
+            if (submenu != IntPtr.Zero && HasCommandKeyItem(submenu, key))
+            {
+                return true;
+            }
+        }
+        return false;
     }
+
+    private static string ToString(IntPtr nsString) => Marshal.PtrToStringUTF8(Send(nsString, Sel("UTF8String"))) ?? string.Empty;
 
     private static IntPtr Sel(string name) => sel_registerName(name);
 
