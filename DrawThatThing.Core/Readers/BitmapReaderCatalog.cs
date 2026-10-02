@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using DrawThatThing.Core.Attributes;
 using DrawThatThing.Core.Interfaces;
 
@@ -46,7 +47,13 @@ public sealed class BitmapReaderCatalog
             Type[] types;
             try
             {
-                types = Assembly.LoadFrom(pluginFile).GetTypes();
+                var assembly = Assembly.LoadFrom(pluginFile);
+                // A plugin's build output usually contains a copy of this library; its readers are already built in.
+                if (assembly == typeof(IBitmapReader).Assembly)
+                {
+                    continue;
+                }
+                types = assembly.GetTypes();
             }
             catch (Exception)
             {
@@ -73,7 +80,16 @@ public sealed class BitmapReaderCatalog
         {
             throw new InvalidOperationException($"Unknown parser \"{name}\".");
         }
-        return (IBitmapReader)Activator.CreateInstance(type, imagePath)!;
+        try
+        {
+            return (IBitmapReader)Activator.CreateInstance(type, imagePath)!;
+        }
+        catch (TargetInvocationException ex) when (ex.InnerException != null)
+        {
+            // Show the parser's own error message rather than "Exception has been thrown by the target of an invocation".
+            ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+            throw;
+        }
     }
 
     private static bool IsReaderType(Type type)

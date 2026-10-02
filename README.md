@@ -193,7 +193,8 @@ The application uses:
 
 ### Linux
 
-Requires X11 and the XTest extension. Wayland is not currently supported for mouse automation.
+Requires X11 and the XTest extension. Wayland is not currently supported for mouse automation or
+global hotkeys (under XWayland the hotkeys only fire while an X11 window has the focus).
 
 **Check if XTest is available:**
 ```bash
@@ -256,7 +257,9 @@ On macOS before 15 the hotkeys are `Shift+Option+…`.
    *set start position* hotkey, then click **PLAY >>**. Press the *stop* hotkey to stop.
 
 Additional parsers can be added by putting a DLL with an `IBitmapReader` implementation (with a
-constructor taking the image path) into a `Plugins` folder next to the application.
+constructor taking the image path) into a `Plugins` folder next to the application's executable. For
+the macOS bundle that is `DrawThatThing.app/Contents/MacOS/Plugins`; adding files there invalidates the
+bundle's signature, so sign it again afterwards with `codesign --force --deep --sign - DrawThatThing.app`.
 
 ---
 
