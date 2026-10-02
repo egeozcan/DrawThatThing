@@ -51,17 +51,23 @@ public class HotkeyRegistrationTests
     }
 
     [AvaloniaFact]
-    public void AHotkeyThatCannotBeRegisteredStillWorksInTheWindowAndSaysSo()
+    public void AHotkeyThatCannotBeRegisteredIsMarkedWithoutPromisingItWorksInTheWindow()
     {
+        // When another application owns the combination, the system usually hands the key press to that
+        // application, so even the window-only fallback below may never see it.
         var (viewModel, platform) = CreateViewModel('S');
         platform.FakeMouse.Position = (12, 34);
         viewModel.RegisterHotkeys();
 
+        Assert.Equal("Shift + Alt + S", viewModel.SetStartPositionShortcutText);
+        Assert.Equal(
+            "This shortcut could not be registered, probably because another application already uses it.",
+            viewModel.SetStartPositionShortcutWarning);
+        Assert.Null(viewModel.StopMouseShortcutWarning);
+
+        // Where the key press does reach the window, it still works there.
         Assert.True(viewModel.TryHandleWindowHotkey(ShiftAlt, 's'));
         Assert.Equal(("12", "34"), (viewModel.MousePositionX, viewModel.MousePositionY));
-        Assert.Equal("Shift + Alt + S", viewModel.SetStartPositionShortcutText);
-        Assert.Contains("only works while this window is focused", viewModel.SetStartPositionShortcutWarning);
-        Assert.Null(viewModel.StopMouseShortcutWarning);
 
         // Registered hotkeys are left to the system, which delivers them through HotkeyPressed.
         Assert.False(viewModel.TryHandleWindowHotkey(ShiftAlt, 'C'));

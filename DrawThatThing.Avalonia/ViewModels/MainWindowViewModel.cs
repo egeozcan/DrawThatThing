@@ -136,7 +136,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private string _pickColorShortcutText = string.Empty;
 
-    /// <summary>Why the Stop shortcut only works while this window is focused; null when it works everywhere.</summary>
+    /// <summary>Why the Stop shortcut could not be registered system-wide; null when it was.</summary>
     [ObservableProperty]
     private string? _stopMouseShortcutWarning;
 
@@ -158,10 +158,9 @@ public partial class MainWindowViewModel : ViewModelBase
     /// <summary>
     /// Registers the system-wide hotkeys (Shift + Alt + C/S/A/D/Q, like the original application).
     /// macOS 15 and later refuse global hotkeys that only use Option (+ Shift), so there
-    /// Control + Option is used instead. A hotkey that cannot be registered globally (for example
-    /// because another application already uses it) still works while the DrawThatThing window is
-    /// focused (its label shows a warning); the others are registered regardless, so Stop keeps working
-    /// while drawing.
+    /// Control + Option is used instead. A hotkey that cannot be registered globally (usually because
+    /// another application already uses it) gets a warning on its label and is also handled as a
+    /// shortcut of this window; the others are registered regardless, so Stop keeps working while drawing.
     /// </summary>
     public void RegisterHotkeys()
     {
@@ -206,7 +205,8 @@ public partial class MainWindowViewModel : ViewModelBase
                 }
             }
 
-            // Fall back to a shortcut that only works while this window has the keyboard focus.
+            // Fall back to a shortcut that works while this window has the keyboard focus, for when the system
+            // still delivers the key press to it (it usually goes to the application that owns the combination).
             if (!registered)
             {
                 _windowOnlyHotkeys[id] = (modifiers, key);
@@ -214,7 +214,7 @@ public partial class MainWindowViewModel : ViewModelBase
             UpdateShortcutLabel(
                 id,
                 FormatShortcut(modifiers, key),
-                registered ? null : "Another application already uses this shortcut, so it only works while this window is focused.");
+                registered ? null : "This shortcut could not be registered, probably because another application already uses it.");
         }
     }
 

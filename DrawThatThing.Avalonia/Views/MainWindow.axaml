@@ -17,7 +17,7 @@
         FontSize="12">
 
     <Window.Styles>
-        <!-- A hotkey that another application already uses only works while this window is focused. -->
+        <!-- A hotkey that could not be registered, usually because another application already uses it. -->
         <Style Selector="TextBlock.windowOnly">
             <Setter Property="Foreground" Value="#C00000" />
             <Setter Property="TextDecorations" Value="Underline" />
