@@ -14,7 +14,7 @@ public static class TestImages
             bitmap.SetPixel(x, y, SKColors.Black);
         }
 
-        var path = Path.Combine(Path.GetTempPath(), $"dtt-test-{Guid.NewGuid():N}.png");
+        var path = TestFiles.NewPath(".png");
         using var image = SKImage.FromBitmap(bitmap);
         using var data = image.Encode(SKEncodedImageFormat.Png, 100);
         File.WriteAllBytes(path, data.ToArray());

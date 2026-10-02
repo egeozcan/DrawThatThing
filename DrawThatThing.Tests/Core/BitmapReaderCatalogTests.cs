@@ -20,7 +20,7 @@ public class BitmapReaderCatalogTests
     public void ACopyOfTheCoreLibraryInThePluginsFolderDoesNotAddParsers()
     {
         // Copying a plugin's build output also copies DrawThatThing.Core.dll next to it.
-        var plugins = Directory.CreateTempSubdirectory("dtt-plugins-").FullName;
+        var plugins = TestFiles.NewDirectory();
         File.Copy(typeof(AbstractReader).Assembly.Location, Path.Combine(plugins, "DrawThatThing.Core.dll"));
 
         var catalog = BitmapReaderCatalog.CreateDefault(plugins);

@@ -9,12 +9,12 @@ public class PaletteFileTests
     public async Task ExportedPalettesKeepTheBackgroundColor()
     {
         var (viewModel, _, dialogs) = CreateViewModel();
-        var csv = Path.Combine(Path.GetTempPath(), $"dtt-palette-{Guid.NewGuid():N}.csv");
+        var csv = TestFiles.NewPath(".csv");
         File.WriteAllLines(csv, ["X;Y;RGB;BG", "1;2;#FF0000;false", "3;4;#FFFFFF;true"]);
         dialogs.ImportPath = csv;
         await viewModel.ImportColorsCommand.ExecuteAsync(null);
 
-        var exported = Path.Combine(Path.GetTempPath(), $"dtt-palette-{Guid.NewGuid():N}.csv");
+        var exported = TestFiles.NewPath(".csv");
         dialogs.ExportPath = exported;
         await viewModel.ExportColorsCommand.ExecuteAsync(null);
         dialogs.ImportPath = exported;
@@ -28,7 +28,7 @@ public class PaletteFileTests
     public async Task PalettesExportedWithoutTheBackgroundColumnCanStillBeImported()
     {
         var (viewModel, _, dialogs) = CreateViewModel();
-        var csv = Path.Combine(Path.GetTempPath(), $"dtt-palette-{Guid.NewGuid():N}.csv");
+        var csv = TestFiles.NewPath(".csv");
         File.WriteAllLines(csv, ["X;Y;RGB", "1;2;#FF0000"]);
         dialogs.ImportPath = csv;
 
