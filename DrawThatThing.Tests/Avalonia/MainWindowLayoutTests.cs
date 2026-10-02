@@ -26,11 +26,11 @@ public class MainWindowLayoutTests
         var viewModel = new MainWindowViewModel(platform, new FakeDialogService());
         viewModel.RegisterHotkeys();
         var window = new MainWindow { DataContext = viewModel };
+        window.Width = window.MinWidth; // the narrowest the window can get
         window.Show();
-        window.Width = window.MinWidth;
-        window.Height = 660;
         Dispatcher.UIThread.RunJobs();
         window.UpdateLayout();
+        Assert.Equal(window.MinWidth, window.ClientSize.Width);
 
         var play = window.FindControl<Button>("PlayButton")!;
         var playRight = play.TranslatePoint(new Point(play.Bounds.Width, 0), window)!.Value.X;
