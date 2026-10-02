@@ -224,6 +224,23 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     /// <summary>
+    /// Stops a running playback before the application exits, so the mouse button is not left pressed.
+    /// </summary>
+    public void Shutdown()
+    {
+        StopPlayback();
+        try
+        {
+            _playTask.Wait(TimeSpan.FromSeconds(2));
+        }
+        catch (AggregateException)
+        {
+            // Already reported, or not worth reporting while quitting.
+        }
+        UnregisterHotkeys();
+    }
+
+    /// <summary>
     /// Handles a key press inside the window for hotkeys that could not be registered globally.
     /// </summary>
     public bool TryHandleWindowHotkey(HotkeyModifiers modifiers, char key)
@@ -373,11 +390,23 @@ public partial class MainWindowViewModel : ViewModelBase
             .Select(row => new ColorSpot
             {
                 Color = row.Rgb.ToColor(),
-                Point = new Point(row.X.ToInt(), row.Y.ToInt()),
+                Point = ParsePalettePosition(row),
                 IsBackgroundColor = row.IsBackground
             })
             .Where(x => !x.Color.IsEmpty)
             .ToList();
+    }
+
+    /// <summary>
+    /// A row without a valid position (e.g. only the RGB value was typed in) has no palette swatch to click;
+    /// it must not turn into a click at the top-left corner of the screen.
+    /// </summary>
+    private static Point ParsePalettePosition(ColorPaletteItem row)
+    {
+        return int.TryParse(row.X, NumberStyles.Integer, CultureInfo.InvariantCulture, out var x)
+               && int.TryParse(row.Y, NumberStyles.Integer, CultureInfo.InvariantCulture, out var y)
+            ? new Point(x, y)
+            : Point.Empty;
     }
 
     [RelayCommand]
@@ -666,17 +695,24 @@ public partial class MainWindowViewModel : ViewModelBase
         using var cancellation = new CancellationTokenSource();
         _playCancellation = cancellation;
         _playTask = Task.Run(() => playback(mouse, cancellation.Token));
+        Exception? error = null;
         try
         {
             await _playTask;
         }
         catch (Exception ex)
         {
-            await _dialogs.ShowMessageAsync(ex.Message);
+            error = ex;
         }
         finally
         {
             _playCancellation = null;
+        }
+
+        // Only once this playback no longer owns the Stop hotkey, because another one may start meanwhile.
+        if (error != null)
+        {
+            await _dialogs.ShowMessageAsync(error.Message);
         }
     }
 

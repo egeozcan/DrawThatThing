@@ -57,6 +57,10 @@ public class MouseDragAction
         {
             yield break;
         }
+        if (cancellationToken.IsCancellationRequested)
+        {
+            yield break;
+        }
 
         mouse.SetCursorPosition(points[0].X + offset.X, points[0].Y + offset.Y);
         mouse.LeftMouseDown();

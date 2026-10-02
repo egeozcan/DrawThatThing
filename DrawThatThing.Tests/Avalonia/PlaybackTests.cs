@@ -1,5 +1,6 @@
 using System.Globalization;
 using Avalonia.Headless.XUnit;
+using Avalonia.Threading;
 using CommunityToolkit.Mvvm.Input;
 using DrawThatThing.Avalonia.ViewModels;
 using static DrawThatThing.Tests.Avalonia.ViewModelTestHelpers;
@@ -22,6 +23,24 @@ public class PlaybackTests
         Assert.Equal(
             ["move 900,10", "down", "move 900,10", "up", "move 101,202", "down", "move 101,202", "up"],
             platform.FakeMouse.Log);
+    }
+
+    [AvaloniaFact]
+    public async Task APaletteColorWithoutAPositionIsNotClicked()
+    {
+        // E.g. the user only typed the RGB value; clicking (0, 0) instead would open the Apple menu on macOS.
+        var (viewModel, platform, dialogs) = CreateViewModel();
+        viewModel.SelectedParser = "PointReader";
+        AddPaletteRow(viewModel, "", "", "#000000");
+        AddPaletteRow(viewModel, "abc", "30", "#FFFFFF");
+        dialogs.ImagePath = TestImages.CreatePng(4, 4, (1, 2));
+        await viewModel.LoadImageCommand.ExecuteAsync(null);
+
+        viewModel.PlayCommand.Execute(null);
+        WaitUntil(() => platform.FakeMouse.Log.Contains("up"));
+        Thread.Sleep(200);
+
+        Assert.Equal(["move 1,2", "down", "move 1,2", "up"], platform.FakeMouse.Log);
     }
 
     [AvaloniaFact]
@@ -58,6 +77,43 @@ public class PlaybackTests
         var moves = platform.FakeMouse.Log.Count(op => op.StartsWith("move"));
         Assert.True(moves < 100, $"{moves} points were played after Stop.");
         Assert.Equal("up", platform.FakeMouse.Log[^1]);
+    }
+
+    [AvaloniaFact]
+    public async Task StopStillWorksForAPlaybackStartedWhileAnErrorMessageIsOpen()
+    {
+        var (viewModel, platform, dialogs) = CreateViewModel();
+        await LoadDrawingAsync(viewModel, dialogs, (1, 2));
+        dialogs.KeepMessagesOpen = true;
+        platform.FakeMouse.ThrowOnMove = new InvalidOperationException("The mouse could not be moved.");
+        viewModel.PlayCommand.Execute(null);
+        WaitUntil(() => dialogs.Messages.Count > 0);
+
+        platform.FakeMouse.ThrowOnMove = null;
+        viewModel.DebugRoutes = string.Join(", ", Enumerable.Range(0, 1000).Select(i => $"{i}|0"));
+        var testPlayback = viewModel.PlayDebugPointsCommand.ExecuteAsync(null);
+        WaitUntil(() => platform.FakeMouse.Log.Count > 0);
+        dialogs.CloseMessages();
+        Dispatcher.UIThread.RunJobs();
+        viewModel.HandleHotkey(MainWindowViewModel.StopMouseHotkey);
+
+        WaitUntil(() => testPlayback.IsCompleted, timeoutMilliseconds: 2000);
+        Assert.True(platform.FakeMouse.Log.Count < 500);
+    }
+
+    [AvaloniaFact]
+    public void QuittingStopsThePlaybackAndReleasesTheButton()
+    {
+        var (viewModel, platform, _) = CreateViewModel();
+        viewModel.DebugRoutes = string.Join(", ", Enumerable.Range(0, 1000).Select(i => $"{i}|0"));
+        var testPlayback = viewModel.PlayDebugPointsCommand.ExecuteAsync(null);
+        WaitUntil(() => platform.FakeMouse.Log.Count > 0);
+
+        viewModel.Shutdown();
+
+        Assert.True(platform.FakeMouse.Log.Count < 500);
+        Assert.Equal("up", platform.FakeMouse.Log[^1]);
+        Assert.True(platform.FakeHotkeys.Disposed);
     }
 
     [AvaloniaFact]

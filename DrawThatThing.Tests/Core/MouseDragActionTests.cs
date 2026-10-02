@@ -54,6 +54,19 @@ public class MouseDragActionTests
     }
 
     [Fact]
+    public void AnAlreadyStoppedPlaybackDoesNotTouchTheMouse()
+    {
+        var mouse = new FakeMouse();
+        var action = new MouseDragAction([new Point(11, 12), new Point(12, 12)]);
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+
+        PlayToEnd(action, mouse, token: cancellation.Token);
+
+        Assert.Empty(mouse.Log);
+    }
+
+    [Fact]
     public void StoppingMidStrokeReleasesTheButtonWithoutMovingFurther()
     {
         var mouse = new FakeMouse();

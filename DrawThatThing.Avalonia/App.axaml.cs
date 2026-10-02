@@ -44,7 +44,7 @@ public partial class App : Application
                 mainWindow.Deactivated += (_, _) =>
                     Dispatcher.UIThread.Post(MacAppIntegration.OnWindowActivationChanged, DispatcherPriority.Background);
             }
-            desktop.ShutdownRequested += (_, _) => viewModel.UnregisterHotkeys();
+            desktop.ShutdownRequested += (_, _) => viewModel.Shutdown();
 
             desktop.MainWindow = mainWindow;
         }
