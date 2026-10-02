@@ -65,6 +65,7 @@ public class LinuxHotkeyManager : IHotkeyManager
     private IntPtr _display;
     private IntPtr _root;
     private volatile bool _running;
+    private bool _displayUnavailable;
     private bool _disposed;
 
     public event EventHandler<HotkeyEventArgs>? HotkeyPressed;
@@ -149,7 +150,7 @@ public class LinuxHotkeyManager : IHotkeyManager
     {
         lock (_startLock)
         {
-            if (_thread != null)
+            if (_thread != null || _displayUnavailable)
             {
                 return _display != IntPtr.Zero;
             }
@@ -165,7 +166,7 @@ public class LinuxHotkeyManager : IHotkeyManager
 
             if (_display == IntPtr.Zero)
             {
-                _thread = new Thread(() => { });
+                _displayUnavailable = true;
                 return false;
             }
 
@@ -237,6 +238,9 @@ public class LinuxHotkeyManager : IHotkeyManager
         if (_disposed) return;
         _disposed = true;
         _running = false;
-        _thread?.Join(TimeSpan.FromSeconds(2));
+        if (_thread is { IsAlive: true })
+        {
+            _thread.Join(TimeSpan.FromSeconds(2));
+        }
     }
 }
