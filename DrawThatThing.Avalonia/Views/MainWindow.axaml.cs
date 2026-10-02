@@ -45,7 +45,10 @@ public partial class MainWindow : Window
 
     private void OnPaletteGridKeyDown(object? sender, KeyEventArgs e)
     {
-        if (e.Key is not (Key.Delete or Key.Back) || e.Source is TextBox)
+        // Delete, or Cmd+Backspace as elsewhere on macOS. A plain Backspace on a clicked cell must not
+        // throw the whole row away.
+        var isDeleteGesture = e.Key == Key.Delete || (e.Key == Key.Back && e.KeyModifiers.HasFlag(KeyModifiers.Meta));
+        if (!isDeleteGesture || e.Source is TextBox)
         {
             return;
         }

@@ -8,7 +8,8 @@ namespace DrawThatThing.Tests;
 
 public class TestAppBuilder
 {
+    // The real App provides the themes; without a desktop lifetime it does not create a main window itself.
     public static AppBuilder BuildAvaloniaApp() => AppBuilder
-        .Configure<Application>()
+        .Configure<DrawThatThing.Avalonia.App>()
         .UseHeadless(new AvaloniaHeadlessPlatformOptions());
 }

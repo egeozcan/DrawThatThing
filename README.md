@@ -241,7 +241,7 @@ On macOS before 15 the hotkeys are `Shift+Option+…`.
 2. Build the **Color Palette**: hover over each color of the drawing application's palette and press
    the *pick color* hotkey. This stores where the color is on the screen, so DrawThatThing can click it
    when it needs that color. You can also type rows in by hand, mark a color as the background color
-   (**BG Color**), delete rows with the Delete key or the right-click menu, and **Export**/**Import**
+   (**BG Color**), delete rows with the Delete key (Cmd+Backspace on a Mac) or the right-click menu, and **Export**/**Import**
    palettes as CSV files.
 3. Choose a **Parser** and adjust its **Parser Settings**:
    - **AbstractReader**: fills areas of the same color with strokes; needs a background color.
