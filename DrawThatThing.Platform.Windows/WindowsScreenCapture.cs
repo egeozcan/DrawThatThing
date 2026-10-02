@@ -61,12 +61,18 @@ public class WindowsScreenCapture : IScreenCapture
         public uint[] bmiColors;
     }
 
-    public (byte R, byte G, byte B) GetPixelColor(int x, int y)
+    private const uint ClrInvalid = 0xFFFFFFFF;
+
+    public (byte R, byte G, byte B)? GetPixelColor(int x, int y)
     {
         IntPtr hdc = GetDC(IntPtr.Zero);
         try
         {
             uint pixel = GetPixel(hdc, x, y);
+            if (pixel == ClrInvalid)
+            {
+                return null;
+            }
             byte r = (byte)(pixel & 0xFF);
             byte g = (byte)((pixel >> 8) & 0xFF);
             byte b = (byte)((pixel >> 16) & 0xFF);

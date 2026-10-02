@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Headless.XUnit" Version="11.1.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DrawThatThing.Avalonia\DrawThatThing.Avalonia.csproj" />
+    <ProjectReference Include="..\DrawThatThing.Core\DrawThatThing.Core.csproj" />
+    <ProjectReference Include="..\DrawThatThing.Platform\DrawThatThing.Platform.csproj" />
+    <ProjectReference Include="..\DrawThatThing.Platform.Linux\DrawThatThing.Platform.Linux.csproj" />
+    <ProjectReference Include="..\DrawThatThing.Platform.macOS\DrawThatThing.Platform.macOS.csproj" />
+    <ProjectReference Include="..\DrawThatThing.Platform.Windows\DrawThatThing.Platform.Windows.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+</Project>

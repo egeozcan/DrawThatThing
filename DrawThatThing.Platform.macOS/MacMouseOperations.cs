@@ -1,140 +1,80 @@
-using System.Runtime.InteropServices;
-
 namespace DrawThatThing.Platform.macOS;
 
+/// <summary>
+/// Synthesizes mouse input with Quartz events. Posting events requires the Accessibility
+/// permission (System Settings → Privacy &amp; Security → Accessibility); without it macOS
+/// silently drops them.
+/// </summary>
 public class MacMouseOperations : IMouseOperations
 {
-    // CoreGraphics framework
-    private const string CoreGraphics = "/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics";
+    /// <summary>How long a position this class moved the cursor to is trusted over the reported cursor location.</summary>
+    private static readonly TimeSpan PostedPositionLifetime = TimeSpan.FromSeconds(1);
 
-    [DllImport(CoreGraphics)]
-    private static extern IntPtr CGEventCreateMouseEvent(IntPtr source, CGEventType mouseType, CGPoint mouseCursorPosition, CGMouseButton mouseButton);
+    private readonly IQuartzEvents _quartz;
+    private readonly TimeProvider _time;
+    private readonly object _positionLock = new();
+    private volatile bool _leftButtonDown;
+    private volatile bool _rightButtonDown;
+    private (double X, double Y) _postedPosition;
+    private long? _postedTimestamp;
 
-    [DllImport(CoreGraphics)]
-    private static extern void CGEventPost(CGEventTapLocation tap, IntPtr eventRef);
-
-    [DllImport(CoreGraphics)]
-    private static extern void CFRelease(IntPtr cf);
-
-    [DllImport(CoreGraphics)]
-    private static extern CGPoint CGEventGetLocation(IntPtr eventRef);
-
-    [DllImport(CoreGraphics)]
-    private static extern IntPtr CGEventCreate(IntPtr source);
-
-    private enum CGEventType : uint
+    public MacMouseOperations()
+        : this(new QuartzEvents(), TimeProvider.System)
     {
-        LeftMouseDown = 1,
-        LeftMouseUp = 2,
-        RightMouseDown = 3,
-        RightMouseUp = 4,
-        MouseMoved = 5,
-        LeftMouseDragged = 6,
-        RightMouseDragged = 7
     }
 
-    private enum CGMouseButton : uint
+    internal MacMouseOperations(IQuartzEvents quartz, TimeProvider time)
     {
-        Left = 0,
-        Right = 1,
-        Center = 2
-    }
-
-    private enum CGEventTapLocation : uint
-    {
-        HID = 0,
-        Session = 1,
-        AnnotatedSession = 2
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct CGPoint
-    {
-        public double X;
-        public double Y;
-
-        public CGPoint(double x, double y)
-        {
-            X = x;
-            Y = y;
-        }
+        _quartz = quartz;
+        _time = time;
     }
 
     public void SetCursorPosition(int x, int y)
     {
-        var point = new CGPoint(x, y);
-        var moveEvent = CGEventCreateMouseEvent(IntPtr.Zero, CGEventType.MouseMoved, point, CGMouseButton.Left);
-        if (moveEvent != IntPtr.Zero)
+        // Moving while a button is held has to be reported as a drag, otherwise
+        // applications see a plain hover and nothing gets drawn.
+        var (type, button) = _leftButtonDown
+            ? (QuartzMouseEventType.LeftMouseDragged, QuartzMouseButton.Left)
+            : _rightButtonDown
+                ? (QuartzMouseEventType.RightMouseDragged, QuartzMouseButton.Right)
+                : (QuartzMouseEventType.MouseMoved, QuartzMouseButton.Left);
+        _quartz.PostMouseEvent(type, x, y, button, isClick: false);
+        lock (_positionLock)
         {
-            CGEventPost(CGEventTapLocation.HID, moveEvent);
-            CFRelease(moveEvent);
+            _postedPosition = (x, y);
+            _postedTimestamp = _time.GetTimestamp();
         }
     }
 
     public (int X, int Y) GetCursorPosition()
     {
-        var eventRef = CGEventCreate(IntPtr.Zero);
-        if (eventRef != IntPtr.Zero)
-        {
-            try
-            {
-                var point = CGEventGetLocation(eventRef);
-                return ((int)point.X, (int)point.Y);
-            }
-            finally
-            {
-                CFRelease(eventRef);
-            }
-        }
-        return (0, 0);
+        // The location is fractional on Retina screens; the hotspot is inside the pixel it was truncated to.
+        var (x, y) = _quartz.GetCursorLocation();
+        return ((int)Math.Floor(x), (int)Math.Floor(y));
     }
 
     public void LeftMouseDown()
     {
-        var pos = GetCursorPosition();
-        var point = new CGPoint(pos.X, pos.Y);
-        var downEvent = CGEventCreateMouseEvent(IntPtr.Zero, CGEventType.LeftMouseDown, point, CGMouseButton.Left);
-        if (downEvent != IntPtr.Zero)
-        {
-            CGEventPost(CGEventTapLocation.HID, downEvent);
-            CFRelease(downEvent);
-        }
+        _leftButtonDown = true;
+        PostButtonEvent(QuartzMouseEventType.LeftMouseDown, QuartzMouseButton.Left);
     }
 
     public void LeftMouseUp()
     {
-        var pos = GetCursorPosition();
-        var point = new CGPoint(pos.X, pos.Y);
-        var upEvent = CGEventCreateMouseEvent(IntPtr.Zero, CGEventType.LeftMouseUp, point, CGMouseButton.Left);
-        if (upEvent != IntPtr.Zero)
-        {
-            CGEventPost(CGEventTapLocation.HID, upEvent);
-            CFRelease(upEvent);
-        }
+        _leftButtonDown = false;
+        PostButtonEvent(QuartzMouseEventType.LeftMouseUp, QuartzMouseButton.Left);
     }
 
     public void RightMouseDown()
     {
-        var pos = GetCursorPosition();
-        var point = new CGPoint(pos.X, pos.Y);
-        var downEvent = CGEventCreateMouseEvent(IntPtr.Zero, CGEventType.RightMouseDown, point, CGMouseButton.Right);
-        if (downEvent != IntPtr.Zero)
-        {
-            CGEventPost(CGEventTapLocation.HID, downEvent);
-            CFRelease(downEvent);
-        }
+        _rightButtonDown = true;
+        PostButtonEvent(QuartzMouseEventType.RightMouseDown, QuartzMouseButton.Right);
     }
 
     public void RightMouseUp()
     {
-        var pos = GetCursorPosition();
-        var point = new CGPoint(pos.X, pos.Y);
-        var upEvent = CGEventCreateMouseEvent(IntPtr.Zero, CGEventType.RightMouseUp, point, CGMouseButton.Right);
-        if (upEvent != IntPtr.Zero)
-        {
-            CGEventPost(CGEventTapLocation.HID, upEvent);
-            CFRelease(upEvent);
-        }
+        _rightButtonDown = false;
+        PostButtonEvent(QuartzMouseEventType.RightMouseUp, QuartzMouseButton.Right);
     }
 
     public void Click()
@@ -148,5 +88,28 @@ public class MacMouseOperations : IMouseOperations
     {
         SetCursorPosition(x, y);
         Click();
+    }
+
+    private void PostButtonEvent(QuartzMouseEventType type, QuartzMouseButton button)
+    {
+        var (x, y) = GetButtonEventLocation();
+        _quartz.PostMouseEvent(type, x, y, button, isClick: true);
+    }
+
+    /// <summary>
+    /// Posted events are applied asynchronously, so right after a move the reported cursor location can
+    /// still be the old one. Pressing there would draw a line from the old position, so a button event
+    /// shortly after a move goes to where the cursor was moved to.
+    /// </summary>
+    private (double X, double Y) GetButtonEventLocation()
+    {
+        lock (_positionLock)
+        {
+            if (_postedTimestamp is { } postedAt && _time.GetElapsedTime(postedAt) < PostedPositionLifetime)
+            {
+                return _postedPosition;
+            }
+        }
+        return _quartz.GetCursorLocation();
     }
 }

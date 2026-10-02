@@ -4,6 +4,7 @@ using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.VisualTree;
 using DrawThatThing.Avalonia.ViewModels;
+using DrawThatThing.Platform;
 
 namespace DrawThatThing.Avalonia.Views;
 
@@ -23,10 +24,83 @@ public partial class MainWindow : Window
         AddHandler(DragDrop.DragOverEvent, OnDragOver);
         AddHandler(DragDrop.DropEvent, OnDrop);
         AddHandler(KeyDownEvent, OnWindowKeyDown, RoutingStrategies.Tunnel);
+        PaletteGrid.KeyDown += OnPaletteGridKeyDown;
+    }
+
+    protected override void OnDataContextChanged(EventArgs e)
+    {
+        base.OnDataContextChanged(e);
+        if (DataContext is MainWindowViewModel vm)
+        {
+            vm.DebugPointAdded -= OnDebugPointAdded;
+            vm.DebugPointAdded += OnDebugPointAdded;
+        }
+    }
+
+    private void OnDebugPointAdded(object? sender, EventArgs e)
+    {
+        DebugRoutesBox.Focus();
+        DebugRoutesBox.CaretIndex = DebugRoutesBox.Text?.Length ?? 0;
+    }
+
+    private void OnPaletteGridKeyDown(object? sender, KeyEventArgs e)
+    {
+        // Delete, or Cmd+Backspace as elsewhere on macOS. A plain Backspace on a clicked cell must not
+        // throw the whole row away.
+        var isDeleteGesture = e.Key == Key.Delete || (e.Key == Key.Back && e.KeyModifiers.HasFlag(KeyModifiers.Meta));
+        if (!isDeleteGesture || e.Source is TextBox)
+        {
+            return;
+        }
+
+        DeleteSelectedPaletteRows();
+        e.Handled = true;
+    }
+
+    private void OnDeletePaletteRowsClick(object? sender, RoutedEventArgs e)
+    {
+        DeleteSelectedPaletteRows();
+    }
+
+    private void DeleteSelectedPaletteRows()
+    {
+        if (DataContext is MainWindowViewModel vm)
+        {
+            vm.RemovePaletteRows(PaletteGrid.SelectedItems.OfType<ColorPaletteItem>());
+        }
+    }
+
+    /// <summary>
+    /// Hotkeys that could not be registered system-wide still work while this window is focused.
+    /// </summary>
+    private bool TryHandleWindowHotkey(KeyEventArgs e)
+    {
+        if (DataContext is not MainWindowViewModel vm || e.Key < Key.A || e.Key > Key.Z)
+        {
+            return false;
+        }
+
+        var modifiers = HotkeyModifiers.None;
+        if (e.KeyModifiers.HasFlag(KeyModifiers.Alt)) modifiers |= HotkeyModifiers.Alt;
+        if (e.KeyModifiers.HasFlag(KeyModifiers.Control)) modifiers |= HotkeyModifiers.Ctrl;
+        if (e.KeyModifiers.HasFlag(KeyModifiers.Shift)) modifiers |= HotkeyModifiers.Shift;
+        if (e.KeyModifiers.HasFlag(KeyModifiers.Meta)) modifiers |= HotkeyModifiers.Win;
+        if (modifiers == HotkeyModifiers.None)
+        {
+            return false;
+        }
+
+        return vm.TryHandleWindowHotkey(modifiers, (char)('A' + (e.Key - Key.A)));
     }
 
     private async void OnWindowKeyDown(object? sender, KeyEventArgs e)
     {
+        if (TryHandleWindowHotkey(e))
+        {
+            e.Handled = true;
+            return;
+        }
+
         if (_isClipboardPasteInFlight)
         {
             return;

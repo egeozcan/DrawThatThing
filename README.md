@@ -18,13 +18,14 @@ A cross-platform desktop application that converts images into automated mouse d
 ```
 DrawThatThing/
 ├── DrawThatThing.Avalonia/         # Main Avalonia UI application
-├── DrawThatThing.Core/             # Platform-agnostic core library
+├── DrawThatThing.Core/             # Platform-agnostic core library (image parsers, preview)
 ├── DrawThatThing.Platform/         # Platform abstraction interfaces
 ├── DrawThatThing.Platform.Windows/ # Windows-specific implementations
 ├── DrawThatThing.Platform.macOS/   # macOS-specific implementations
 ├── DrawThatThing.Platform.Linux/   # Linux-specific implementations
 ├── DrawThatThing.sln               # Solution file
 ├── build.sh                        # Build script for Linux/macOS
+├── build-macos-app.sh              # Builds DrawThatThing.app for macOS
 └── build.cmd                       # Build script for Windows
 ```
 
@@ -162,21 +163,39 @@ No additional configuration required. The application uses Win32 APIs for:
 
 ### macOS
 
-**Important**: You must grant Accessibility permissions for mouse automation to work.
+The easiest way to run DrawThatThing on a Mac is as an application bundle:
 
-1. Open **System Preferences** (or **System Settings** on macOS Ventura+)
-2. Go to **Security & Privacy** → **Privacy** → **Accessibility**
-3. Click the lock icon to make changes
-4. Add **DrawThatThing** to the list and enable it
+```bash
+./build-macos-app.sh            # creates publish/DrawThatThing.app
+open publish/DrawThatThing.app
+```
+
+Running it as a bundle (rather than through `dotnet run` in a terminal) makes macOS ask for
+permissions for **DrawThatThing** itself instead of for your terminal app.
+
+DrawThatThing needs two permissions, both under **System Settings → Privacy & Security**:
+
+- **Accessibility**: to move and click the mouse. Without it macOS silently ignores the drawing.
+  The app asks for it on start-up.
+- **Screen Recording** (called **Screen & System Audio Recording** on macOS 15 and later): to pick
+  colors from the screen with the "Pick color" hotkey. Without it the colors cannot be read and the
+  app tells you so instead of adding a color. The app asks
+  for it the first time you pick a color. You may have to restart the app after granting it.
+
+The hotkeys are system-wide (you can use them while another app, e.g. your browser, is in front)
+and don't need any permission. macOS 15 (Sequoia) and later no longer allow system-wide hotkeys
+that only use **Shift + Option**, so on those versions the hotkeys are **Control + Option + key**
+instead. The window always shows the combination that is active.
 
 The application uses:
-- CoreGraphics framework for mouse control (`CGEventCreateMouseEvent`, `CGEventPost`)
-- Carbon framework for global hotkeys (`RegisterEventHotKey`)
-- CoreGraphics for screen capture (`CGWindowListCreateImage`)
+- CoreGraphics for mouse control (`CGEventCreateMouseEvent`, `CGEventPost`)
+- Carbon for global hotkeys (`RegisterEventHotKey`)
+- CoreGraphics for screen capture (`CGWindowListCreateImage`, falling back to the `screencapture` tool)
 
 ### Linux
 
-Requires X11 and the XTest extension. Wayland is not currently supported for mouse automation.
+Requires X11 and the XTest extension. Wayland is not currently supported for mouse automation or
+global hotkeys (under XWayland the hotkeys only fire while an X11 window has the focus).
 
 **Check if XTest is available:**
 ```bash
@@ -206,13 +225,42 @@ The application uses:
 
 ## Global Hotkeys
 
-| Hotkey | Action |
-|--------|--------|
-| `Shift+Alt+C` | Stop playback |
-| `Shift+Alt+S` | Capture current mouse position |
-| `Shift+Alt+A` | Add color at current cursor position |
-| `Shift+Alt+D` | Toggle debug panel |
-| `Shift+Alt+Q` | Add debug point |
+| Hotkey | macOS 15+ | Action |
+|--------|-----------|--------|
+| `Shift+Alt+C` | `Control+Option+C` | Stop playback |
+| `Shift+Alt+S` | `Control+Option+S` | Set the mouse start position to the cursor |
+| `Shift+Alt+A` | `Control+Option+A` | Add the color under the cursor (and its position) to the palette |
+| `Shift+Alt+D` | `Control+Option+D` | Toggle the debug panel |
+| `Shift+Alt+Q` | `Control+Option+Q` | Add the cursor position as a debug point |
+
+On macOS before 15 the hotkeys are `Shift+Option+…`.
+
+---
+
+## Usage
+
+1. Open the drawing application you want to draw in.
+2. Build the **Color Palette**: hover over each color of the drawing application's palette and press
+   the *pick color* hotkey. This stores where the color is on the screen, so DrawThatThing can click it
+   when it needs that color. You can also type rows in by hand, mark a color as the background color
+   (**BG Color**), delete rows with the Delete key (Cmd+Backspace on a Mac) or the right-click menu, and **Export**/**Import**
+   palettes as CSV files.
+3. Choose a **Parser** and adjust its **Parser Settings**:
+   - **AbstractReader**: fills areas of the same color with strokes; needs a background color.
+     `MinimumStrokeSize` skips tiny areas.
+   - **DetailedReader**: chains neighboring pixels of the same color into strokes; skips white.
+   - **LinearReader**: draws every dark pixel (`MaxLight` is the maximum R+G+B) using the black palette color.
+   - **PointReader**: clicks every pixel on its own; `MixPoints` randomizes the order.
+4. Click **Parse Image** (or drop an image onto the window) and check the preview. After changing the
+   palette or the settings, **Refresh** parses the same image again, and **Clear Unused Colors** removes
+   palette colors that the image doesn't use.
+5. Hover over the spot where the top-left corner of the drawing should go and press the
+   *set start position* hotkey, then click **PLAY >>**. Press the *stop* hotkey to stop.
+
+Additional parsers can be added by putting a DLL with an `IBitmapReader` implementation (with a
+constructor taking the image path) into a `Plugins` folder next to the application's executable. For
+the macOS bundle that is `DrawThatThing.app/Contents/MacOS/Plugins`; adding files there invalidates the
+bundle's signature, so sign it again afterwards with `codesign --force --deep --sign - DrawThatThing.app`.
 
 ---
 
@@ -222,7 +270,8 @@ The application uses:
 
 **Windows**: Run the application as Administrator if mouse events are being blocked.
 
-**macOS**: Ensure Accessibility permissions are granted (see macOS notes above).
+**macOS**: Ensure Accessibility permissions are granted (see macOS notes above). If you rebuilt the
+app, remove it from the Accessibility list and add it again; macOS ties the permission to the exact build.
 
 **Linux**:
 - Verify XTest extension is installed: `xdpyinfo | grep -i xtest`
@@ -239,11 +288,16 @@ sudo apt-get install libicu-dev libssl-dev
 
 ### Hotkeys not responding
 
-**Windows**: Another application may have registered the same hotkeys.
-
-**macOS**: Grant Accessibility permissions and restart the application.
+Check the combinations shown at the bottom of the window (Control + Option on macOS 15+). A hotkey
+shown in red could not be registered, usually because another application already uses that
+combination; quit the other application and restart DrawThatThing to get it back.
 
 **Linux**: Ensure no other application is grabbing those key combinations.
+
+### Picking a color fails (macOS)
+
+Grant the Screen Recording (Screen & System Audio Recording) permission and restart the application;
+macOS only applies it after a restart.
 
 ---
 

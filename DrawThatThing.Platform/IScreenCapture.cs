@@ -10,8 +10,11 @@ public interface IScreenCapture
     /// </summary>
     /// <param name="x">X coordinate</param>
     /// <param name="y">Y coordinate</param>
-    /// <returns>The color at the specified position</returns>
-    (byte R, byte G, byte B) GetPixelColor(int x, int y);
+    /// <returns>
+    /// The color at the specified position, or null if the screen cannot be read
+    /// (for example because the user has not allowed it)
+    /// </returns>
+    (byte R, byte G, byte B)? GetPixelColor(int x, int y);
 
     /// <summary>
     /// Captures a region of the screen

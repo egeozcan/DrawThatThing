@@ -15,9 +15,8 @@
     <PackageReference Include="Avalonia" Version="11.1.0" />
     <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.1.0" />
     <PackageReference Include="Avalonia.Desktop" Version="11.1.0" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.1.0" />
+    <PackageReference Include="Avalonia.Themes.Simple" Version="11.1.0" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="11.1.0" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="11.1.0" />
     <PackageReference Include="Avalonia.Skia" Version="11.1.0" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
   </ItemGroup>
@@ -25,9 +24,9 @@
   <ItemGroup>
     <ProjectReference Include="..\DrawThatThing.Core\DrawThatThing.Core.csproj" />
     <ProjectReference Include="..\DrawThatThing.Platform\DrawThatThing.Platform.csproj" />
-    <ProjectReference Include="..\DrawThatThing.Platform.Windows\DrawThatThing.Platform.Windows.csproj" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
-    <ProjectReference Include="..\DrawThatThing.Platform.macOS\DrawThatThing.Platform.macOS.csproj" Condition="$([MSBuild]::IsOSPlatform('OSX'))" />
-    <ProjectReference Include="..\DrawThatThing.Platform.Linux\DrawThatThing.Platform.Linux.csproj" Condition="$([MSBuild]::IsOSPlatform('Linux'))" />
+    <ProjectReference Include="..\DrawThatThing.Platform.Windows\DrawThatThing.Platform.Windows.csproj" />
+    <ProjectReference Include="..\DrawThatThing.Platform.macOS\DrawThatThing.Platform.macOS.csproj" />
+    <ProjectReference Include="..\DrawThatThing.Platform.Linux\DrawThatThing.Platform.Linux.csproj" />
   </ItemGroup>
 
   <ItemGroup>
