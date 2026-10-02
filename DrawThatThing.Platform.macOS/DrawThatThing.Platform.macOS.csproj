@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="DrawThatThing.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\DrawThatThing.Platform\DrawThatThing.Platform.csproj" />
   </ItemGroup>
 
