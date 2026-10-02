@@ -55,6 +55,7 @@ public static class MacAppIntegration
     private const uint KCFStringEncodingUtf8 = 0x08000100;
 
     private static IntPtr _editMenuItem;
+    private static int _openNativeDialogs;
 
     /// <summary>
     /// Returns whether the app may post mouse events. If not, macOS is asked to show its
@@ -92,19 +93,44 @@ public static class MacAppIntegration
     }
 
     /// <summary>
-    /// Adds a standard Edit menu (Undo, Redo, Cut, Copy, Paste, Select All) to the menu bar.
-    /// Native dialogs such as the open panel rely on these menu items for their keyboard shortcuts,
-    /// so without it Cmd+V does nothing in the "Go to folder" (Cmd+Shift+G) field.
-    /// The items target the first responder, so for the app's own windows they stay disabled and
-    /// the key presses reach the app's text boxes as usual.
-    /// Safe to call repeatedly; it re-adds the menu if the toolkit rebuilt the menu bar.
+    /// Returns the menu bar the Edit menu goes into. Tests replace it with a standalone menu, because
+    /// AppKit only allows the real menu bar to be changed from the main thread.
     /// </summary>
-    public static void EnsureEditMenu()
+    internal static Func<IntPtr> GetMainMenu { get; set; } =
+        () => Send(Send(objc_getClass("NSApplication"), Sel("sharedApplication")), Sel("mainMenu"));
+
+    /// <summary>
+    /// Shows a standard Edit menu (Undo, Redo, Cut, Copy, Paste, Select All) until the returned object is
+    /// disposed. Native dialogs such as the open panel rely on these menu items for their keyboard
+    /// shortcuts, so without it Cmd+V does nothing in the "Go to folder" (Cmd+Shift+G) field.
+    /// The menu must not stay around afterwards: AppKit lets the menu bar handle Cmd+V and friends before
+    /// the focused window, even when the items are disabled, so the app's own text boxes would never get them.
+    /// Main thread only.
+    /// </summary>
+    public static IDisposable BeginNativeDialog()
+    {
+        _openNativeDialogs++;
+        EnsureEditMenu();
+        return new NativeDialogScope();
+    }
+
+    /// <summary>
+    /// The toolkit rebuilds the menu bar whenever the window becomes active, so a dialog that is still open
+    /// needs its Edit menu back.
+    /// </summary>
+    public static void OnWindowActivated()
+    {
+        if (_openNativeDialogs > 0)
+        {
+            EnsureEditMenu();
+        }
+    }
+
+    private static void EnsureEditMenu()
     {
         try
         {
-            var app = Send(objc_getClass("NSApplication"), Sel("sharedApplication"));
-            var mainMenu = Send(app, Sel("mainMenu"));
+            var mainMenu = GetMainMenu();
             if (mainMenu == IntPtr.Zero)
             {
                 return;
@@ -121,11 +147,7 @@ public static class MacAppIntegration
             }
 
             // A menu item can only be in one menu at a time.
-            var currentParent = Send(_editMenuItem, Sel("menu"));
-            if (currentParent != IntPtr.Zero)
-            {
-                Send(currentParent, Sel("removeItem:"), _editMenuItem);
-            }
+            RemoveEditMenu();
 
             var count = SendNInt(mainMenu, Sel("numberOfItems"));
             Send(mainMenu, Sel("insertItem:atIndex:"), _editMenuItem, Math.Min(1, count));
@@ -133,6 +155,46 @@ public static class MacAppIntegration
         catch
         {
             // Purely a convenience; never break the app over it.
+        }
+    }
+
+    private static void RemoveEditMenu()
+    {
+        if (_editMenuItem == IntPtr.Zero)
+        {
+            return;
+        }
+
+        var currentParent = Send(_editMenuItem, Sel("menu"));
+        if (currentParent != IntPtr.Zero)
+        {
+            Send(currentParent, Sel("removeItem:"), _editMenuItem);
+        }
+    }
+
+    private sealed class NativeDialogScope : IDisposable
+    {
+        private bool _disposed;
+
+        public void Dispose()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+            _disposed = true;
+
+            if (--_openNativeDialogs == 0)
+            {
+                try
+                {
+                    RemoveEditMenu();
+                }
+                catch
+                {
+                    // Purely a convenience; never break the app over it.
+                }
+            }
         }
     }
 

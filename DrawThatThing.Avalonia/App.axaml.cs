@@ -21,7 +21,9 @@ public partial class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             var mainWindow = new MainWindow();
-            var viewModel = new MainWindowViewModel(PlatformServicesFactory.Create(), new DialogService(mainWindow));
+            // On macOS the file dialogs need an Edit menu for Cmd+V etc. in their text fields.
+            var dialogs = new DialogService(mainWindow, OperatingSystem.IsMacOS() ? MacAppIntegration.BeginNativeDialog : null);
+            var viewModel = new MainWindowViewModel(PlatformServicesFactory.Create(), dialogs);
             mainWindow.DataContext = viewModel;
 
             mainWindow.Opened += (_, _) =>
@@ -35,9 +37,9 @@ public partial class App : Application
             };
             if (OperatingSystem.IsMacOS())
             {
-                // The menu bar is rebuilt whenever the window becomes active, so re-add the Edit menu afterwards.
+                // The menu bar is rebuilt whenever the window becomes active, so an open dialog's Edit menu has to be re-added.
                 mainWindow.Activated += (_, _) =>
-                    Dispatcher.UIThread.Post(MacAppIntegration.EnsureEditMenu, DispatcherPriority.Background);
+                    Dispatcher.UIThread.Post(MacAppIntegration.OnWindowActivated, DispatcherPriority.Background);
             }
             desktop.ShutdownRequested += (_, _) => viewModel.UnregisterHotkeys();
 

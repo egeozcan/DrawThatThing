@@ -10,14 +10,21 @@ public sealed class DialogService : IDialogService
     private static readonly FilePickerFileType CsvFiles = new("CSV Files") { Patterns = ["*.csv"] };
 
     private readonly Window _owner;
+    private readonly Func<IDisposable>? _beginNativeDialog;
 
-    public DialogService(Window owner)
+    /// <param name="owner">The window the dialogs belong to.</param>
+    /// <param name="beginNativeDialog">
+    /// Called before a native file dialog opens; the result is disposed once it closes.
+    /// </param>
+    public DialogService(Window owner, Func<IDisposable>? beginNativeDialog = null)
     {
         _owner = owner;
+        _beginNativeDialog = beginNativeDialog;
     }
 
     public async Task<string?> PickImageAsync()
     {
+        using var nativeDialog = _beginNativeDialog?.Invoke();
         var files = await _owner.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
             Title = "Parse Image",
@@ -34,6 +41,7 @@ public sealed class DialogService : IDialogService
 
     public async Task<string?> PickPaletteToImportAsync()
     {
+        using var nativeDialog = _beginNativeDialog?.Invoke();
         var files = await _owner.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
             Title = "Import Color Palette",
@@ -45,6 +53,7 @@ public sealed class DialogService : IDialogService
 
     public async Task<string?> PickPaletteExportPathAsync()
     {
+        using var nativeDialog = _beginNativeDialog?.Invoke();
         var file = await _owner.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
             Title = "Export Color Palette",
