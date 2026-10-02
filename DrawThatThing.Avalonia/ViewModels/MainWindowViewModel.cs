@@ -40,6 +40,7 @@ public partial class MainWindowViewModel : ViewModelBase
     private List<MouseDragAction>? _actions;
     private string? _lastParsedImage;
     private bool _loadComplete = true;
+    private bool _hotkeyEventsSubscribed;
     private CancellationTokenSource? _playCancellation;
     private Task _playTask = Task.CompletedTask;
 
@@ -68,7 +69,10 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         SelectedParser = Parsers.FirstOrDefault();
 
-        UpdateShortcutLabels(DefaultHotkeyModifiers);
+        foreach (var (id, key) in Hotkeys)
+        {
+            UpdateShortcutLabel(id, FormatShortcut(DefaultHotkeyModifiers, key));
+        }
     }
 
     /// <summary>Raised after a debug point was added, so the view can move the caret to the end.</summary>
@@ -144,8 +148,9 @@ public partial class MainWindowViewModel : ViewModelBase
     /// <summary>
     /// Registers the system-wide hotkeys (Shift + Alt + C/S/A/D/Q, like the original application).
     /// macOS 15 and later refuse global hotkeys that only use Option (+ Shift), so there
-    /// Control + Option is used instead. Hotkeys that cannot be registered globally still work
-    /// while the DrawThatThing window is focused.
+    /// Control + Option is used instead. A hotkey that cannot be registered globally (for example
+    /// because another application already uses it) still works while the DrawThatThing window is
+    /// focused; the others are registered regardless, so Stop keeps working while drawing.
     /// </summary>
     public void RegisterHotkeys()
     {
@@ -164,34 +169,39 @@ public partial class MainWindowViewModel : ViewModelBase
             }
         }
 
-        var modifiers = candidates[0];
-        _windowOnlyHotkeys.Clear();
-        if (hotkeyManager != null)
+        if (hotkeyManager != null && !_hotkeyEventsSubscribed)
         {
             hotkeyManager.HotkeyPressed += (_, e) =>
                 global::Avalonia.Threading.Dispatcher.UIThread.Post(() => HandleHotkey(e.Id));
-
-            foreach (var candidate in candidates)
-            {
-                modifiers = candidate;
-                if (Hotkeys.All(hotkey => hotkeyManager.RegisterHotkey(hotkey.Id, candidate, hotkey.Key)))
-                {
-                    UpdateShortcutLabels(modifiers);
-                    return;
-                }
-                foreach (var hotkey in Hotkeys)
-                {
-                    hotkeyManager.UnregisterHotkey(hotkey.Id);
-                }
-            }
+            _hotkeyEventsSubscribed = true;
         }
 
-        // Fall back to shortcuts that only work while this window has the keyboard focus.
+        _windowOnlyHotkeys.Clear();
         foreach (var (id, key) in Hotkeys)
         {
-            _windowOnlyHotkeys[id] = (modifiers, key);
+            var modifiers = candidates[0];
+            var registered = false;
+            if (hotkeyManager != null)
+            {
+                hotkeyManager.UnregisterHotkey(id);
+                foreach (var candidate in candidates)
+                {
+                    if (hotkeyManager.RegisterHotkey(id, candidate, key))
+                    {
+                        modifiers = candidate;
+                        registered = true;
+                        break;
+                    }
+                }
+            }
+
+            // Fall back to a shortcut that only works while this window has the keyboard focus.
+            if (!registered)
+            {
+                _windowOnlyHotkeys[id] = (modifiers, key);
+            }
+            UpdateShortcutLabel(id, FormatShortcut(modifiers, key) + (registered ? string.Empty : " (in this window only)"));
         }
-        UpdateShortcutLabels(modifiers);
     }
 
     public void UnregisterHotkeys()
@@ -215,11 +225,20 @@ public partial class MainWindowViewModel : ViewModelBase
         return false;
     }
 
-    private void UpdateShortcutLabels(HotkeyModifiers modifiers)
+    private void UpdateShortcutLabel(int id, string text)
     {
-        StopMouseShortcutText = FormatShortcut(modifiers, 'C');
-        SetStartPositionShortcutText = FormatShortcut(modifiers, 'S');
-        PickColorShortcutText = FormatShortcut(modifiers, 'A');
+        switch (id)
+        {
+            case StopMouseHotkey:
+                StopMouseShortcutText = text;
+                break;
+            case SetStartPositionHotkey:
+                SetStartPositionShortcutText = text;
+                break;
+            case PickColorHotkey:
+                PickColorShortcutText = text;
+                break;
+        }
     }
 
     private string FormatShortcut(HotkeyModifiers modifiers, char key)

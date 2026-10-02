@@ -284,16 +284,15 @@ sudo apt-get install libicu-dev libssl-dev
 
 ### Hotkeys not responding
 
-**Windows**: Another application may have registered the same hotkeys.
+Check the combinations shown at the bottom of the window (Control + Option on macOS 15+). A hotkey
+marked *(in this window only)* is already used by another application, so it only works while the
+DrawThatThing window is focused; quit the other application and restart DrawThatThing to get it back.
 
-**macOS**: Check the combination shown at the bottom of the window (Control + Option on macOS 15+).
-Another application may already use it.
+**Linux**: Ensure no other application is grabbing those key combinations.
 
 ### Picked colors are wrong (macOS)
 
 Grant the Screen & System Audio Recording permission and restart the application.
-
-**Linux**: Ensure no other application is grabbing those key combinations.
 
 ---
 
