@@ -364,10 +364,10 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         var sb = new StringBuilder();
-        sb.AppendLine("X;Y;RGB");
+        sb.AppendLine("X;Y;RGB;BG");
         foreach (var row in ColorPalette.Where(row => !row.IsNewRow))
         {
-            sb.AppendLine($"{row.X};{row.Y};{row.Rgb}");
+            sb.AppendLine($"{row.X};{row.Y};{row.Rgb};{row.IsBackground}");
         }
 
         try
@@ -601,20 +601,16 @@ public partial class MainWindowViewModel : ViewModelBase
     #region Playback
 
     [RelayCommand]
-    private void Play()
+    private Task PlayAsync()
     {
-        if (_actions == null || _platformServices == null || !_playTask.IsCompleted)
+        if (_actions == null)
         {
-            return;
+            return Task.CompletedTask;
         }
 
         var actions = _actions.ToList();
         var offset = new Point(MousePositionX.ToInt(), MousePositionY.ToInt());
-        var mouse = _platformServices.Mouse;
-        _playCancellation = new CancellationTokenSource();
-        var token = _playCancellation.Token;
-
-        _playTask = Task.Run(() =>
+        return RunPlaybackAsync((mouse, token) =>
         {
             foreach (var action in actions.TakeWhile(_ => !token.IsCancellationRequested))
             {
@@ -627,6 +623,35 @@ public partial class MainWindowViewModel : ViewModelBase
                 }
             }
         });
+    }
+
+    /// <summary>
+    /// Drives the mouse on a background thread until the playback finishes or Stop is pressed.
+    /// Only one playback (PLAY or TEST) runs at a time; errors are shown to the user.
+    /// </summary>
+    private async Task RunPlaybackAsync(Action<IMouseOperations, CancellationToken> playback)
+    {
+        if (_platformServices == null || !_playTask.IsCompleted)
+        {
+            return;
+        }
+
+        var mouse = _platformServices.Mouse;
+        using var cancellation = new CancellationTokenSource();
+        _playCancellation = cancellation;
+        _playTask = Task.Run(() => playback(mouse, cancellation.Token));
+        try
+        {
+            await _playTask;
+        }
+        catch (Exception ex)
+        {
+            await _dialogs.ShowMessageAsync(ex.Message);
+        }
+        finally
+        {
+            _playCancellation = null;
+        }
     }
 
     private void StopPlayback()
@@ -651,7 +676,7 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             currentDebugPoints += ", ";
         }
-        currentDebugPoints += $"{x}|{y}";
+        currentDebugPoints += string.Create(CultureInfo.InvariantCulture, $"{x}|{y}");
         DebugRoutes = currentDebugPoints;
         DebugPointAdded?.Invoke(this, EventArgs.Empty);
     }
@@ -660,49 +685,45 @@ public partial class MainWindowViewModel : ViewModelBase
     private void DebugAddPoint() => AddDebugPoint();
 
     [RelayCommand]
-    private async Task PlayDebugPointsAsync()
+    private Task PlayDebugPointsAsync()
     {
-        if (_platformServices == null)
-        {
-            return;
-        }
-
-        var mouse = _platformServices.Mouse;
         var lines = DebugRoutes.Split(["\r\n", "\n", "\r"], StringSplitOptions.None);
-        try
+        return RunPlaybackAsync((mouse, token) =>
         {
-            await Task.Run(() =>
+            foreach (var line in lines.Where(l => l.Trim().Length > 0))
             {
-                foreach (var line in lines.Where(l => l.Trim().Length > 0))
+                if (token.IsCancellationRequested)
                 {
-                    var started = false;
-                    try
+                    return;
+                }
+
+                var started = false;
+                try
+                {
+                    foreach (var cor in line.Split(',').Select(point => point.Trim().Split('|')))
                     {
-                        foreach (var cor in line.Split(',').Select(point => point.Trim().Split('|')))
+                        if (token.IsCancellationRequested)
                         {
-                            var xy = cor.Where(x => x.Trim().Length > 0).ToArray();
-                            var cx = int.Parse(xy[0], CultureInfo.InvariantCulture);
-                            var cy = int.Parse(xy[1], CultureInfo.InvariantCulture);
-                            mouse.SetCursorPosition(cx, cy);
-                            if (!started)
-                            {
-                                started = true;
-                                mouse.LeftMouseDown();
-                            }
-                            Thread.Sleep(10);
+                            return;
                         }
-                    }
-                    finally
-                    {
-                        mouse.LeftMouseUp();
+                        var xy = cor.Where(x => x.Trim().Length > 0).ToArray();
+                        var cx = int.Parse(xy[0], CultureInfo.InvariantCulture);
+                        var cy = int.Parse(xy[1], CultureInfo.InvariantCulture);
+                        mouse.SetCursorPosition(cx, cy);
+                        if (!started)
+                        {
+                            started = true;
+                            mouse.LeftMouseDown();
+                        }
+                        token.WaitHandle.WaitOne(10);
                     }
                 }
-            });
-        }
-        catch (Exception ex)
-        {
-            await _dialogs.ShowMessageAsync(ex.Message);
-        }
+                finally
+                {
+                    mouse.LeftMouseUp();
+                }
+            }
+        });
     }
 
     #endregion

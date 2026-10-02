@@ -37,7 +37,7 @@ public class MouseDragActionTests
     }
 
     [Fact]
-    public void StoppingBeforeAPaletteClickSkipsTheClick()
+    public async Task StoppingBeforeAPaletteClickSkipsTheClick()
     {
         var mouse = new FakeMouse();
         var action = new MouseDragAction([new Point(500, 20)], discardOffset: true, Color.Black);
@@ -45,10 +45,10 @@ public class MouseDragActionTests
         var stopwatch = Stopwatch.StartNew();
 
         var playback = Task.Run(() => PlayToEnd(action, mouse, token: cancellation.Token));
-        Thread.Sleep(100);
+        await Task.Delay(100);
         cancellation.Cancel();
 
-        Assert.True(playback.Wait(TimeSpan.FromSeconds(5)));
+        await playback.WaitAsync(TimeSpan.FromSeconds(5));
         Assert.Empty(mouse.Log);
         Assert.True(stopwatch.ElapsedMilliseconds < 700, $"Stopping took {stopwatch.ElapsedMilliseconds} ms.");
     }
