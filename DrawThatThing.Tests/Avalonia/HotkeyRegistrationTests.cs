@@ -59,7 +59,9 @@ public class HotkeyRegistrationTests
 
         Assert.True(viewModel.TryHandleWindowHotkey(ShiftAlt, 's'));
         Assert.Equal(("12", "34"), (viewModel.MousePositionX, viewModel.MousePositionY));
-        Assert.Equal("Shift + Alt + S (in this window only)", viewModel.SetStartPositionShortcutText);
+        Assert.Equal("Shift + Alt + S", viewModel.SetStartPositionShortcutText);
+        Assert.Contains("only works while this window is focused", viewModel.SetStartPositionShortcutWarning);
+        Assert.Null(viewModel.StopMouseShortcutWarning);
 
         // Registered hotkeys are left to the system, which delivers them through HotkeyPressed.
         Assert.False(viewModel.TryHandleWindowHotkey(ShiftAlt, 'C'));

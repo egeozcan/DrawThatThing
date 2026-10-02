@@ -136,6 +136,16 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private string _pickColorShortcutText = string.Empty;
 
+    /// <summary>Why the Stop shortcut only works while this window is focused; null when it works everywhere.</summary>
+    [ObservableProperty]
+    private string? _stopMouseShortcutWarning;
+
+    [ObservableProperty]
+    private string? _setStartPositionShortcutWarning;
+
+    [ObservableProperty]
+    private string? _pickColorShortcutWarning;
+
     private HotkeyModifiers DefaultHotkeyModifiers => HotkeyModifiers.Shift | HotkeyModifiers.Alt;
 
     partial void OnSelectedParserChanged(string? value)
@@ -150,7 +160,8 @@ public partial class MainWindowViewModel : ViewModelBase
     /// macOS 15 and later refuse global hotkeys that only use Option (+ Shift), so there
     /// Control + Option is used instead. A hotkey that cannot be registered globally (for example
     /// because another application already uses it) still works while the DrawThatThing window is
-    /// focused; the others are registered regardless, so Stop keeps working while drawing.
+    /// focused (its label shows a warning); the others are registered regardless, so Stop keeps working
+    /// while drawing.
     /// </summary>
     public void RegisterHotkeys()
     {
@@ -200,7 +211,10 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 _windowOnlyHotkeys[id] = (modifiers, key);
             }
-            UpdateShortcutLabel(id, FormatShortcut(modifiers, key) + (registered ? string.Empty : " (in this window only)"));
+            UpdateShortcutLabel(
+                id,
+                FormatShortcut(modifiers, key),
+                registered ? null : "Another application already uses this shortcut, so it only works while this window is focused.");
         }
     }
 
@@ -225,18 +239,21 @@ public partial class MainWindowViewModel : ViewModelBase
         return false;
     }
 
-    private void UpdateShortcutLabel(int id, string text)
+    private void UpdateShortcutLabel(int id, string text, string? warning = null)
     {
         switch (id)
         {
             case StopMouseHotkey:
                 StopMouseShortcutText = text;
+                StopMouseShortcutWarning = warning;
                 break;
             case SetStartPositionHotkey:
                 SetStartPositionShortcutText = text;
+                SetStartPositionShortcutWarning = warning;
                 break;
             case PickColorHotkey:
                 PickColorShortcutText = text;
+                PickColorShortcutWarning = warning;
                 break;
         }
     }
@@ -302,7 +319,8 @@ public partial class MainWindowViewModel : ViewModelBase
         if (_platformServices.ScreenCapture.GetPixelColor(x, y) is not { } color)
         {
             var hint = _platformServices.Platform == PlatformType.macOS
-                ? " Allow DrawThatThing under System Settings → Privacy & Security → Screen & System Audio Recording, then restart it."
+                ? " Allow DrawThatThing under System Settings → Privacy & Security → Screen Recording"
+                  + " (Screen & System Audio Recording on macOS 15 and later), then restart it."
                 : string.Empty;
             _ = _dialogs.ShowMessageAsync("Could not read the color under the cursor." + hint);
             return;

@@ -17,6 +17,11 @@
         FontSize="12">
 
     <Window.Styles>
+        <!-- A hotkey that another application already uses only works while this window is focused. -->
+        <Style Selector="TextBlock.windowOnly">
+            <Setter Property="Foreground" Value="#C00000" />
+            <Setter Property="TextDecorations" Value="Underline" />
+        </Style>
         <Style Selector="TextBlock.bold">
             <Setter Property="FontWeight" Value="Bold" />
         </Style>
@@ -281,14 +286,20 @@
                 <Grid Grid.Column="2" Margin="0,4,8,0" VerticalAlignment="Top"
                       ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto,Auto">
                     <TextBlock Grid.Row="0" Grid.Column="0" Classes="bold" HorizontalAlignment="Right" Text="Stop mouse :" />
-                    <TextBlock Grid.Row="0" Grid.Column="1" Margin="4,0,0,0" Text="{Binding StopMouseShortcutText}" />
+                    <TextBlock Grid.Row="0" Grid.Column="1" Margin="4,0,0,0" Text="{Binding StopMouseShortcutText}"
+                               Classes.windowOnly="{Binding StopMouseShortcutWarning, Converter={x:Static ObjectConverters.IsNotNull}}"
+                               ToolTip.Tip="{Binding StopMouseShortcutWarning}" />
                     <TextBlock Grid.Row="1" Grid.Column="0" Classes="bold" HorizontalAlignment="Right" Text="Set start position to cursor :" />
-                    <TextBlock Grid.Row="1" Grid.Column="1" Margin="4,0,0,0" Text="{Binding SetStartPositionShortcutText}" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" Margin="4,0,0,0" Text="{Binding SetStartPositionShortcutText}"
+                               Classes.windowOnly="{Binding SetStartPositionShortcutWarning, Converter={x:Static ObjectConverters.IsNotNull}}"
+                               ToolTip.Tip="{Binding SetStartPositionShortcutWarning}" />
                     <TextBlock Grid.Row="2" Grid.Column="0" Classes="bold" HorizontalAlignment="Right" Text="Pick color :" />
-                    <TextBlock Grid.Row="2" Grid.Column="1" Margin="4,0,0,0" Text="{Binding PickColorShortcutText}" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Margin="4,0,0,0" Text="{Binding PickColorShortcutText}"
+                               Classes.windowOnly="{Binding PickColorShortcutWarning, Converter={x:Static ObjectConverters.IsNotNull}}"
+                               ToolTip.Tip="{Binding PickColorShortcutWarning}" />
                 </Grid>
 
-                <Button Grid.Column="3" Classes="popup play" Width="107" Height="42" Margin="0,13,5,0"
+                <Button x:Name="PlayButton" Grid.Column="3" Classes="popup play" Width="107" Height="42" Margin="0,13,5,0"
                         VerticalAlignment="Top"
                         Command="{Binding PlayCommand}">
                     <TextBlock Text="PLAY >>" />

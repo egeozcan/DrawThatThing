@@ -57,7 +57,8 @@ cat > "$APP_DIR/Contents/Info.plist" <<PLIST
 PLIST
 
 if command -v codesign >/dev/null 2>&1; then
-    # An ad-hoc signature is enough for running locally and keeps the granted permissions stable.
+    # An ad-hoc signature is enough for running locally. macOS ties granted permissions to this exact
+    # build, so after rebuilding they have to be granted again.
     codesign --force --deep --sign - "$APP_DIR"
 fi
 
@@ -65,4 +66,4 @@ echo ""
 echo "Done: $APP_DIR"
 echo "On first use, allow DrawThatThing in System Settings → Privacy & Security under"
 echo "  • Accessibility (to move and click the mouse)"
-echo "  • Screen & System Audio Recording (to pick colors from the screen)"
+echo "  • Screen Recording, called Screen & System Audio Recording on macOS 15+ (to pick colors from the screen)"

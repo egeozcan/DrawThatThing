@@ -177,8 +177,9 @@ DrawThatThing needs two permissions, both under **System Settings → Privacy & 
 
 - **Accessibility**: to move and click the mouse. Without it macOS silently ignores the drawing.
   The app asks for it on start-up.
-- **Screen & System Audio Recording**: to pick colors from other applications with the
-  "Pick color" hotkey. Without it you only get the colors of the desktop wallpaper. The app asks
+- **Screen Recording** (called **Screen & System Audio Recording** on macOS 15 and later): to pick
+  colors from the screen with the "Pick color" hotkey. Without it the colors cannot be read and the
+  app tells you so instead of adding a color. The app asks
   for it the first time you pick a color. You may have to restart the app after granting it.
 
 The hotkeys are system-wide (you can use them while another app, e.g. your browser, is in front)
@@ -288,14 +289,15 @@ sudo apt-get install libicu-dev libssl-dev
 ### Hotkeys not responding
 
 Check the combinations shown at the bottom of the window (Control + Option on macOS 15+). A hotkey
-marked *(in this window only)* is already used by another application, so it only works while the
-DrawThatThing window is focused; quit the other application and restart DrawThatThing to get it back.
+shown in red is already used by another application, so it only works while the DrawThatThing window
+is focused; quit the other application and restart DrawThatThing to get it back.
 
 **Linux**: Ensure no other application is grabbing those key combinations.
 
-### Picked colors are wrong (macOS)
+### Picking a color fails (macOS)
 
-Grant the Screen & System Audio Recording permission and restart the application.
+Grant the Screen Recording (Screen & System Audio Recording) permission and restart the application;
+macOS only applies it after a restart.
 
 ---
 
