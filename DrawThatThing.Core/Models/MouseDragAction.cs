@@ -34,32 +34,39 @@ public class MouseDragAction
     /// <summary>
     /// Presses the left button on the first point, drags through all points and releases.
     /// Blocks the calling thread; yields after every point so the caller can stop early.
-    /// The button is always released, even when cancelled half way.
+    /// Cancelling also cuts the waits short, and the button is always released, even when cancelled half way.
+    /// Empty points are skipped, so an action without any position does nothing.
     /// </summary>
     public IEnumerable<bool> Play(Point offset, IMouseOperations mouse, CancellationToken cancellationToken = default)
     {
-        if (DiscardOffset)
-        {
-            offset = new Point(0, 0);
-            Thread.Sleep(100);
-        }
-        if (Points.Count == 0)
+        var points = Points.Where(point => !point.IsEmpty).ToList();
+        if (points.Count == 0)
         {
             yield return false;
             yield break;
         }
         if (DiscardOffset)
         {
-            Thread.Sleep(1000);
+            offset = new Point(0, 0);
         }
         int waitTime = DiscardOffset ? 100 : 10;
         int loopWaitTime = DiscardOffset ? 100 : 1;
-        mouse.SetCursorPosition(Points[0].X + offset.X, Points[0].Y + offset.Y);
+
+        // Give the drawing application a moment before choosing a color on its palette.
+        if (DiscardOffset && Wait(1100, cancellationToken))
+        {
+            yield break;
+        }
+
+        mouse.SetCursorPosition(points[0].X + offset.X, points[0].Y + offset.Y);
         mouse.LeftMouseDown();
         try
         {
-            Thread.Sleep(waitTime);
-            foreach (var point in Points.Where(point => !point.IsEmpty))
+            if (Wait(waitTime, cancellationToken))
+            {
+                yield break;
+            }
+            foreach (var point in points)
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
@@ -67,13 +74,22 @@ public class MouseDragAction
                 }
                 mouse.SetCursorPosition(point.X + offset.X, point.Y + offset.Y);
                 yield return true;
-                Thread.Sleep(loopWaitTime);
+                if (Wait(loopWaitTime, cancellationToken))
+                {
+                    yield break;
+                }
             }
-            Thread.Sleep(waitTime);
+            Wait(waitTime, cancellationToken);
         }
         finally
         {
             mouse.LeftMouseUp();
         }
+    }
+
+    /// <summary>Sleeps for the given time; returns true if cancelled.</summary>
+    private static bool Wait(int milliseconds, CancellationToken cancellationToken)
+    {
+        return cancellationToken.WaitHandle.WaitOne(milliseconds);
     }
 }
