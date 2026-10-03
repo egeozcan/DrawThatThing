@@ -48,6 +48,11 @@ Wayland is not supported.
 2. Hover over each color in that program's palette and press the *pick color* hotkey. DrawThatThing
    stores the color and its position on the screen, and clicks there whenever it needs that color.
    Tick **BG Color** for the background color.
+
+   If the program's palette only appears after clicking a button, pick that button first and tick
+   **Opener** on its row. Then open the palette and pick its colors. The opener is clicked before
+   any color listed below it, up to the next opener row, so palettes behind different buttons work
+   too.
 3. Choose a parser, click **Parse Image** (or drop an image onto the window) and check the preview.
 4. Hover where the top-left corner of the drawing should go and press the *set start position*
    hotkey. Then click **PLAY >>**. The *stop* hotkey stops the drawing.

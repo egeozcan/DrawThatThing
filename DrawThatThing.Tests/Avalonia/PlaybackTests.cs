@@ -44,6 +44,78 @@ public class PlaybackTests
     }
 
     [AvaloniaFact]
+    public async Task TheOpenerIsClickedBeforeChoosingAColorListedBelowIt()
+    {
+        var (viewModel, platform, dialogs) = CreateViewModel();
+        viewModel.SelectedParser = "PointReader";
+        // The opener's own color is not a palette color, so the black pixel is not drawn by clicking the opener.
+        AddPaletteRow(viewModel, "800", "5", "#000000");
+        viewModel.ColorPalette[^2].IsOpener = true;
+        AddPaletteRow(viewModel, "850", "40", "#000000");
+        AddPaletteRow(viewModel, "900", "30", "#FFFFFF");
+        dialogs.ImagePath = TestImages.CreatePng(4, 4, (1, 2));
+        await viewModel.LoadImageCommand.ExecuteAsync(null);
+        Assert.Empty(dialogs.Messages);
+
+        viewModel.PlayCommand.Execute(null);
+        WaitUntil(() => platform.FakeMouse.Log.Count(op => op == "up") == 3);
+        Thread.Sleep(200);
+
+        Assert.Equal(
+            [
+                "move 800,5", "down", "move 800,5", "up",
+                "move 850,40", "down", "move 850,40", "up",
+                "move 1,2", "down", "move 1,2", "up"
+            ],
+            platform.FakeMouse.Log);
+    }
+
+    [AvaloniaFact]
+    public async Task EachColorIsOpenedByTheNearestOpenerAboveIt()
+    {
+        var (viewModel, platform, dialogs) = CreateViewModel();
+        viewModel.SelectedParser = "PointReader";
+        AddPaletteRow(viewModel, "900", "30", "#FFFFFF");
+        AddPaletteRow(viewModel, "700", "5", "#808080");
+        viewModel.ColorPalette[^2].IsOpener = true;
+        AddPaletteRow(viewModel, "750", "40", "#FF0000");
+        AddPaletteRow(viewModel, "800", "5", "#808080");
+        viewModel.ColorPalette[^2].IsOpener = true;
+        AddPaletteRow(viewModel, "850", "40", "#000000");
+        dialogs.ImagePath = TestImages.CreatePng(4, 4, (1, 2));
+        await viewModel.LoadImageCommand.ExecuteAsync(null);
+        Assert.Empty(dialogs.Messages);
+
+        viewModel.PlayCommand.Execute(null);
+        WaitUntil(() => platform.FakeMouse.Log.Count(op => op == "up") == 3);
+        Thread.Sleep(200);
+
+        Assert.Equal(
+            [
+                "move 800,5", "down", "move 800,5", "up",
+                "move 850,40", "down", "move 850,40", "up",
+                "move 1,2", "down", "move 1,2", "up"
+            ],
+            platform.FakeMouse.Log);
+    }
+
+    [AvaloniaFact]
+    public async Task AnOpenerWithoutAPositionIsReportedInsteadOfClickingHiddenColors()
+    {
+        var (viewModel, _, dialogs) = CreateViewModel();
+        viewModel.SelectedParser = "PointReader";
+        AddPaletteRow(viewModel, "", "", "#808080");
+        viewModel.ColorPalette[^2].IsOpener = true;
+        AddPaletteRow(viewModel, "850", "40", "#000000");
+        dialogs.ImagePath = TestImages.CreatePng(4, 4, (1, 2));
+
+        await viewModel.LoadImageCommand.ExecuteAsync(null);
+
+        Assert.Equal(["Every opener row needs a position (X and Y)."], dialogs.Messages);
+        Assert.Null(viewModel.PreviewImage);
+    }
+
+    [AvaloniaFact]
     public async Task PlaybackErrorsAreShownToTheUser()
     {
         var (viewModel, platform, dialogs) = CreateViewModel();

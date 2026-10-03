@@ -239,6 +239,12 @@
                             </DataGridTemplateColumn.CellEditingTemplate>
                         </DataGridTemplateColumn>
                         <DataGridCheckBoxColumn Header="BG Color" Width="*" Binding="{ReflectionBinding IsBackground}" />
+                        <DataGridCheckBoxColumn Width="*" Binding="{ReflectionBinding IsOpener}">
+                            <DataGridCheckBoxColumn.Header>
+                                <TextBlock Text="Opener"
+                                           ToolTip.Tip="Tick this on a button that opens the palette. It is clicked before choosing any of the colors listed below it." />
+                            </DataGridCheckBoxColumn.Header>
+                        </DataGridCheckBoxColumn>
                     </DataGrid.Columns>
                 </DataGrid>
             </DockPanel>

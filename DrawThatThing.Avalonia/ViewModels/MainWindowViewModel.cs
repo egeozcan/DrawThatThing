@@ -350,9 +350,9 @@ public partial class MainWindowViewModel : ViewModelBase
             false);
     }
 
-    private void AddPaletteRow(string x, string y, string rgb, bool isBackground)
+    private void AddPaletteRow(string x, string y, string rgb, bool isBackground, bool isOpener = false)
     {
-        var item = new ColorPaletteItem { X = x, Y = y, Rgb = rgb, IsBackground = isBackground };
+        var item = new ColorPaletteItem { X = x, Y = y, Rgb = rgb, IsBackground = isBackground, IsOpener = isOpener };
         ColorPalette.Insert(ColorPalette.Count - 1, item);
         ShowReparseButton();
     }
@@ -383,18 +383,34 @@ public partial class MainWindowViewModel : ViewModelBase
         ShowReparseButton();
     }
 
+    /// <summary>
+    /// The colors to draw with. An opener row is not a color but a button that opens the palette;
+    /// it is clicked before choosing any of the colors listed after it, up to the next opener row.
+    /// </summary>
     private List<ColorSpot> GetColorPalette()
     {
-        return ColorPalette
-            .Where(row => !row.IsNewRow)
-            .Select(row => new ColorSpot
+        var palette = new List<ColorSpot>();
+        var opener = Point.Empty;
+        foreach (var row in ColorPalette.Where(row => !row.IsNewRow))
+        {
+            if (row.IsOpener)
             {
-                Color = row.Rgb.ToColor(),
-                Point = ParsePalettePosition(row),
-                IsBackgroundColor = row.IsBackground
-            })
-            .Where(x => !x.Color.IsEmpty)
-            .ToList();
+                opener = ParsePalettePosition(row);
+                continue;
+            }
+            var color = row.Rgb.ToColor();
+            if (!color.IsEmpty)
+            {
+                palette.Add(new ColorSpot
+                {
+                    Color = color,
+                    Point = ParsePalettePosition(row),
+                    IsBackgroundColor = row.IsBackground,
+                    Opener = opener
+                });
+            }
+        }
+        return palette;
     }
 
     /// <summary>
@@ -419,10 +435,10 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         var sb = new StringBuilder();
-        sb.AppendLine("X;Y;RGB;BG");
+        sb.AppendLine("X;Y;RGB;BG;Opener");
         foreach (var row in ColorPalette.Where(row => !row.IsNewRow))
         {
-            sb.AppendLine($"{row.X};{row.Y};{row.Rgb};{row.IsBackground}");
+            sb.AppendLine($"{row.X};{row.Y};{row.Rgb};{row.IsBackground};{row.IsOpener}");
         }
 
         try
@@ -472,7 +488,8 @@ public partial class MainWindowViewModel : ViewModelBase
                 value.ElementAtOrDefault(0)?.Trim() ?? string.Empty,
                 value.ElementAtOrDefault(1)?.Trim() ?? string.Empty,
                 value.ElementAtOrDefault(2)?.Trim() ?? string.Empty,
-                (value.ElementAtOrDefault(3) ?? string.Empty).Trim().ToBool());
+                (value.ElementAtOrDefault(3) ?? string.Empty).Trim().ToBool(),
+                (value.ElementAtOrDefault(4) ?? string.Empty).Trim().ToBool());
         }
     }
 
@@ -539,6 +556,13 @@ public partial class MainWindowViewModel : ViewModelBase
 
     private async Task ParseImageAsync(string imagePath)
     {
+        // Without a position the colors behind the opener would be clicked while hidden, onto whatever is there.
+        if (ColorPalette.Any(row => !row.IsNewRow && row.IsOpener && ParsePalettePosition(row).IsEmpty))
+        {
+            await _dialogs.ShowMessageAsync("Every opener row needs a position (X and Y).");
+            return;
+        }
+
         CanLoadImage = false;
         LoadImageButtonText = "Loading...";
         ShowReparse = false;
@@ -563,7 +587,7 @@ public partial class MainWindowViewModel : ViewModelBase
                     throw new InvalidOperationException("Please select a parser.");
                 }
                 var reader = _readers.Create(parser, imagePath);
-                var actions = reader.GetDrawInstructions(palette, parserOptions).ToList();
+                var actions = reader.GetDrawInstructions(palette, parserOptions).WithPaletteOpeners(palette).ToList();
                 var bitmap = PixelBitmap.Load(imagePath);
                 var preview = PreviewRenderer.RenderPng(actions, bitmap.Width, bitmap.Height);
                 return new CalculationResult(actions, bitmap.Width, bitmap.Height, preview, null);
@@ -639,7 +663,7 @@ public partial class MainWindowViewModel : ViewModelBase
             {
                 continue;
             }
-            RemovePaletteRows(ColorPalette.Where(row => !row.IsNewRow && color.DifferenceTo(row.Rgb.ToColor()) == 0));
+            RemovePaletteRows(ColorPalette.Where(row => !row.IsNewRow && !row.IsOpener && color.DifferenceTo(row.Rgb.ToColor()) == 0));
         }
         ShowClearUnusedColors = false;
     }
@@ -807,6 +831,10 @@ public partial class ColorPaletteItem : ObservableObject
     [ObservableProperty]
     private bool _isBackground;
 
+    /// <summary>A button that opens the palette, clicked before choosing any color in the rows below it.</summary>
+    [ObservableProperty]
+    private bool _isOpener;
+
     [ObservableProperty]
     private IBrush _rgbBrush = EmptyBrush;
 
@@ -816,9 +844,26 @@ public partial class ColorPaletteItem : ObservableObject
     [ObservableProperty]
     private bool _isNewRow;
 
-    public bool IsBlank => string.IsNullOrWhiteSpace(X) && string.IsNullOrWhiteSpace(Y) && string.IsNullOrWhiteSpace(Rgb) && !IsBackground;
+    public bool IsBlank => string.IsNullOrWhiteSpace(X) && string.IsNullOrWhiteSpace(Y) && string.IsNullOrWhiteSpace(Rgb) && !IsBackground && !IsOpener;
 
     public static ColorPaletteItem CreateNewRow() => new() { IsNewRow = true };
+
+    // An opener is not a color, so it cannot be the background color either.
+    partial void OnIsOpenerChanged(bool value)
+    {
+        if (value)
+        {
+            IsBackground = false;
+        }
+    }
+
+    partial void OnIsBackgroundChanged(bool value)
+    {
+        if (value)
+        {
+            IsOpener = false;
+        }
+    }
 
     partial void OnRgbChanged(string value)
     {

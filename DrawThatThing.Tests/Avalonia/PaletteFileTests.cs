@@ -6,11 +6,11 @@ namespace DrawThatThing.Tests.Avalonia;
 public class PaletteFileTests
 {
     [AvaloniaFact]
-    public async Task ExportedPalettesKeepTheBackgroundColor()
+    public async Task ExportedPalettesKeepTheBackgroundColorAndOpeners()
     {
         var (viewModel, _, dialogs) = CreateViewModel();
         var csv = TestFiles.NewPath(".csv");
-        File.WriteAllLines(csv, ["X;Y;RGB;BG", "1;2;#FF0000;false", "3;4;#FFFFFF;true"]);
+        File.WriteAllLines(csv, ["X;Y;RGB;BG;Opener", "1;2;#FF0000;false;false", "3;4;#FFFFFF;true;false", "5;6;#808080;false;true"]);
         dialogs.ImportPath = csv;
         await viewModel.ImportColorsCommand.ExecuteAsync(null);
 
@@ -20,8 +20,8 @@ public class PaletteFileTests
         dialogs.ImportPath = exported;
         await viewModel.ImportColorsCommand.ExecuteAsync(null);
 
-        var rows = viewModel.ColorPalette.Where(row => !row.IsNewRow).Select(row => (row.X, row.Y, row.Rgb, row.IsBackground));
-        Assert.Equal([("1", "2", "#FF0000", false), ("3", "4", "#FFFFFF", true)], rows);
+        var rows = viewModel.ColorPalette.Where(row => !row.IsNewRow).Select(row => (row.X, row.Y, row.Rgb, row.IsBackground, row.IsOpener));
+        Assert.Equal([("1", "2", "#FF0000", false, false), ("3", "4", "#FFFFFF", true, false), ("5", "6", "#808080", false, true)], rows);
     }
 
     [AvaloniaFact]
