@@ -40,6 +40,7 @@ public class LinuxMouseOperations : IMouseOperations
     private const uint Button2 = 2; // Middle
     private const uint Button3 = 3; // Right
 
+    private readonly object _lock = new();
     private IntPtr? _display;
 
     private IntPtr GetDisplay()
@@ -50,63 +51,81 @@ public class LinuxMouseOperations : IMouseOperations
 
     public void SetCursorPosition(int x, int y)
     {
-        var display = GetDisplay();
-        if (display == IntPtr.Zero) return;
+        lock (_lock)
+        {
+            var display = GetDisplay();
+            if (display == IntPtr.Zero) return;
 
-        // XTest motion is seen by applications as real pointer motion (drags), unlike a plain warp.
-        XTestFakeMotionEvent(display, XDefaultScreen(display), x, y, 0);
-        XFlush(display);
+            // XTest motion is seen by applications as real pointer motion (drags), unlike a plain warp.
+            XTestFakeMotionEvent(display, XDefaultScreen(display), x, y, 0);
+            XFlush(display);
+        }
     }
 
     public (int X, int Y) GetCursorPosition()
     {
-        var display = GetDisplay();
-        if (display == IntPtr.Zero) return (0, 0);
-
-        int screen = XDefaultScreen(display);
-        IntPtr root = XRootWindow(display, screen);
-
-        if (XQueryPointer(display, root, out _, out _, out int x, out int y, out _, out _, out _))
+        lock (_lock)
         {
-            return (x, y);
+            var display = GetDisplay();
+            if (display == IntPtr.Zero) return (0, 0);
+
+            int screen = XDefaultScreen(display);
+            IntPtr root = XRootWindow(display, screen);
+
+            if (XQueryPointer(display, root, out _, out _, out int x, out int y, out _, out _, out _))
+            {
+                return (x, y);
+            }
+            return (0, 0);
         }
-        return (0, 0);
     }
 
     public void LeftMouseDown()
     {
-        var display = GetDisplay();
-        if (display == IntPtr.Zero) return;
+        lock (_lock)
+        {
+            var display = GetDisplay();
+            if (display == IntPtr.Zero) return;
 
-        XTestFakeButtonEvent(display, Button1, true, 0);
-        XFlush(display);
+            XTestFakeButtonEvent(display, Button1, true, 0);
+            XFlush(display);
+        }
     }
 
     public void LeftMouseUp()
     {
-        var display = GetDisplay();
-        if (display == IntPtr.Zero) return;
+        lock (_lock)
+        {
+            var display = GetDisplay();
+            if (display == IntPtr.Zero) return;
 
-        XTestFakeButtonEvent(display, Button1, false, 0);
-        XFlush(display);
+            XTestFakeButtonEvent(display, Button1, false, 0);
+            XFlush(display);
+        }
     }
 
     public void RightMouseDown()
     {
-        var display = GetDisplay();
-        if (display == IntPtr.Zero) return;
+        lock (_lock)
+        {
+            var display = GetDisplay();
+            if (display == IntPtr.Zero) return;
 
-        XTestFakeButtonEvent(display, Button3, true, 0);
-        XFlush(display);
+            XTestFakeButtonEvent(display, Button3, true, 0);
+            XFlush(display);
+        }
     }
 
     public void RightMouseUp()
     {
-        var display = GetDisplay();
-        if (display == IntPtr.Zero) return;
+        lock (_lock)
+        {
+            var display = GetDisplay();
+            if (display == IntPtr.Zero) return;
 
-        XTestFakeButtonEvent(display, Button3, false, 0);
-        XFlush(display);
+            XTestFakeButtonEvent(display, Button3, false, 0);
+            XFlush(display);
+        }
     }
 
     public void Click()

@@ -30,10 +30,15 @@ internal interface IQuartzEvents
 
 internal sealed class QuartzEvents : IQuartzEvents
 {
+    private readonly object _lastLock = new();
+    private (double X, double Y)? _last;
+
     private const string CoreGraphics = "/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics";
     private const string CoreFoundation = "/System/Library/Frameworks/CoreFoundation.framework/CoreFoundation";
 
     private const int KCGMouseEventClickState = 1;
+    private const int KCGMouseEventDeltaX = 4;
+    private const int KCGMouseEventDeltaY = 5;
     private const uint KCGHIDEventTap = 0;
 
     [StructLayout(LayoutKind.Sequential)]
@@ -63,6 +68,15 @@ internal sealed class QuartzEvents : IQuartzEvents
 
     public void PostMouseEvent(QuartzMouseEventType type, double x, double y, QuartzMouseButton button, bool isClick)
     {
+        // Applications that read movement deltas (e.g. browser canvases) see zero without these.
+        (double X, double Y) delta;
+        lock (_lastLock)
+        {
+            var previous = _last ?? GetCursorLocation();
+            delta = (x - previous.X, y - previous.Y);
+            _last = (x, y);
+        }
+
         var eventRef = CGEventCreateMouseEvent(IntPtr.Zero, type, new CGPoint { X = x, Y = y }, button);
         if (eventRef == IntPtr.Zero)
         {
@@ -71,6 +85,11 @@ internal sealed class QuartzEvents : IQuartzEvents
 
         try
         {
+            if (!isClick)
+            {
+                CGEventSetIntegerValueField(eventRef, KCGMouseEventDeltaX, (long)Math.Round(delta.X));
+                CGEventSetIntegerValueField(eventRef, KCGMouseEventDeltaY, (long)Math.Round(delta.Y));
+            }
             if (isClick)
             {
                 CGEventSetIntegerValueField(eventRef, KCGMouseEventClickState, 1);
