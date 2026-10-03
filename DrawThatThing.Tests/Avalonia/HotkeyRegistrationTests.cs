@@ -27,7 +27,7 @@ public class HotkeyRegistrationTests
 
         viewModel.RegisterHotkeys();
 
-        Assert.Equal(5, platform.FakeHotkeys.Registered.Count);
+        Assert.Equal(7, platform.FakeHotkeys.Registered.Count);
         Assert.All(platform.FakeHotkeys.Registered.Values, hotkey => Assert.Equal(ShiftAlt, hotkey.Modifiers));
         Assert.Equal("Shift + Alt + C", viewModel.StopMouseShortcutText);
     }
@@ -44,7 +44,9 @@ public class HotkeyRegistrationTests
                 MainWindowViewModel.StopMouseHotkey,
                 MainWindowViewModel.PickColorHotkey,
                 MainWindowViewModel.ToggleDebugHotkey,
-                MainWindowViewModel.AddDebugPointHotkey
+                MainWindowViewModel.AddDebugPointHotkey,
+                MainWindowViewModel.FindSwatchesHotkey,
+                MainWindowViewModel.PickGridCornerHotkey
             ],
             platform.FakeHotkeys.Registered.Keys.Order());
         Assert.Equal("Shift + Alt + C", viewModel.StopMouseShortcutText);

@@ -23,6 +23,8 @@ public partial class MainWindowViewModel : ViewModelBase
     public const int PickColorHotkey = 2;
     public const int ToggleDebugHotkey = 3;
     public const int AddDebugPointHotkey = 4;
+    public const int FindSwatchesHotkey = 5;
+    public const int PickGridCornerHotkey = 6;
 
     private static readonly (int Id, char Key)[] Hotkeys =
     [
@@ -30,7 +32,9 @@ public partial class MainWindowViewModel : ViewModelBase
         (SetStartPositionHotkey, 'S'),
         (PickColorHotkey, 'A'),
         (ToggleDebugHotkey, 'D'),
-        (AddDebugPointHotkey, 'Q')
+        (AddDebugPointHotkey, 'Q'),
+        (FindSwatchesHotkey, 'F'),
+        (PickGridCornerHotkey, 'G')
     ];
 
     private readonly IPlatformServices? _platformServices;
@@ -104,6 +108,16 @@ public partial class MainWindowViewModel : ViewModelBase
     private Bitmap? _previewImage;
 
     [ObservableProperty]
+    private string _gridColumns = "8";
+
+    [ObservableProperty]
+    private string _gridRows = "2";
+
+    /// <summary>What the palette picking hotkeys did or are waiting for, shown below the palette.</summary>
+    [ObservableProperty]
+    private string _paletteStatus = string.Empty;
+
+    [ObservableProperty]
     private string _mousePositionX = "0";
 
     [ObservableProperty]
@@ -131,6 +145,18 @@ public partial class MainWindowViewModel : ViewModelBase
     private string _stopMouseShortcutText = string.Empty;
 
     [ObservableProperty]
+    private string _findSwatchesShortcutText = string.Empty;
+
+    [ObservableProperty]
+    private string? _findSwatchesShortcutWarning;
+
+    [ObservableProperty]
+    private string _pickGridCornerShortcutText = string.Empty;
+
+    [ObservableProperty]
+    private string? _pickGridCornerShortcutWarning;
+
+    [ObservableProperty]
     private string _setStartPositionShortcutText = string.Empty;
 
     [ObservableProperty]
@@ -156,7 +182,7 @@ public partial class MainWindowViewModel : ViewModelBase
     #region Hotkeys
 
     /// <summary>
-    /// Registers the system-wide hotkeys (Shift + Alt + C/S/A/D/Q, like the original application).
+    /// Registers the system-wide hotkeys (Shift + Alt + C/S/A/D/Q/F/G, like the original application).
     /// macOS 15 and later refuse global hotkeys that only use Option (+ Shift), so there
     /// Control + Option is used instead. A hotkey that cannot be registered globally (usually because
     /// another application already uses it) gets a warning on its label and is also handled as a
@@ -272,6 +298,14 @@ public partial class MainWindowViewModel : ViewModelBase
                 PickColorShortcutText = text;
                 PickColorShortcutWarning = warning;
                 break;
+            case FindSwatchesHotkey:
+                FindSwatchesShortcutText = text;
+                FindSwatchesShortcutWarning = warning;
+                break;
+            case PickGridCornerHotkey:
+                PickGridCornerShortcutText = text;
+                PickGridCornerShortcutWarning = warning;
+                break;
         }
     }
 
@@ -300,6 +334,12 @@ public partial class MainWindowViewModel : ViewModelBase
             case PickColorHotkey:
                 AddCurrentMousePositionToPalette();
                 break;
+            case FindSwatchesHotkey:
+                AddSimilarSwatchesToPalette();
+                break;
+            case PickGridCornerHotkey:
+                PickGridCorner();
+                break;
             case ToggleDebugHotkey:
                 ShowDebugPanel = !ShowDebugPanel;
                 break;
@@ -312,6 +352,12 @@ public partial class MainWindowViewModel : ViewModelBase
     #endregion
 
     #region Color palette
+
+    public bool IsPlaying => !_playTask.IsCompleted;
+
+    public bool CursorUnitsArePoints => _platformServices?.Platform == PlatformType.macOS;
+
+    public (int X, int Y)? TryGetCursorPosition() => _platformServices?.Mouse.GetCursorPosition();
 
     private void SetStartPositionToCursor()
     {
@@ -332,14 +378,11 @@ public partial class MainWindowViewModel : ViewModelBase
             return;
         }
 
+        CancelGridPick();
         var (x, y) = _platformServices.Mouse.GetCursorPosition();
         if (_platformServices.ScreenCapture.GetPixelColor(x, y) is not { } color)
         {
-            var hint = _platformServices.Platform == PlatformType.macOS
-                ? " Allow DrawThatThing under System Settings → Privacy & Security → Screen Recording"
-                  + " (Screen & System Audio Recording on macOS 15 and later), then restart it."
-                : string.Empty;
-            _ = _dialogs.ShowMessageAsync("Could not read the color under the cursor." + hint);
+            ShowScreenReadError();
             return;
         }
         var (r, g, b) = color;
@@ -348,6 +391,171 @@ public partial class MainWindowViewModel : ViewModelBase
             y.ToString(CultureInfo.InvariantCulture),
             new CoreColor(r, g, b).ToHex(),
             false);
+    }
+
+    private void ShowScreenReadError()
+    {
+        var hint = _platformServices?.Platform == PlatformType.macOS
+            ? " Allow DrawThatThing under System Settings → Privacy & Security → Screen Recording"
+              + " (Screen & System Audio Recording on macOS 15 and later), then restart it."
+            : string.Empty;
+        _ = _dialogs.ShowMessageAsync("Could not read the color under the cursor." + hint);
+    }
+
+    /// <summary>How far around the cursor the screen is searched for swatches, in cursor units.</summary>
+    private const int SwatchSearchHalfWidth = 400;
+    private const int SwatchSearchHalfHeight = 200;
+
+    /// <summary>
+    /// Adds every flat-colored swatch that looks like the one under the cursor, so a whole palette
+    /// can be picked at once.
+    /// </summary>
+    private void AddSimilarSwatchesToPalette()
+    {
+        if (_platformServices == null)
+        {
+            return;
+        }
+
+        CancelGridPick();
+        var (cursorX, cursorY) = _platformServices.Mouse.GetCursorPosition();
+        if (_platformServices.ScreenCapture.GetPixelColor(cursorX, cursorY) == null)
+        {
+            ShowScreenReadError();
+            return;
+        }
+
+        const int width = SwatchSearchHalfWidth * 2, height = SwatchSearchHalfHeight * 2;
+        var left = cursorX - SwatchSearchHalfWidth;
+        var top = cursorY - SwatchSearchHalfHeight;
+        var pixels = _platformServices.ScreenCapture.CaptureRegion(left, top, width, height);
+        var swatches = SwatchDetector.Find(pixels, width, height, SwatchSearchHalfWidth, SwatchSearchHalfHeight);
+        if (swatches.Count == 0)
+        {
+            _ = _dialogs.ShowMessageAsync(
+                "No color swatch found under the cursor. Hover the middle of one palette color, away from its border, and try again. If the program highlights the hovered color, move the cursor slightly or try another swatch.");
+            return;
+        }
+
+        var (added, skipped) = AddPaletteRows(swatches.Select(swatch =>
+            (left + swatch.CenterX, top + swatch.CenterY, new CoreColor(swatch.R, swatch.G, swatch.B))));
+        PaletteStatus = DescribeAddedColors(added, skipped, "swatches");
+    }
+
+    private bool _hasGridCorner;
+
+    partial void OnGridColumnsChanged(string value) => CancelGridPick();
+
+    partial void OnGridRowsChanged(string value) => CancelGridPick();
+
+    private void CancelGridPick()
+    {
+        if (_hasGridCorner)
+        {
+            _hasGridCorner = false;
+            PaletteStatus = string.Empty;
+        }
+    }
+
+    private (int X, int Y) _gridCorner;
+
+    /// <summary>
+    /// Picks a palette laid out as a grid with two presses: the first on the center of its first swatch,
+    /// the second on the center of its last one. The columns and rows in between come from the grid size fields.
+    /// </summary>
+    private void PickGridCorner()
+    {
+        if (_platformServices == null)
+        {
+            return;
+        }
+
+        var cursor = _platformServices.Mouse.GetCursorPosition();
+        if (!_hasGridCorner)
+        {
+            _gridCorner = cursor;
+            _hasGridCorner = true;
+            PaletteStatus = $"Grid starts at {cursor.X},{cursor.Y}. Hover the center of the last swatch and press the shortcut again.";
+            return;
+        }
+
+        _hasGridCorner = false;
+        if (!TryParseGridSize(out var columns, out var rows))
+        {
+            PaletteStatus = string.Empty;
+            _ = _dialogs.ShowMessageAsync($"The grid needs 1 to {MaxGridSize} columns and rows, and at most {MaxGridCells} cells in total.");
+            return;
+        }
+        if ((columns > 1 && cursor.X == _gridCorner.X) || (rows > 1 && cursor.Y == _gridCorner.Y))
+        {
+            PaletteStatus = string.Empty;
+            _ = _dialogs.ShowMessageAsync("The two corners need to be on different swatches. Pick the grid again.");
+            return;
+        }
+        if (_platformServices.ScreenCapture.GetPixelColor(cursor.X, cursor.Y) == null)
+        {
+            PaletteStatus = string.Empty;
+            ShowScreenReadError();
+            return;
+        }
+
+        var centers = PaletteGrid.CellCenters(_gridCorner.X, _gridCorner.Y, cursor.X, cursor.Y, columns, rows);
+        const int radius = 1;
+        int left = centers.Min(c => c.X) - radius, top = centers.Min(c => c.Y) - radius;
+        int width = centers.Max(c => c.X) + radius - left + 1, height = centers.Max(c => c.Y) + radius - top + 1;
+        var pixels = _platformServices.ScreenCapture.CaptureRegion(left, top, width, height);
+        var (added, skipped) = AddPaletteRows(centers.Select(center =>
+        {
+            var (r, g, b) = PaletteGrid.DominantColor(pixels, width, height, center.X - left, center.Y - top, radius);
+            return (center.X, center.Y, new CoreColor(r, g, b));
+        }));
+        PaletteStatus = DescribeAddedColors(added, skipped, "cells");
+    }
+
+    private const int MaxGridSize = 100;
+    private const int MaxGridCells = 500;
+
+    private bool TryParseGridSize(out int columns, out int rows)
+    {
+        rows = 0;
+        return int.TryParse(GridColumns, NumberStyles.Integer, CultureInfo.InvariantCulture, out columns)
+               && int.TryParse(GridRows, NumberStyles.Integer, CultureInfo.InvariantCulture, out rows)
+               && columns is >= 1 and <= MaxGridSize
+               && rows is >= 1 and <= MaxGridSize
+               && columns * rows <= MaxGridCells;
+    }
+
+    private static string DescribeAddedColors(int added, int skipped, string what)
+    {
+        var text = $"Added {added} colors from {added + skipped} {what}.";
+        return skipped > 0 ? text + $" {skipped} skipped because the palette already has that color." : text;
+    }
+
+    /// <summary>Adds rows for the colors the palette does not have yet, and returns how many were added and skipped.</summary>
+    private (int Added, int Skipped) AddPaletteRows(IEnumerable<(int X, int Y, CoreColor Color)> spots)
+    {
+        var known = ColorPalette
+            .Where(row => !row.IsNewRow && !row.IsOpener)
+            .Select(row => row.Rgb.ToColor())
+            .Where(color => !color.IsEmpty)
+            .Select(color => color.ToHex())
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        int added = 0, skipped = 0;
+        foreach (var (x, y, color) in spots)
+        {
+            if (!known.Add(color.ToHex()))
+            {
+                skipped++;
+                continue;
+            }
+            AddPaletteRow(
+                x.ToString(CultureInfo.InvariantCulture),
+                y.ToString(CultureInfo.InvariantCulture),
+                color.ToHex(),
+                false);
+            added++;
+        }
+        return (added, skipped);
     }
 
     private void AddPaletteRow(string x, string y, string rgb, bool isBackground, bool isOpener = false)

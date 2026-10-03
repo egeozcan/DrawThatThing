@@ -1,4 +1,7 @@
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Threading;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
@@ -16,6 +19,8 @@ public partial class MainWindow : Window
     };
 
     private bool _isClipboardPasteInFlight;
+    private GhostWindow? _ghost;
+    private readonly DispatcherTimer _ghostTimer = new() { Interval = TimeSpan.FromMilliseconds(30) };
 
     public MainWindow()
     {
@@ -25,6 +30,33 @@ public partial class MainWindow : Window
         AddHandler(DragDrop.DropEvent, OnDrop);
         AddHandler(KeyDownEvent, OnWindowKeyDown, RoutingStrategies.Tunnel);
         PaletteGrid.KeyDown += OnPaletteGridKeyDown;
+        _ghostTimer.Tick += (_, _) => UpdateGhost();
+        Opened += (_, _) => _ghostTimer.Start();
+        Closed += (_, _) =>
+        {
+            _ghostTimer.Stop();
+            _ghost?.Close();
+            _ghost = null;
+        };
+    }
+
+    /// <summary>
+    /// While the user is in another program choosing the start position, shows the image to be drawn at the cursor.
+    /// </summary>
+    private void UpdateGhost()
+    {
+        var vm = DataContext as MainWindowViewModel;
+        var image = vm?.PreviewImage;
+        var inOtherProgram = Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
+            && !desktop.Windows.Any(w => w.IsActive);
+        if (vm == null || image == null || !inOtherProgram || vm.IsPlaying || vm.TryGetCursorPosition() is not var (x, y))
+        {
+            _ghost?.Hide();
+            return;
+        }
+
+        _ghost ??= new GhostWindow();
+        _ghost.Follow(image, x, y, vm.CursorUnitsArePoints);
     }
 
     protected override void OnDataContextChanged(EventArgs e)

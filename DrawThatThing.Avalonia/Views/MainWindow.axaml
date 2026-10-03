@@ -12,7 +12,7 @@
         Width="692"
         Height="660"
         MinWidth="684"
-        MinHeight="294"
+        MinHeight="330"
         Background="White"
         FontSize="12">
 
@@ -192,8 +192,19 @@
 
             <!-- panelMiddleRight -->
             <DockPanel Grid.Column="2" Margin="3,0,0,0">
-                <TextBlock DockPanel.Dock="Top" Classes="bold" Text="Color Palette" />
+                <DockPanel DockPanel.Dock="Top">
+                    <TextBlock Classes="bold" Text="Color Palette" />
+                    <TextBlock Text="{Binding PaletteStatus}" FontSize="11" Margin="8,0,0,0" VerticalAlignment="Center"
+                               TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding PaletteStatus}" />
+                </DockPanel>
                 <Grid DockPanel.Dock="Bottom" Height="40">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Bottom" Spacing="4"
+                                ToolTip.Tip="The size of the palette grid for the grid corner shortcut: hover the first swatch and press it, then hover the last swatch and press it again.">
+                        <TextBlock Text="Grid" VerticalAlignment="Center" />
+                        <TextBox Width="44" Height="27" MinHeight="0" Padding="4,0" VerticalContentAlignment="Center" Text="{Binding GridColumns}" />
+                        <TextBlock Text="×" VerticalAlignment="Center" />
+                        <TextBox Width="44" Height="27" MinHeight="0" Padding="4,0" VerticalContentAlignment="Center" Text="{Binding GridRows}" />
+                    </StackPanel>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom" Spacing="7">
                         <Button Classes="popup white" Width="82" Height="27" FontSize="10" Command="{Binding ExportColorsCommand}">
                             <TextBlock Text="Export" />
@@ -276,7 +287,7 @@
         <!-- panelBottom -->
         <DockPanel>
             <!-- panelPlay -->
-            <Grid DockPanel.Dock="Bottom" Height="60" ColumnDefinitions="Auto,*,Auto,Auto">
+            <Grid DockPanel.Dock="Bottom" Height="96" ColumnDefinitions="Auto,*,Auto,Auto">
                 <!-- groupBox1: "Mouse Start Position" -->
                 <Grid Grid.Column="0" Width="225" Height="53" Margin="7,2,0,0" VerticalAlignment="Top">
                     <Border BorderBrush="#C8C8C8" BorderThickness="1" CornerRadius="2" Margin="0,7,0,0" />
@@ -290,7 +301,7 @@
                 </Grid>
 
                 <Grid Grid.Column="2" Margin="0,4,8,0" VerticalAlignment="Top"
-                      ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto,Auto">
+                      ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
                     <TextBlock Grid.Row="0" Grid.Column="0" Classes="bold" HorizontalAlignment="Right" Text="Stop mouse :" />
                     <TextBlock Grid.Row="0" Grid.Column="1" Margin="4,0,0,0" Text="{Binding StopMouseShortcutText}"
                                Classes.windowOnly="{Binding StopMouseShortcutWarning, Converter={x:Static ObjectConverters.IsNotNull}}"
@@ -303,6 +314,14 @@
                     <TextBlock Grid.Row="2" Grid.Column="1" Margin="4,0,0,0" Text="{Binding PickColorShortcutText}"
                                Classes.windowOnly="{Binding PickColorShortcutWarning, Converter={x:Static ObjectConverters.IsNotNull}}"
                                ToolTip.Tip="{Binding PickColorShortcutWarning}" />
+                    <TextBlock Grid.Row="3" Grid.Column="0" Classes="bold" HorizontalAlignment="Right" Text="Pick similar swatches :" />
+                    <TextBlock Grid.Row="3" Grid.Column="1" Margin="4,0,0,0" Text="{Binding FindSwatchesShortcutText}"
+                               Classes.windowOnly="{Binding FindSwatchesShortcutWarning, Converter={x:Static ObjectConverters.IsNotNull}}"
+                               ToolTip.Tip="{Binding FindSwatchesShortcutWarning}" />
+                    <TextBlock Grid.Row="4" Grid.Column="0" Classes="bold" HorizontalAlignment="Right" Text="Pick palette grid corner :" />
+                    <TextBlock Grid.Row="4" Grid.Column="1" Margin="4,0,0,0" Text="{Binding PickGridCornerShortcutText}"
+                               Classes.windowOnly="{Binding PickGridCornerShortcutWarning, Converter={x:Static ObjectConverters.IsNotNull}}"
+                               ToolTip.Tip="{Binding PickGridCornerShortcutWarning}" />
                 </Grid>
 
                 <Button x:Name="PlayButton" Grid.Column="3" Classes="popup play" Width="107" Height="42" Margin="0,13,5,0"

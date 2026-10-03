@@ -16,6 +16,12 @@ public class LinuxScreenCapture : IScreenCapture
     private static extern int XDefaultScreen(IntPtr display);
 
     [DllImport(X11)]
+    private static extern int XDisplayWidth(IntPtr display, int screen);
+
+    [DllImport(X11)]
+    private static extern int XDisplayHeight(IntPtr display, int screen);
+
+    [DllImport(X11)]
     private static extern IntPtr XRootWindow(IntPtr display, int screen);
 
     [DllImport(X11)]
@@ -103,7 +109,17 @@ public class LinuxScreenCapture : IScreenCapture
         {
             int screen = XDefaultScreen(display);
             IntPtr root = XRootWindow(display, screen);
-            IntPtr image = XGetImage(display, root, x, y, (uint)width, (uint)height, AllPlanes, ZPixmap);
+
+            // X refuses to read anything outside the root window, so only the part on the screen is read;
+            // the rest stays zero, at the right offset, for callers that capture around the cursor.
+            int left = Math.Max(x, 0), top = Math.Max(y, 0);
+            int right = Math.Min(x + width, XDisplayWidth(display, screen));
+            int bottom = Math.Min(y + height, XDisplayHeight(display, screen));
+            if (right <= left || bottom <= top)
+            {
+                return pixels;
+            }
+            IntPtr image = XGetImage(display, root, left, top, (uint)(right - left), (uint)(bottom - top), AllPlanes, ZPixmap);
 
             if (image == IntPtr.Zero)
             {
@@ -112,12 +128,12 @@ public class LinuxScreenCapture : IScreenCapture
 
             try
             {
-                for (int row = 0; row < height; row++)
+                for (int row = 0; row < bottom - top; row++)
                 {
-                    for (int col = 0; col < width; col++)
+                    for (int col = 0; col < right - left; col++)
                     {
                         uint pixel = XGetPixel(image, col, row);
-                        int index = (row * width + col) * 4;
+                        int index = ((top - y + row) * width + (left - x + col)) * 4;
 
                         pixels[index] = (byte)((pixel >> 16) & 0xFF);     // R
                         pixels[index + 1] = (byte)((pixel >> 8) & 0xFF);  // G

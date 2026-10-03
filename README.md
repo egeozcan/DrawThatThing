@@ -49,6 +49,12 @@ Wayland is not supported.
    stores the color and its position on the screen, and clicks there whenever it needs that color.
    Tick **BG Color** for the background color.
 
+   To pick a whole palette at once, hover the middle of one of its colors and press the *pick similar
+   swatches* hotkey: every flat-colored swatch of about the same size around the cursor is added. For
+   a palette that does not work with, set the grid size next to the palette (columns × rows), press
+   the *pick palette grid corner* hotkey on the center of the first swatch and again on the center of
+   the last one. Colors the palette already has are not added twice.
+
    If the program's palette only appears after clicking a button, pick that button first and tick
    **Opener** on its row. Then open the palette and pick its colors. The opener is clicked before
    any color listed below it, up to the next opener row, so palettes behind different buttons work
@@ -66,6 +72,8 @@ Palettes can be saved and loaded as CSV files with **Export** and **Import**.
 | Shift+Alt+C | Control+Option+C | Stop drawing |
 | Shift+Alt+S | Control+Option+S | Set the start position to the cursor |
 | Shift+Alt+A | Control+Option+A | Add the color under the cursor to the palette |
+| Shift+Alt+F | Control+Option+F | Add all color swatches like the one under the cursor |
+| Shift+Alt+G | Control+Option+G | Pick a palette grid: press on its first swatch, then on its last |
 | Shift+Alt+D | Control+Option+D | Show or hide the debug panel |
 | Shift+Alt+Q | Control+Option+Q | Add the cursor position as a debug point |
 

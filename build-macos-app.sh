@@ -57,9 +57,10 @@ cat > "$APP_DIR/Contents/Info.plist" <<PLIST
 PLIST
 
 if command -v codesign >/dev/null 2>&1; then
-    # An ad-hoc signature is enough for running locally. macOS ties granted permissions to this exact
-    # build, so after rebuilding they have to be granted again.
-    codesign --force --deep --sign - "$APP_DIR"
+    # macOS ties granted permissions to the code signature. An ad-hoc signature (the default) changes with every
+    # build, so the permissions have to be granted again after each rebuild. Signing with a real identity keeps
+    # them: SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" ./build-macos-app.sh
+    codesign --force --deep --sign "${SIGN_IDENTITY:--}" "$APP_DIR"
 fi
 
 echo ""

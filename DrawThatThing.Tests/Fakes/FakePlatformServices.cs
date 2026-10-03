@@ -22,5 +22,9 @@ public class FakeScreenCapture : IScreenCapture
 
     public (byte R, byte G, byte B)? GetPixelColor(int x, int y) => Color;
 
-    public byte[] CaptureRegion(int x, int y, int width, int height) => new byte[width * height * 4];
+    /// <summary>Draws the screen contents for a captured region; blank when not set.</summary>
+    public Func<int, int, int, int, byte[]>? Region { get; set; }
+
+    public byte[] CaptureRegion(int x, int y, int width, int height) =>
+        Region?.Invoke(x, y, width, height) ?? new byte[width * height * 4];
 }
