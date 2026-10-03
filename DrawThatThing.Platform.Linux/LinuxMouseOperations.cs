@@ -31,6 +31,9 @@ public class LinuxMouseOperations : IMouseOperations
     private static extern int XFlush(IntPtr display);
 
     [DllImport(XTest)]
+    private static extern int XTestFakeMotionEvent(IntPtr display, int screen, int x, int y, ulong delay);
+
+    [DllImport(XTest)]
     private static extern int XTestFakeButtonEvent(IntPtr display, uint button, bool is_press, ulong delay);
 
     private const uint Button1 = 1; // Left
@@ -50,9 +53,8 @@ public class LinuxMouseOperations : IMouseOperations
         var display = GetDisplay();
         if (display == IntPtr.Zero) return;
 
-        int screen = XDefaultScreen(display);
-        IntPtr root = XRootWindow(display, screen);
-        XWarpPointer(display, IntPtr.Zero, root, 0, 0, 0, 0, x, y);
+        // XTest motion is seen by applications as real pointer motion (drags), unlike a plain warp.
+        XTestFakeMotionEvent(display, XDefaultScreen(display), x, y, 0);
         XFlush(display);
     }
 

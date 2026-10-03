@@ -62,7 +62,12 @@ public class MouseDragAction
             yield break;
         }
 
+        // Let the cursor settle on the start before pressing; an instant move+press can register at the old position.
         mouse.SetCursorPosition(points[0].X + offset.X, points[0].Y + offset.Y);
+        if (Wait(SettleTime, cancellationToken))
+        {
+            yield break;
+        }
         mouse.LeftMouseDown();
         try
         {
@@ -89,7 +94,11 @@ public class MouseDragAction
         {
             mouse.LeftMouseUp();
         }
+        // Keep this release apart from the next press, or the two can merge into a double click or a continued stroke.
+        Wait(SettleTime, cancellationToken);
     }
+
+    private const int SettleTime = 15;
 
     /// <summary>Sleeps for the given time; returns true if cancelled.</summary>
     private static bool Wait(int milliseconds, CancellationToken cancellationToken)

@@ -938,7 +938,11 @@ public partial class MainWindowViewModel : ViewModelBase
         }
         finally
         {
-            _playCancellation = null;
+            // A newer playback may already own the handle.
+            if (ReferenceEquals(_playCancellation, cancellation))
+            {
+                _playCancellation = null;
+            }
         }
 
         // Only once this playback no longer owns the Stop hotkey, because another one may start meanwhile.
@@ -1001,11 +1005,16 @@ public partial class MainWindowViewModel : ViewModelBase
                             return;
                         }
                         var xy = cor.Where(x => x.Trim().Length > 0).ToArray();
+                        if (xy.Length < 2)
+                        {
+                            continue;
+                        }
                         var cx = int.Parse(xy[0], CultureInfo.InvariantCulture);
                         var cy = int.Parse(xy[1], CultureInfo.InvariantCulture);
                         mouse.SetCursorPosition(cx, cy);
                         if (!started)
                         {
+                            token.WaitHandle.WaitOne(15);
                             started = true;
                             mouse.LeftMouseDown();
                         }
@@ -1014,8 +1023,12 @@ public partial class MainWindowViewModel : ViewModelBase
                 }
                 finally
                 {
-                    mouse.LeftMouseUp();
+                    if (started)
+                    {
+                        mouse.LeftMouseUp();
+                    }
                 }
+                token.WaitHandle.WaitOne(15);
             }
         });
     }
