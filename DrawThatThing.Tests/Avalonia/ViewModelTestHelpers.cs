@@ -12,7 +12,13 @@ internal static class ViewModelTestHelpers
     {
         var platform = new FakePlatformServices { Platform = PlatformType.Windows };
         var dialogs = new FakeDialogService();
-        return (new MainWindowViewModel(platform, dialogs), platform, dialogs);
+        var viewModel = new MainWindowViewModel(platform, dialogs)
+        {
+            PlaybackCountdownSeconds = 0,
+            MousePositionX = "0",
+            MousePositionY = "0"
+        };
+        return (viewModel, platform, dialogs);
     }
 
     /// <summary>Runs the UI thread's queued work until the condition holds.</summary>

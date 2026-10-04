@@ -59,6 +59,31 @@ public class LinuxScreenCapture : IScreenCapture
 
     public (byte R, byte G, byte B)? GetPixelColor(int x, int y)
     {
+        try
+        {
+            return ReadPixelColor(x, y);
+        }
+        catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException)
+        {
+            // Without X11 the screen cannot be read; callers report that.
+            return null;
+        }
+    }
+
+    public byte[] CaptureRegion(int x, int y, int width, int height)
+    {
+        try
+        {
+            return ReadRegion(x, y, width, height);
+        }
+        catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException)
+        {
+            return new byte[width * height * 4];
+        }
+    }
+
+    private static (byte R, byte G, byte B)? ReadPixelColor(int x, int y)
+    {
         IntPtr display = XOpenDisplay(IntPtr.Zero);
         if (display == IntPtr.Zero)
         {
@@ -95,7 +120,7 @@ public class LinuxScreenCapture : IScreenCapture
         }
     }
 
-    public byte[] CaptureRegion(int x, int y, int width, int height)
+    private static byte[] ReadRegion(int x, int y, int width, int height)
     {
         byte[] pixels = new byte[width * height * 4];
 

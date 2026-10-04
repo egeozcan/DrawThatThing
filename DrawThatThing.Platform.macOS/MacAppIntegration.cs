@@ -88,7 +88,8 @@ public static class MacAppIntegration
         }
         catch
         {
-            return true;
+            // The permission cannot be queried, so it cannot be assumed to be granted.
+            return false;
         }
     }
 

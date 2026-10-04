@@ -41,6 +41,49 @@ public class LinuxHotkeyManager : IHotkeyManager
     [DllImport(X11)]
     private static extern int XSync(IntPtr display, bool discard);
 
+    [DllImport(X11)]
+    private static extern IntPtr XSetErrorHandler(IntPtr handler);
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private delegate int XErrorHandler(IntPtr display, IntPtr errorEvent);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct XErrorEvent
+    {
+        public int type;
+        public IntPtr display;
+        public nuint resourceid;
+        public nuint serial;
+        public byte error_code;
+        public byte request_code;
+        public byte minor_code;
+    }
+
+    private const byte BadAccess = 10;
+    private const byte XGrabKeyRequest = 33;
+
+    // Kept in static fields so the native side never calls a collected delegate.
+    private static readonly XErrorHandler GrabErrorHandler = OnXError;
+    private static volatile bool _grabRefused;
+    private static IntPtr _previousErrorHandler;
+
+    /// <summary>
+    /// Xlib's default handler exits the whole process on any error, e.g. when another client already holds a key.
+    /// A refused grab is recorded instead; other errors go to the handler that was installed before.
+    /// </summary>
+    private static int OnXError(IntPtr display, IntPtr errorEvent)
+    {
+        var error = Marshal.PtrToStructure<XErrorEvent>(errorEvent);
+        if (error.error_code == BadAccess && error.request_code == XGrabKeyRequest)
+        {
+            _grabRefused = true;
+            return 0;
+        }
+        return _previousErrorHandler != IntPtr.Zero
+            ? Marshal.GetDelegateForFunctionPointer<XErrorHandler>(_previousErrorHandler)(display, errorEvent)
+            : 0;
+    }
+
     private const int KeyPress = 2;
     private const int GrabModeAsync = 1;
     private const int XEventSize = 24 * 8;
@@ -92,11 +135,30 @@ public class LinuxHotkeyManager : IHotkeyManager
             {
                 return false;
             }
-            foreach (var ignored in IgnoredModifierCombinations)
+            _grabRefused = false;
+            _previousErrorHandler = XSetErrorHandler(Marshal.GetFunctionPointerForDelegate(GrabErrorHandler));
+            try
             {
-                XGrabKey(_display, keycode, nativeModifiers | ignored, _root, false, GrabModeAsync, GrabModeAsync);
+                foreach (var ignored in IgnoredModifierCombinations)
+                {
+                    XGrabKey(_display, keycode, nativeModifiers | ignored, _root, false, GrabModeAsync, GrabModeAsync);
+                }
+                XSync(_display, false);
             }
-            XSync(_display, false);
+            finally
+            {
+                XSetErrorHandler(_previousErrorHandler);
+            }
+            if (_grabRefused)
+            {
+                // Another client owns the combination; give back the variants that were granted.
+                foreach (var ignored in IgnoredModifierCombinations)
+                {
+                    XUngrabKey(_display, keycode, nativeModifiers | ignored, _root);
+                }
+                XSync(_display, false);
+                return false;
+            }
             _registeredHotkeys[id] = (keycode, nativeModifiers);
             return true;
         });

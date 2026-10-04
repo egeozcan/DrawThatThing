@@ -40,10 +40,15 @@ public class AbstractReader : IBitmapReader
         _bitmapWidth = bitmap.Width;
         _colors = new int[bitmap.Width, bitmap.Height];
         _colorsProcessed = new bool[bitmap.Width, bitmap.Height];
+        var closestCache = new Dictionary<Color, int>();
         bitmap.LoopThroughPixels((point, currentColor) =>
         {
-            ColorSpot? closestColor = knownColors.OrderBy(c => c.Color.DifferenceTo(currentColor)).FirstOrDefault();
-            _colors[point.X, point.Y] = closestColor == null ? -1 : knownColors.IndexOf(closestColor);
+            if (!closestCache.TryGetValue(currentColor, out var closestIndex))
+            {
+                closestIndex = DetailedReader.GetClosestColorIndex(knownColors, currentColor);
+                closestCache[currentColor] = closestIndex;
+            }
+            _colors[point.X, point.Y] = closestIndex;
         });
 
         var colorGroups = new List<List<Point>>();
@@ -87,7 +92,7 @@ public class AbstractReader : IBitmapReader
         // top
         int newX = x;
         int newY = y - 1;
-        if (newY > 0 && !_colorsProcessed[newX, newY] && _colors[x, y] == _colors[newX, newY])
+        if (newY >= 0 && !_colorsProcessed[newX, newY] && _colors[x, y] == _colors[newX, newY])
         {
             directNeighbors.Add(new Point(newX, newY));
         }
@@ -108,7 +113,7 @@ public class AbstractReader : IBitmapReader
         // left
         newX = x - 1;
         newY = y;
-        if (newX > 0 && !_colorsProcessed[newX, newY] && _colors[x, y] == _colors[newX, newY])
+        if (newX >= 0 && !_colorsProcessed[newX, newY] && _colors[x, y] == _colors[newX, newY])
         {
             directNeighbors.Add(new Point(newX, newY));
         }

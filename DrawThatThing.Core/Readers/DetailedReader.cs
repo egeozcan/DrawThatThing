@@ -94,6 +94,11 @@ public class DetailedReader : IBitmapReader
         var output = new List<MouseDragAction>();
         for (int i = 0; i < colorCount; i++)
         {
+            // An unused color is not worth the (slow) palette click, and the ignored color is never drawn.
+            if (i == ignoreColorIndex || strokesForEachColor[i].Count == 0)
+            {
+                continue;
+            }
             ColorSpot paletteColorSpot = paletteColorSpots[i];
             output.Add(new MouseDragAction([paletteColorSpot.Point], true, paletteColorSpot.Color));
             foreach (Stroke stroke in strokesForEachColor[i])
@@ -108,7 +113,7 @@ public class DetailedReader : IBitmapReader
     /// <summary>
     /// Index of the palette color closest to the given color, the first one if several are equally close.
     /// </summary>
-    private static int GetClosestColorIndex(List<ColorSpot> paletteColorSpots, Color color)
+    internal static int GetClosestColorIndex(List<ColorSpot> paletteColorSpots, Color color)
     {
         int closestIndex = 0;
         int closestDifference = int.MaxValue;

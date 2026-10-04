@@ -25,6 +25,19 @@ public class PaletteFileTests
     }
 
     [AvaloniaFact]
+    public async Task OpenerRowsWithoutAColorSurviveImport()
+    {
+        var (viewModel, _, dialogs) = CreateViewModel();
+        var csv = TestFiles.NewPath(".csv");
+        File.WriteAllLines(csv, ["X;Y;RGB;BG;Opener", "800;5;;False;True", "1;2;#FF0000;false;false"]);
+        dialogs.ImportPath = csv;
+        await viewModel.ImportColorsCommand.ExecuteAsync(null);
+
+        var rows = viewModel.ColorPalette.Where(row => !row.IsNewRow).Select(row => (row.X, row.Y, row.IsOpener));
+        Assert.Equal([("800", "5", true), ("1", "2", false)], rows);
+    }
+
+    [AvaloniaFact]
     public async Task PalettesExportedWithoutTheBackgroundColumnCanStillBeImported()
     {
         var (viewModel, _, dialogs) = CreateViewModel();

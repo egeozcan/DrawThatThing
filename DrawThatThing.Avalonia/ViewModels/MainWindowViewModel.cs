@@ -47,6 +47,29 @@ public partial class MainWindowViewModel : ViewModelBase
     private bool _hotkeyEventsSubscribed;
     private CancellationTokenSource? _playCancellation;
     private Task _playTask = Task.CompletedTask;
+    private bool _hotkeysRegistered;
+    private int _openDialogs;
+
+    public const string MissingInputAccessMessage =
+        "DrawThatThing is not allowed to control the mouse. Allow it under System Settings → Privacy & Security → Accessibility, then restart it.";
+
+    /// <summary>Seconds shown before PLAY or TEST starts moving the mouse, to bring the target program forward.</summary>
+    public int PlaybackCountdownSeconds { get; set; } = 3;
+
+    /// <summary>Returns whether this app may control the mouse (macOS Accessibility); null when nothing needs checking.</summary>
+    public Func<bool>? InputAccessCheck { get; set; }
+
+    /// <summary>Raised on the UI thread just before the mouse is driven, so the window can get out of the way.</summary>
+    public event EventHandler? PlaybackBegan;
+
+    /// <summary>Raised on the UI thread after a playback ended.</summary>
+    public event EventHandler? PlaybackEnded;
+
+    /// <summary>Raised on the UI thread before the screen is read, so overlay windows can hide first.</summary>
+    public event EventHandler? ScreenReadStarting;
+
+    /// <summary>True while a native file dialog is open.</summary>
+    public bool IsDialogOpen => _openDialogs > 0;
 
     public MainWindowViewModel(IPlatformServices? platformServices, IDialogService dialogs)
     {
@@ -118,10 +141,14 @@ public partial class MainWindowViewModel : ViewModelBase
     private string _paletteStatus = string.Empty;
 
     [ObservableProperty]
-    private string _mousePositionX = "0";
+    private string _mousePositionX = string.Empty;
 
     [ObservableProperty]
-    private string _mousePositionY = "0";
+    private string _mousePositionY = string.Empty;
+
+    /// <summary>What PLAY and TEST are doing (countdown, drawing, done), or why they cannot start.</summary>
+    [ObservableProperty]
+    private string _playbackStatus = string.Empty;
 
     [ObservableProperty]
     private bool _canLoadImage = true;
@@ -190,6 +217,7 @@ public partial class MainWindowViewModel : ViewModelBase
     /// </summary>
     public void RegisterHotkeys()
     {
+        _hotkeysRegistered = true;
         var hotkeyManager = _platformServices?.Hotkeys;
         var candidates = new List<HotkeyModifiers>();
         if (_platformServices?.Platform == PlatformType.macOS && OperatingSystem.IsMacOSVersionAtLeast(15))
@@ -355,6 +383,20 @@ public partial class MainWindowViewModel : ViewModelBase
 
     public bool IsPlaying => !_playTask.IsCompleted;
 
+    /// <summary>Runs a native file dialog, flagging it so overlays do not cover it.</summary>
+    private async Task<string?> PickAsync(Func<Task<string?>> pick)
+    {
+        _openDialogs++;
+        try
+        {
+            return await pick();
+        }
+        finally
+        {
+            _openDialogs--;
+        }
+    }
+
     public bool CursorUnitsArePoints => _platformServices?.Platform == PlatformType.macOS;
 
     public (int X, int Y)? TryGetCursorPosition() => _platformServices?.Mouse.GetCursorPosition();
@@ -379,6 +421,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         CancelGridPick();
+        ScreenReadStarting?.Invoke(this, EventArgs.Empty);
         var (x, y) = _platformServices.Mouse.GetCursorPosition();
         if (_platformServices.ScreenCapture.GetPixelColor(x, y) is not { } color)
         {
@@ -418,6 +461,7 @@ public partial class MainWindowViewModel : ViewModelBase
         }
 
         CancelGridPick();
+        ScreenReadStarting?.Invoke(this, EventArgs.Empty);
         var (cursorX, cursorY) = _platformServices.Mouse.GetCursorPosition();
         if (_platformServices.ScreenCapture.GetPixelColor(cursorX, cursorY) == null)
         {
@@ -492,6 +536,7 @@ public partial class MainWindowViewModel : ViewModelBase
             _ = _dialogs.ShowMessageAsync("The two corners need to be on different swatches. Pick the grid again.");
             return;
         }
+        ScreenReadStarting?.Invoke(this, EventArgs.Empty);
         if (_platformServices.ScreenCapture.GetPixelColor(cursor.X, cursor.Y) == null)
         {
             PaletteStatus = string.Empty;
@@ -636,7 +681,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private async Task ExportColorsAsync()
     {
-        var fileName = await _dialogs.PickPaletteExportPathAsync();
+        var fileName = await PickAsync(_dialogs.PickPaletteExportPathAsync);
         if (string.IsNullOrWhiteSpace(fileName))
         {
             return;
@@ -652,6 +697,7 @@ public partial class MainWindowViewModel : ViewModelBase
         try
         {
             await File.WriteAllTextAsync(fileName, sb.ToString());
+            PaletteStatus = $"Exported {ColorPalette.Count(row => !row.IsNewRow)} rows to {fileName}";
         }
         catch (Exception ex)
         {
@@ -662,27 +708,47 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private async Task ImportColorsAsync()
     {
-        var fileName = await _dialogs.PickPaletteToImportAsync();
+        var fileName = await PickAsync(_dialogs.PickPaletteToImportAsync);
         if (string.IsNullOrWhiteSpace(fileName))
         {
             return;
         }
 
-        List<string[]> values;
+        string[] lines;
         try
         {
-            values = (await File.ReadAllLinesAsync(fileName))
-                .Skip(1)
-                .Where(line => !string.IsNullOrWhiteSpace(line))
-                .Select(line => line.Split(';'))
-                .ToList();
+            lines = await File.ReadAllLinesAsync(fileName);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            await _dialogs.ShowMessageAsync($"The palette could not be read: {ex.Message}");
             return;
         }
-        if (values.Count == 0)
+
+        var imported = new List<(string X, string Y, string Rgb, bool Background, bool Opener)>();
+        var skipped = 0;
+        foreach (var line in lines.Skip(1).Where(line => !string.IsNullOrWhiteSpace(line)))
         {
+            var value = line.Split(';');
+            var rgb = value.ElementAtOrDefault(2)?.Trim() ?? string.Empty;
+            var opener = (value.ElementAtOrDefault(4) ?? string.Empty).Trim().ToBool();
+            var validOpener = opener && int.TryParse(value[0].Trim(), out _) && int.TryParse(value.ElementAtOrDefault(1)?.Trim(), out _);
+            if (value.Length < 3 || (rgb.ToColor().IsEmpty && !validOpener))
+            {
+                skipped++;
+                continue;
+            }
+            imported.Add((
+                value[0].Trim(),
+                value[1].Trim(),
+                rgb,
+                (value.ElementAtOrDefault(3) ?? string.Empty).Trim().ToBool(),
+                opener));
+        }
+        if (imported.Count == 0)
+        {
+            await _dialogs.ShowMessageAsync(
+                "That file has no palette colors. Expected rows of X;Y;RGB;BG;Opener, as written by Export.");
             return;
         }
 
@@ -690,15 +756,11 @@ public partial class MainWindowViewModel : ViewModelBase
         {
             ColorPalette.Remove(row);
         }
-        foreach (var value in values)
+        foreach (var (x, y, rgb, background, opener) in imported)
         {
-            AddPaletteRow(
-                value.ElementAtOrDefault(0)?.Trim() ?? string.Empty,
-                value.ElementAtOrDefault(1)?.Trim() ?? string.Empty,
-                value.ElementAtOrDefault(2)?.Trim() ?? string.Empty,
-                (value.ElementAtOrDefault(3) ?? string.Empty).Trim().ToBool(),
-                (value.ElementAtOrDefault(4) ?? string.Empty).Trim().ToBool());
+            AddPaletteRow(x, y, rgb, background, opener);
         }
+        PaletteStatus = $"Imported {imported.Count} rows." + (skipped > 0 ? $" {skipped} invalid rows skipped." : string.Empty);
     }
 
     #endregion
@@ -732,7 +794,7 @@ public partial class MainWindowViewModel : ViewModelBase
     [RelayCommand]
     private async Task LoadImageAsync()
     {
-        var imagePath = await _dialogs.PickImageAsync();
+        var imagePath = await PickAsync(_dialogs.PickImageAsync);
         if (string.IsNullOrWhiteSpace(imagePath) || !File.Exists(imagePath))
         {
             return;
@@ -852,7 +914,7 @@ public partial class MainWindowViewModel : ViewModelBase
             return [];
         }
         return GetColorPalette()
-            .Where(colorSpot => _actions!.All(x => x.Color.DifferenceTo(colorSpot.Color) != 0))
+            .Where(colorSpot => _actions!.Where(x => x.DiscardOffset && !x.Color.IsEmpty).All(x => x.Color.DifferenceTo(colorSpot.Color) != 0))
             .Where(colorSpot => colorSpot.Color.DifferenceTo(CoreColor.White) != 0)
             .Select(x => x.Color)
             .ToList();
@@ -888,16 +950,29 @@ public partial class MainWindowViewModel : ViewModelBase
     #region Playback
 
     [RelayCommand]
-    private Task PlayAsync()
+    private async Task PlayAsync()
     {
         if (_actions == null)
         {
-            return Task.CompletedTask;
+            await _dialogs.ShowMessageAsync("Parse an image first.");
+            return;
+        }
+        if (_actions.Count == 0)
+        {
+            await _dialogs.ShowMessageAsync("The image produced nothing to draw. Check the palette and the parser settings.");
+            return;
+        }
+        if (!int.TryParse(MousePositionX, NumberStyles.Integer, CultureInfo.InvariantCulture, out var startX)
+            || !int.TryParse(MousePositionY, NumberStyles.Integer, CultureInfo.InvariantCulture, out var startY))
+        {
+            await _dialogs.ShowMessageAsync(
+                $"Set the mouse start position first: hover where the drawing should start and press {SetStartPositionShortcutText}, or type whole numbers into X and Y.");
+            return;
         }
 
         var actions = _actions.ToList();
-        var offset = new Point(MousePositionX.ToInt(), MousePositionY.ToInt());
-        return RunPlaybackAsync((mouse, token) =>
+        var offset = new Point(startX, startY);
+        await RunPlaybackAsync((mouse, token) =>
         {
             foreach (var action in actions.TakeWhile(_ => !token.IsCancellationRequested))
             {
@@ -923,10 +998,54 @@ public partial class MainWindowViewModel : ViewModelBase
             return;
         }
 
+        // Without a working Stop shortcut the mouse could not be taken back from a playback.
+        if (_hotkeysRegistered && _windowOnlyHotkeys.ContainsKey(StopMouseHotkey))
+        {
+            await _dialogs.ShowMessageAsync(
+                "The Stop shortcut could not be registered system-wide, so drawing could not be stopped while another program is in front. Free that shortcut (another application probably uses it) and restart DrawThatThing.");
+            return;
+        }
+        if (InputAccessCheck != null && !InputAccessCheck())
+        {
+            PlaybackStatus = MissingInputAccessMessage;
+            await _dialogs.ShowMessageAsync(MissingInputAccessMessage);
+            return;
+        }
+
         var mouse = _platformServices.Mouse;
+        var countdown = Math.Max(0, PlaybackCountdownSeconds);
+        var stopHint = StopMouseShortcutText;
         using var cancellation = new CancellationTokenSource();
         _playCancellation = cancellation;
-        _playTask = Task.Run(() => playback(mouse, cancellation.Token));
+        PlaybackStatus = countdown > 0 ? CountdownText(countdown, stopHint) : DrawingText(stopHint);
+        _playTask = Task.Run(() =>
+        {
+            for (var left = countdown; left > 0; left--)
+            {
+                var text = CountdownText(left, stopHint);
+                global::Avalonia.Threading.Dispatcher.UIThread.Post(() => PlaybackStatus = text);
+                if (cancellation.Token.WaitHandle.WaitOne(1000))
+                {
+                    return;
+                }
+            }
+            if (cancellation.IsCancellationRequested)
+            {
+                return;
+            }
+            global::Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                PlaybackStatus = DrawingText(stopHint);
+                PlaybackBegan?.Invoke(this, EventArgs.Empty);
+            });
+            if (PlaybackBegan != null)
+            {
+                // Let the window finish getting out of the way of the target program.
+                cancellation.Token.WaitHandle.WaitOne(600);
+            }
+            playback(mouse, cancellation.Token);
+        });
+        OnPropertyChanged(nameof(IsPlaying));
         Exception? error = null;
         try
         {
@@ -945,12 +1064,23 @@ public partial class MainWindowViewModel : ViewModelBase
             }
         }
 
+        PlaybackStatus = error != null ? "Stopped because of an error."
+            : cancellation.IsCancellationRequested ? "Stopped."
+            : "Done.";
+        OnPropertyChanged(nameof(IsPlaying));
+        PlaybackEnded?.Invoke(this, EventArgs.Empty);
+
         // Only once this playback no longer owns the Stop hotkey, because another one may start meanwhile.
         if (error != null)
         {
             await _dialogs.ShowMessageAsync(error.Message);
         }
     }
+
+    private static string CountdownText(int seconds, string stopHint) =>
+        $"Starting in {seconds}... bring the target program to the front. Stop: {stopHint}";
+
+    private static string DrawingText(string stopHint) => $"Drawing... Stop: {stopHint}";
 
     private void StopPlayback()
     {

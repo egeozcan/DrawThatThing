@@ -222,4 +222,75 @@ public class PlaybackTests
 
         Assert.Equal("-100|5", viewModel.DebugRoutes);
     }
+
+    [AvaloniaFact]
+    public async Task PlayWithoutAParsedImageSaysSo()
+    {
+        var (viewModel, platform, dialogs) = CreateViewModel();
+
+        await viewModel.PlayCommand.ExecuteAsync(null);
+
+        Assert.Equal(["Parse an image first."], dialogs.Messages);
+        Assert.Empty(platform.FakeMouse.Log);
+    }
+
+    [AvaloniaFact]
+    public async Task PlayRefusesAnUnsetOrInvalidStartPosition()
+    {
+        var (viewModel, platform, dialogs) = CreateViewModel();
+        await LoadDrawingAsync(viewModel, dialogs, (1, 2));
+        viewModel.MousePositionX = "";
+        viewModel.MousePositionY = "abc";
+
+        await viewModel.PlayCommand.ExecuteAsync(null);
+
+        Assert.Single(dialogs.Messages);
+        Assert.Contains("start position", dialogs.Messages[0]);
+        Assert.Empty(platform.FakeMouse.Log);
+    }
+
+    [AvaloniaFact]
+    public async Task PlayRefusesToStartWithoutAWorkingStopHotkey()
+    {
+        var (viewModel, platform, dialogs) = CreateViewModel();
+        platform.FakeHotkeys.Taken.Add((DrawThatThing.Platform.HotkeyModifiers.Shift | DrawThatThing.Platform.HotkeyModifiers.Alt, 'C'));
+        viewModel.RegisterHotkeys();
+        await LoadDrawingAsync(viewModel, dialogs, (1, 2));
+
+        await viewModel.PlayCommand.ExecuteAsync(null);
+
+        Assert.Single(dialogs.Messages);
+        Assert.Contains("Stop", dialogs.Messages[0]);
+        Assert.Empty(platform.FakeMouse.Log);
+    }
+
+    [AvaloniaFact]
+    public async Task PlayRefusesToStartWithoutInputAccess()
+    {
+        var (viewModel, platform, dialogs) = CreateViewModel();
+        await LoadDrawingAsync(viewModel, dialogs, (1, 2));
+        viewModel.InputAccessCheck = () => false;
+
+        await viewModel.PlayCommand.ExecuteAsync(null);
+
+        Assert.Equal([MainWindowViewModel.MissingInputAccessMessage], dialogs.Messages);
+        Assert.Empty(platform.FakeMouse.Log);
+    }
+
+    [AvaloniaFact]
+    public async Task PlaybackCountsDownAndStopCancelsIt()
+    {
+        var (viewModel, platform, dialogs) = CreateViewModel();
+        await LoadDrawingAsync(viewModel, dialogs, (1, 2));
+        viewModel.PlaybackCountdownSeconds = 30;
+
+        var play = viewModel.PlayCommand.ExecuteAsync(null);
+        Assert.True(viewModel.IsPlaying);
+        Assert.Contains("Starting in", viewModel.PlaybackStatus);
+        viewModel.HandleHotkey(MainWindowViewModel.StopMouseHotkey);
+        WaitUntil(() => play.IsCompleted);
+
+        Assert.Empty(platform.FakeMouse.Log);
+        Assert.False(viewModel.IsPlaying);
+    }
 }

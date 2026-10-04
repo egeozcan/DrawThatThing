@@ -45,8 +45,34 @@ public class LinuxMouseOperations : IMouseOperations
 
     private IntPtr GetDisplay()
     {
-        _display ??= XOpenDisplay(IntPtr.Zero);
+        try
+        {
+            _display ??= XOpenDisplay(IntPtr.Zero);
+        }
+        catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException)
+        {
+            _display = IntPtr.Zero;
+            _missingLibrary = true;
+        }
         return _display.Value;
+    }
+
+    private bool _missingLibrary;
+
+    private const string XTestRequired =
+        "Controlling the mouse on Linux needs an X11 session and the XTest library (libXtst.so.6). Install libxtst6 and run under X11 (not Wayland).";
+
+    /// <summary>Calls XTest, reporting a missing library as a readable error instead of crashing the caller.</summary>
+    private static void FakeInput(Action call)
+    {
+        try
+        {
+            call();
+        }
+        catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException)
+        {
+            throw new InvalidOperationException(XTestRequired, ex);
+        }
     }
 
     public void SetCursorPosition(int x, int y)
@@ -54,10 +80,14 @@ public class LinuxMouseOperations : IMouseOperations
         lock (_lock)
         {
             var display = GetDisplay();
-            if (display == IntPtr.Zero) return;
+            if (display == IntPtr.Zero)
+            {
+                if (_missingLibrary) throw new InvalidOperationException(XTestRequired);
+                return;
+            }
 
             // XTest motion is seen by applications as real pointer motion (drags), unlike a plain warp.
-            XTestFakeMotionEvent(display, XDefaultScreen(display), x, y, 0);
+            FakeInput(() => XTestFakeMotionEvent(display, XDefaultScreen(display), x, y, 0));
             XFlush(display);
         }
     }
@@ -85,9 +115,13 @@ public class LinuxMouseOperations : IMouseOperations
         lock (_lock)
         {
             var display = GetDisplay();
-            if (display == IntPtr.Zero) return;
+            if (display == IntPtr.Zero)
+            {
+                if (_missingLibrary) throw new InvalidOperationException(XTestRequired);
+                return;
+            }
 
-            XTestFakeButtonEvent(display, Button1, true, 0);
+            FakeInput(() => XTestFakeButtonEvent(display, Button1, true, 0));
             XFlush(display);
         }
     }
@@ -97,9 +131,13 @@ public class LinuxMouseOperations : IMouseOperations
         lock (_lock)
         {
             var display = GetDisplay();
-            if (display == IntPtr.Zero) return;
+            if (display == IntPtr.Zero)
+            {
+                if (_missingLibrary) throw new InvalidOperationException(XTestRequired);
+                return;
+            }
 
-            XTestFakeButtonEvent(display, Button1, false, 0);
+            FakeInput(() => XTestFakeButtonEvent(display, Button1, false, 0));
             XFlush(display);
         }
     }
@@ -109,9 +147,13 @@ public class LinuxMouseOperations : IMouseOperations
         lock (_lock)
         {
             var display = GetDisplay();
-            if (display == IntPtr.Zero) return;
+            if (display == IntPtr.Zero)
+            {
+                if (_missingLibrary) throw new InvalidOperationException(XTestRequired);
+                return;
+            }
 
-            XTestFakeButtonEvent(display, Button3, true, 0);
+            FakeInput(() => XTestFakeButtonEvent(display, Button3, true, 0));
             XFlush(display);
         }
     }
@@ -121,9 +163,13 @@ public class LinuxMouseOperations : IMouseOperations
         lock (_lock)
         {
             var display = GetDisplay();
-            if (display == IntPtr.Zero) return;
+            if (display == IntPtr.Zero)
+            {
+                if (_missingLibrary) throw new InvalidOperationException(XTestRequired);
+                return;
+            }
 
-            XTestFakeButtonEvent(display, Button3, false, 0);
+            FakeInput(() => XTestFakeButtonEvent(display, Button3, false, 0));
             XFlush(display);
         }
     }

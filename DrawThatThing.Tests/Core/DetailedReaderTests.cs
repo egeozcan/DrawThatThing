@@ -47,7 +47,6 @@ public class DetailedReaderTests : IDisposable
         [
             "click #000000FF 100,100",
             "drag #00000000 1,0 0,0 0,1 0,2 1,1 1,2",
-            "click #FFFFFFFF 200,100",
         ], Describe(actions));
     }
 
@@ -135,7 +134,9 @@ public class DetailedReaderTests : IDisposable
     private void AssertMatchesReference(Color[,] image, List<ColorSpot> palette, string description)
     {
         string path = SaveImage(image);
+        // The original clicked every palette color; colors without strokes are not worth a click.
         var expected = Describe(ReferenceGetDrawInstructions(path, palette.ToList()));
+        expected = expected.Where((line, i) => !line.StartsWith("click") || (i + 1 < expected.Count && expected[i + 1].StartsWith("drag"))).ToList();
         var actual = Describe(new DetailedReader(path).GetDrawInstructions(palette.ToList()));
 
         Assert.True(expected.Count == actual.Count, $"{description}: expected {expected.Count} actions, got {actual.Count}");

@@ -25,8 +25,7 @@ public sealed class PixelBitmap
 
     public static PixelBitmap Load(string path)
     {
-        using var decoded = SKBitmap.Decode(path)
-            ?? throw new InvalidOperationException($"Could not read the image \"{Path.GetFileName(path)}\".");
+        using var decoded = DecodeOriented(path);
 
         var info = new SKImageInfo(decoded.Width, decoded.Height, SKColorType.Rgba8888, SKAlphaType.Premul);
         using var flattened = new SKBitmap(info);
@@ -58,6 +57,48 @@ public sealed class PixelBitmap
             {
                 action(new Point(x, y), GetPixel(x, y));
             }
+        }
+    }
+
+    /// <summary>Decodes the image and applies the rotation or mirroring stored in its EXIF data, like image viewers do.</summary>
+    private static SKBitmap DecodeOriented(string path)
+    {
+        using var codec = SKCodec.Create(path);
+        var failure = $"Could not read the image \"{Path.GetFileName(path)}\".";
+        if (codec == null)
+        {
+            throw new InvalidOperationException(failure);
+        }
+
+        var decoded = SKBitmap.Decode(codec) ?? throw new InvalidOperationException(failure);
+        var origin = codec.EncodedOrigin;
+        if (origin == SKEncodedOrigin.TopLeft || origin == SKEncodedOrigin.Default)
+        {
+            return decoded;
+        }
+
+        using (decoded)
+        {
+            var swap = origin is SKEncodedOrigin.LeftTop or SKEncodedOrigin.RightTop
+                or SKEncodedOrigin.RightBottom or SKEncodedOrigin.LeftBottom;
+            int w = decoded.Width, h = decoded.Height;
+            var oriented = new SKBitmap(swap ? h : w, swap ? w : h, decoded.ColorType, decoded.AlphaType);
+            using var canvas = new SKCanvas(oriented);
+            // Maps the stored pixels to the upright image.
+            var matrix = origin switch
+            {
+                SKEncodedOrigin.TopRight => new SKMatrix(-1, 0, w, 0, 1, 0, 0, 0, 1),
+                SKEncodedOrigin.BottomRight => new SKMatrix(-1, 0, w, 0, -1, h, 0, 0, 1),
+                SKEncodedOrigin.BottomLeft => new SKMatrix(1, 0, 0, 0, -1, h, 0, 0, 1),
+                SKEncodedOrigin.LeftTop => new SKMatrix(0, 1, 0, 1, 0, 0, 0, 0, 1),
+                SKEncodedOrigin.RightTop => new SKMatrix(0, -1, h, 1, 0, 0, 0, 0, 1),
+                SKEncodedOrigin.RightBottom => new SKMatrix(0, -1, h, -1, 0, w, 0, 0, 1),
+                SKEncodedOrigin.LeftBottom => new SKMatrix(0, 1, 0, -1, 0, w, 0, 0, 1),
+                _ => SKMatrix.Identity
+            };
+            canvas.SetMatrix(matrix);
+            canvas.DrawBitmap(decoded, 0, 0);
+            return oriented;
         }
     }
 }

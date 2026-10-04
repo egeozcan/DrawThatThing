@@ -19,6 +19,8 @@ public partial class MainWindow : Window
     };
 
     private bool _isClipboardPasteInFlight;
+    private WindowState _stateBeforePlayback = WindowState.Normal;
+    private bool _minimizedForPlayback;
     private GhostWindow? _ghost;
     private readonly DispatcherTimer _ghostTimer = new() { Interval = TimeSpan.FromMilliseconds(30) };
 
@@ -49,7 +51,8 @@ public partial class MainWindow : Window
         var image = vm?.PreviewImage;
         var inOtherProgram = Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop
             && !desktop.Windows.Any(w => w.IsActive);
-        if (vm == null || image == null || !inOtherProgram || vm.IsPlaying || vm.TryGetCursorPosition() is not var (x, y))
+        // X11 windows cannot be made click-through here, so the ghost would swallow the clicks meant for the drawing program.
+        if (vm == null || image == null || OperatingSystem.IsLinux() || !inOtherProgram || vm.IsPlaying || vm.IsDialogOpen || vm.TryGetCursorPosition() is not var (x, y))
         {
             _ghost?.Hide();
             return;
@@ -66,6 +69,57 @@ public partial class MainWindow : Window
         {
             vm.DebugPointAdded -= OnDebugPointAdded;
             vm.DebugPointAdded += OnDebugPointAdded;
+            vm.ScreenReadStarting -= OnScreenReadStarting;
+            vm.ScreenReadStarting += OnScreenReadStarting;
+            vm.PlaybackBegan -= OnPlaybackBegan;
+            vm.PlaybackBegan += OnPlaybackBegan;
+            vm.PlaybackEnded -= OnPlaybackEnded;
+            vm.PlaybackEnded += OnPlaybackEnded;
+            vm.PropertyChanged -= OnViewModelPropertyChanged;
+            vm.PropertyChanged += OnViewModelPropertyChanged;
+        }
+    }
+
+    private const double BaseMinHeight = 360, DebugPanelHeight = 133;
+
+    // The debug panel takes fixed space, so the window must not shrink below what keeps PLAY reachable.
+    private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(MainWindowViewModel.ShowDebugPanel) && sender is MainWindowViewModel vm)
+        {
+            MinHeight = BaseMinHeight + (vm.ShowDebugPanel ? DebugPanelHeight : 0);
+        }
+    }
+
+    /// <summary>The overlay must not be part of what a pick reads from the screen.</summary>
+    private void OnScreenReadStarting(object? sender, EventArgs e)
+    {
+        if (_ghost is { IsVisible: true })
+        {
+            _ghost.Hide();
+            // Give the window server a moment to take the overlay off the screen.
+            Thread.Sleep(80);
+        }
+    }
+
+    /// <summary>Gets out of the way of the program that is drawn into.</summary>
+    private void OnPlaybackBegan(object? sender, EventArgs e)
+    {
+        if (WindowState != WindowState.Minimized)
+        {
+            _minimizedForPlayback = true;
+            _stateBeforePlayback = WindowState;
+            WindowState = WindowState.Minimized;
+        }
+    }
+
+    private void OnPlaybackEnded(object? sender, EventArgs e)
+    {
+        if (_minimizedForPlayback)
+        {
+            _minimizedForPlayback = false;
+            WindowState = _stateBeforePlayback;
+            Activate();
         }
     }
 

@@ -28,10 +28,15 @@ public class PointReader : IBitmapReader
         var output = new List<MouseDragAction>();
         var colorPixels = colorPalette.ToDictionary(colorSpot => colorSpot, _ => new List<Point>());
         var bitmap = PixelBitmap.Load(_bitmapPath);
+        var closestCache = new Dictionary<Color, ColorSpot>();
         bitmap.LoopThroughPixels((point, color) =>
         {
-            var selectedColor = colorPalette.OrderBy(c => c.Color.DifferenceTo(color)).FirstOrDefault();
-            if (selectedColor == null || !colorPixels.ContainsKey(selectedColor) ||
+            if (!closestCache.TryGetValue(color, out var selectedColor))
+            {
+                selectedColor = colorPalette[DetailedReader.GetClosestColorIndex(colorPalette, color)];
+                closestCache[color] = selectedColor;
+            }
+            if (!colorPixels.ContainsKey(selectedColor) ||
                 selectedColor.Color.DifferenceTo(Color.White) == 0)
             {
                 return;
